@@ -55,6 +55,15 @@ We introduced a powerful custom build set designer directly integrated within th
   - **Total Poise**: Aggregate physical poise value.
   - **Total Negation**: Summed damage reduction percentages.
 
+### 3. **Side-by-Side Attribute Comparison Modal**
+- Clicking the `"Compare Set Attributes"` button opens a stunning glassmorphic overlay modal centered on the screen.
+- Dynamically generates a side-by-side grid mapping of all crucial selected item stats:
+  - **Armor Thumbnails & Category Badges**
+  - **Weight**
+  - **Damage Negations**: Physical, Strike, Slash, Pierce, Magic, Fire, Lightning, Holy.
+  - **Status Resistances & Poise**: Immunity, Robustness, Focus, Vitality, Poise.
+- Highly performant horizontal scroll mechanics prevent clipping and easily support comparison across a massive set of items.
+
 ---
 
 ## 🛠️ Unified Architectural Stack
