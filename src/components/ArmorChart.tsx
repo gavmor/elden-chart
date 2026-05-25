@@ -9,6 +9,7 @@ import ArmorChartHeader from './ArmorChartHeader';
 import ArmorChartSidebar from './ArmorChartSidebar';
 import ArmorChartPlot from './ArmorChartPlot';
 import ArmorChartTooltip from './ArmorChartTooltip';
+import ArmorCompareModal from './ArmorCompareModal';
 import { getItemStat } from './utils';
 
 // Import our generated GraphQL document compiler
@@ -48,6 +49,7 @@ export default function ArmorChart() {
 
   // Set Planner State
   const [customSet, setCustomSet] = useState<ArmorItem[]>([]);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
 
   // Interaction State
   const [hoveredItem, setHoveredItem] = useState<ArmorItem | null>(null);
@@ -200,6 +202,7 @@ export default function ArmorChart() {
           onCategoryToggle={handleCategoryToggle}
           customSet={customSet}
           onRemoveFromSet={handleToggleSet}
+          onCompareSet={() => setIsCompareOpen(true)}
         />
 
         <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>
@@ -246,6 +249,12 @@ export default function ArmorChart() {
           )}
         </main>
       </div>
+
+      <ArmorCompareModal
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        customSet={customSet}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Search, Info, X } from 'lucide-react';
+import { Search, Info, X, Scale } from 'lucide-react';
 import type { StatKey, ActiveCategories, ColorKey, ArmorItem } from './types';
 import { STAT_OPTIONS, CATEGORIES } from './types';
 import { getCategoryIcon, getItemStat } from './utils';
@@ -16,6 +16,7 @@ interface SidebarProps {
   onCategoryToggle: (cat: string, checked: boolean) => void;
   customSet: ArmorItem[];
   onRemoveFromSet: (item: ArmorItem) => void;
+  onCompareSet: () => void;
 }
 
 export default function ArmorChartSidebar({
@@ -30,7 +31,8 @@ export default function ArmorChartSidebar({
   activeCategories,
   onCategoryToggle,
   customSet,
-  onRemoveFromSet
+  onRemoveFromSet,
+  onCompareSet
 }: SidebarProps) {
   // Aggregate stats of selected build set
   const totalWeight = customSet.reduce((sum, item) => sum + item.weight, 0);
@@ -162,6 +164,13 @@ export default function ArmorChartSidebar({
                 <span className="font-semibold text-amber-500">{totalPoise}</span>
               </div>
             </div>
+
+            <button
+              onClick={onCompareSet}
+              className="w-full py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 font-semibold text-xs border border-amber-500/30 hover:border-amber-500/50 flex items-center justify-center gap-1.5 transition-all shadow-md shadow-amber-950/20 active:scale-[0.98]"
+            >
+              <Scale className="w-4 h-4" /> Compare Set Attributes
+            </button>
           </div>
         )}
       </div>
