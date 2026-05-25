@@ -110,33 +110,25 @@ export default function ArmorChartPlot({
                 style={{ overflow: 'visible' }}
               >
                 <div 
-                  className="rounded-full bg-slate-900 border flex items-center justify-center transition-all duration-200 overflow-hidden"
+                  className="w-full h-full flex items-center justify-center transition-all duration-200"
                   style={{
-                    width: size,
-                    height: size,
-                    borderColor: color,
-                    borderWidth: isHovered ? '2.5px' : '1.5px',
-                    boxShadow: isHovered 
-                      ? `0 0 16px ${color}, inset 0 0 8px rgba(0,0,0,0.8)` 
-                      : `0 2px 4px rgba(0,0,0,0.5)`,
-                    transform: isHovered ? 'scale(1.1)' : 'scale(1)'
+                    transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+                    filter: isHovered 
+                      ? `drop-shadow(0 0 8px ${color})` 
+                      : `drop-shadow(0 1px 2px rgba(0,0,0,0.6))`
                   }}
                 >
                   {item.image ? (
                     <img 
                       src={item.image} 
                       alt={item.name} 
-                      className="w-[85%] h-[85%] object-contain rounded-full transition-transform duration-200"
-                      style={{
-                        transform: isHovered ? 'scale(1.05)' : 'scale(1)'
-                      }}
+                      className="w-full h-full object-contain"
                     />
                   ) : (
                     getCategoryIcon(item.category, {
-                      className: "w-[60%] h-[60%] transition-transform duration-200",
+                      className: "w-4/5 h-4/5",
                       color: color,
-                      fill: color,
-                      style: { transform: isHovered ? 'scale(1.05)' : 'scale(1)' }
+                      fill: color
                     })
                   )}
                 </div>
