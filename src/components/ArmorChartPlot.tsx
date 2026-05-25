@@ -101,6 +101,7 @@ export default function ArmorChartPlot({
               className="transition-all duration-200 cursor-pointer"
               onMouseEnter={(e) => onHoverItem(e, item)}
               onMouseMove={(e) => onHoverItem(e, item)}
+              onMouseLeave={onLeavePlot}
             >
               <foreignObject
                 x={-size / 2}
