@@ -85,7 +85,7 @@ export default function ArmorChartPlot({
           
           const isHovered = hoveredItemId === item.id;
           const size = isHovered ? 24 : 16;
-          const color = stringToColor(item.name);
+          const color = stringToColor(item.location);
           
           return (
             <svg

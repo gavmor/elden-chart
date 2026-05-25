@@ -97,7 +97,7 @@ export default function ArmorChartSidebar({
         <p className="text-xs text-slate-400 leading-relaxed">
           Hover over items for details.<br/><br/>
           <strong>Shapes</strong> represent armor type.<br/>
-          <strong>Colors</strong> represent individual items.
+          <strong>Colors</strong> represent location / origin.
         </p>
       </div>
     </aside>

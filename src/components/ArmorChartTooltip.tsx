@@ -19,7 +19,7 @@ export default function ArmorChartTooltip({
   xVar,
   yVar
 }: TooltipProps) {
-  const color = stringToColor(item.name);
+  const color = stringToColor(item.location);
 
   return (
     <div 
