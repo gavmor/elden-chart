@@ -4,6 +4,7 @@ import {
   ShieldAlert, Weight, Info, Search, Loader2, AlertCircle, 
   HardHat, Shirt, Hand, Footprints, Circle, MapPin 
 } from 'lucide-react';
+import { generateColor } from '@marko19907/string-to-color';
 
 export const CATEGORIES = ['Helm', 'Chest Armor', 'Gauntlets', 'Leg Armor'] as const;
 export type Category = typeof CATEGORIES[number];
@@ -63,14 +64,8 @@ export interface ActiveCategories {
 }
 
 const stringToColor = (str: string | undefined): string => {
-  if (!str || str.toLowerCase() === 'unknown') return '#94a3b8'; // Default slate-400
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  // Convert hash to HSL for vibrant colors suitable for a dark theme
-  const h = Math.abs(hash) % 360;
-  return `hsl(${h}, 80%, 65%)`;
+  if (!str) return '#94a3b8';
+  return generateColor(str, { saturation: 80, lightness: 65 });
 };
 
 const getCategoryIcon = (category: string, props: LucideProps) => {
@@ -351,7 +346,7 @@ export default function ArmorChart() {
             <p className="text-xs text-slate-400 leading-relaxed">
               Hover over items for details.<br/><br/>
               <strong>Shapes</strong> represent armor type.<br/>
-              <strong>Colors</strong> represent location.
+              <strong>Colors</strong> represent individual items.
             </p>
           </div>
         </aside>
@@ -436,7 +431,7 @@ export default function ArmorChart() {
                   
                   const isHovered = hoveredItem?.id === item.id;
                   const size = isHovered ? 24 : 16;
-                  const color = stringToColor(item.location);
+                  const color = stringToColor(item.name);
                   
                   return (
                     <svg
@@ -473,7 +468,7 @@ export default function ArmorChart() {
             >
               <div 
                 className="h-1 w-full" 
-                style={{ backgroundColor: stringToColor(hoveredItem.location) }} 
+                style={{ backgroundColor: stringToColor(hoveredItem.name) }} 
               />
               <div className="p-4">
                 <div className="flex items-start gap-4 mb-3">
