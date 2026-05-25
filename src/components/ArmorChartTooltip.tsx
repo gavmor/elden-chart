@@ -51,12 +51,10 @@ export default function ArmorChartTooltip({
         </div>
 
         <div className="space-y-2 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
-          {item.location !== 'Unknown' && (
-            <div className="flex justify-between items-start text-sm mb-1 pb-2 border-b border-slate-700/50">
-              <span className="text-slate-400 flex items-center gap-1.5 whitespace-nowrap"><MapPin className="w-3.5 h-3.5" /> Location</span>
-              <span className="font-medium text-white text-right max-w-[130px] line-clamp-2" title={item.location}>{item.location}</span>
-            </div>
-          )}
+          <div className="flex justify-between items-start text-sm mb-1 pb-2 border-b border-slate-700/50">
+            <span className="text-slate-400 flex items-center gap-1.5 whitespace-nowrap"><MapPin className="w-3.5 h-3.5" /> Location</span>
+            <span className="font-medium text-white text-right max-w-[130px] line-clamp-2" title={item.location}>{item.location}</span>
+          </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-slate-400 flex items-center gap-1.5"><Weight className="w-3.5 h-3.5" /> Weight</span>
             <span className="font-medium text-white">{item.weight.toFixed(1)}</span>
