@@ -46,6 +46,9 @@ export default function ArmorChart() {
     CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: true }), {} as ActiveCategories)
   );
 
+  // Set Planner State
+  const [customSet, setCustomSet] = useState<ArmorItem[]>([]);
+
   // Interaction State
   const [hoveredItem, setHoveredItem] = useState<ArmorItem | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -165,6 +168,17 @@ export default function ArmorChart() {
     setActiveCategories(prev => ({ ...prev, [categoryName]: checked }));
   };
 
+  const handleToggleSet = (item: ArmorItem) => {
+    setCustomSet(prev => {
+      const exists = prev.some(i => i.id === item.id);
+      if (exists) {
+        return prev.filter(i => i.id !== item.id);
+      } else {
+        return [...prev, item];
+      }
+    });
+  };
+
   const xLabel = STAT_OPTIONS.find(o => o.id === xVar)?.label || '';
   const yLabel = STAT_OPTIONS.find(o => o.id === yVar)?.label || '';
 
@@ -184,6 +198,8 @@ export default function ArmorChart() {
           onColorVarChange={setColorVar}
           activeCategories={activeCategories}
           onCategoryToggle={handleCategoryToggle}
+          customSet={customSet}
+          onRemoveFromSet={handleToggleSet}
         />
 
         <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>
@@ -211,6 +227,8 @@ export default function ArmorChart() {
               hoveredItemId={hoveredItem ? hoveredItem.id : null}
               onHoverItem={handleMouseMove}
               onLeavePlot={() => setHoveredItem(null)}
+              customSet={customSet}
+              onClickItem={handleToggleSet}
             />
           )}
 

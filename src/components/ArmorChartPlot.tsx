@@ -14,6 +14,8 @@ interface PlotProps {
   hoveredItemId: string | null;
   onHoverItem: (e: React.MouseEvent, item: ArmorItem) => void;
   onLeavePlot: () => void;
+  customSet: ArmorItem[];
+  onClickItem: (item: ArmorItem) => void;
 }
 
 export default function ArmorChartPlot({
@@ -27,7 +29,9 @@ export default function ArmorChartPlot({
   colorMinMax,
   hoveredItemId,
   onHoverItem,
-  onLeavePlot
+  onLeavePlot,
+  customSet,
+  onClickItem
 }: PlotProps) {
   if (filteredData.length === 0) {
     return (
@@ -88,7 +92,8 @@ export default function ArmorChartPlot({
           const cy = `${(1 - (getItemStat(item, yVar) - chartProps.yMin) / (chartProps.yMax - chartProps.yMin)) * 100}%`;
           
           const isHovered = hoveredItemId === item.id;
-          const size = isHovered ? 48 : 28;
+          const isInSet = customSet.some(s => s.id === item.id);
+          const size = isHovered ? 48 : (isInSet ? 36 : 28);
           const color = getItemColor(item, colorVar, colorMinMax);
           
           return (
@@ -97,11 +102,12 @@ export default function ArmorChartPlot({
               x={cx}
               y={cy}
               style={{ overflow: 'visible' }}
-              opacity={hoveredItemId ? (isHovered ? 1 : 0.3) : 0.85}
+              opacity={isInSet || isHovered ? 1 : (hoveredItemId ? 0.2 : 0.85)}
               className="transition-all duration-200 cursor-pointer"
               onMouseEnter={(e) => onHoverItem(e, item)}
               onMouseMove={(e) => onHoverItem(e, item)}
               onMouseLeave={onLeavePlot}
+              onClick={() => onClickItem(item)}
             >
               <foreignObject
                 x={-size / 2}
@@ -113,10 +119,12 @@ export default function ArmorChartPlot({
                 <div 
                   className="w-full h-full flex items-center justify-center transition-all duration-200"
                   style={{
-                    transform: isHovered ? 'scale(1.15)' : 'scale(1)',
+                    transform: isHovered ? 'scale(1.15)' : (isInSet ? 'scale(1.08)' : 'scale(1)'),
                     filter: isHovered 
-                      ? `drop-shadow(0 0 5px ${color})` 
-                      : `drop-shadow(0 1px 2px rgba(0,0,0,0.6))`
+                      ? `drop-shadow(0 0 6px ${color})` 
+                      : (isInSet 
+                        ? `drop-shadow(0 0 4px #fbbf24)` 
+                        : `drop-shadow(0 1px 2px rgba(0,0,0,0.6))`)
                   }}
                 >
                   {item.image ? (

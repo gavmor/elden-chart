@@ -37,6 +37,26 @@ Color datapoints dynamically by **literally any dynamic property of an item** (c
 
 ---
 
+## ⚔️ Active Build Set Planner
+
+We introduced a powerful custom build set designer directly integrated within the visualizer workspace:
+
+### 1. **Interactive Point Selections**
+- Click any transparent armor datapoint directly on the scatter plot to add it to your custom build set.
+- Items currently active in your set are rendered on the plot with an **increased scale (`36px` / `1.08x`)** and a **distinct, glowing golden outline aura (`drop-shadow(0 0 4px #fbbf24)`)**.
+- Active build set items remain fully bright and opaque at `1.0` even when other datapoints are faded out during hover interaction checks.
+
+### 2. **Sidebar Inspector & Real-time Aggregations**
+- A dedicated **"Active Build Set"** inspector card automatically renders in the sidebar under the Categories checklist.
+- Lists all currently selected pieces with custom item cards displaying their transparent thumbnails.
+- Click any item in the sidebar list or click the small close icon (`X`) to cleanly remove it from the build planner.
+- Displays real-time, dynamic aggregates crucial for Elden Ring build planning (Equip Load / Roll speed estimations):
+  - **Total Weight**: Summed weight of all active pieces.
+  - **Total Poise**: Aggregate physical poise value.
+  - **Total Negation**: Summed damage reduction percentages.
+
+---
+
 ## 🛠️ Unified Architectural Stack
 
 The application is built on top of a highly resilient, modern frontend architecture matching industry best practices:
