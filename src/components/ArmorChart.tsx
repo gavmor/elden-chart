@@ -6,6 +6,7 @@ import ArmorChartHeader from './ArmorChartHeader';
 import ArmorChartSidebar from './ArmorChartSidebar';
 import ArmorChartPlot from './ArmorChartPlot';
 import ArmorChartTooltip from './ArmorChartTooltip';
+import { extractLocationOrLore } from './utils';
 
 interface ApiStat {
   name: string;
@@ -17,6 +18,7 @@ interface ApiArmor {
   name: string;
   image: string | null;
   category: string;
+  description?: string;
   location?: string;
   weight: string | number;
   dmgNegation?: ApiStat[];
@@ -90,7 +92,7 @@ export default function ArmorChart() {
           name: item.name,
           image: item.image,
           category: item.category,
-          location: item.location || 'Unknown',
+          location: item.location || extractLocationOrLore(item.description),
           weight: parseFloat(item.weight as string || '0'),
           
           total_negation: totalNegation,

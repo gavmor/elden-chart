@@ -17,3 +17,30 @@ export const getCategoryIcon = (category: string, props: LucideProps) => {
     default: return React.createElement(Circle, props);
   }
 };
+
+export const extractLocationOrLore = (description: string | undefined): string => {
+  if (!description) return 'Unknown';
+  
+  const sentences = description.split(/[.!?]+/);
+  
+  // Look for "Worn by", "Dropped by", "Held by", "Belonging to", "Awarded to", "Found in", "Worn during"
+  const wornBy = sentences.find(s => s.toLowerCase().includes('worn by'));
+  if (wornBy) return wornBy.trim();
+  
+  const droppedBy = sentences.find(s => s.toLowerCase().includes('dropped by'));
+  if (droppedBy) return droppedBy.trim();
+  
+  const foundIn = sentences.find(s => s.toLowerCase().includes('found'));
+  if (foundIn) return foundIn.trim();
+
+  const choice = sentences.find(s => s.toLowerCase().includes('worn') || s.toLowerCase().includes('used by') || s.toLowerCase().includes('created by') || s.toLowerCase().includes('armor of'));
+  if (choice) return choice.trim();
+
+  // Fallback to the first sentence of the description if it's informative
+  if (sentences[0]) {
+    const firstSentence = sentences[0].trim();
+    if (firstSentence.length > 5) return firstSentence;
+  }
+  
+  return 'Unknown';
+};
