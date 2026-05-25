@@ -46,10 +46,10 @@ We introduced a powerful custom build set designer directly integrated within th
 - Items currently active in your set are rendered on the plot with an **increased scale (`36px` / `1.08x`)** and a **distinct, glowing golden outline aura (`drop-shadow(0 0 4px #fbbf24)`)**.
 - Active build set items remain fully bright and opaque at `1.0` even when other datapoints are faded out during hover interaction checks.
 
-### 2. **Sidebar Inspector & Real-time Aggregations**
+### 2. **Compact Sidebar Grid & Hover Overlays**
 - A dedicated **"Active Build Set"** inspector card automatically renders in the sidebar under the Categories checklist.
-- Lists all currently selected pieces with custom item cards displaying their transparent thumbnails.
-- Click any item in the sidebar list or click the small close icon (`X`) to cleanly remove it from the build planner.
+- Lists all currently selected pieces as a **compact, horizontal flex grid of sleek icon badges**, featuring browser-native hover tooltips displaying the item's name.
+- Hovering over any icon badge reveals a semi-transparent red overlay with a close icon (`X`), indicating that clicking it will cleanly remove it from the build set.
 - Displays real-time, dynamic aggregates crucial for Elden Ring build planning (Equip Load / Roll speed estimations):
   - **Total Weight**: Summed weight of all active pieces.
   - **Total Poise**: Aggregate physical poise value.
