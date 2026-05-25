@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ArmorItem, StatKey } from './types';
-import { stringToColor, getCategoryIcon } from './utils';
+import { stringToColor, getCategoryIcon, getItemStat } from './utils';
 
 interface PlotProps {
   filteredData: ArmorItem[];
@@ -80,8 +80,8 @@ export default function ArmorChartPlot({
 
         {/* Data Points */}
         {chartProps && filteredData.map(item => {
-          const cx = `${((item[xVar] - chartProps.xMin) / (chartProps.xMax - chartProps.xMin)) * 100}%`;
-          const cy = `${(1 - (item[yVar] - chartProps.yMin) / (chartProps.yMax - chartProps.yMin)) * 100}%`;
+          const cx = `${((getItemStat(item, xVar) - chartProps.xMin) / (chartProps.xMax - chartProps.xMin)) * 100}%`;
+          const cy = `${(1 - (getItemStat(item, yVar) - chartProps.yMin) / (chartProps.yMax - chartProps.yMin)) * 100}%`;
           
           const isHovered = hoveredItemId === item.id;
           const size = isHovered ? 24 : 16;

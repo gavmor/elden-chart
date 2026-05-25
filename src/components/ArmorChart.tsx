@@ -1,5 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import request from 'graphql-request';
+
 import type { ArmorItem, StatKey, ActiveCategories } from './types';
 import { CATEGORIES, STAT_OPTIONS } from './types';
 import ArmorChartHeader from './ArmorChartHeader';
@@ -8,29 +11,32 @@ import ArmorChartPlot from './ArmorChartPlot';
 import ArmorChartTooltip from './ArmorChartTooltip';
 import { extractLocationOrLore } from './utils';
 
-interface ApiStat {
-  name: string;
-  amount: string | number;
-}
+// Import our generated GraphQL document compiler
+// @ts-ignore
+import { graphql } from '../gql/gql';
 
-interface ApiArmor {
-  id: string;
-  name: string;
-  image: string | null;
-  category: string;
-  description?: string;
-  location?: string;
-  weight: string | number;
-  dmgNegation?: ApiStat[];
-  resistance?: ApiStat[];
-}
+const GET_ARMOR_PAGE = graphql(/* GraphQL */ `
+  query GetArmorPage($page: Int!, $limit: Int!) {
+    armor(page: $page, limit: $limit) {
+      id
+      name
+      image
+      description
+      category
+      weight
+      dmgNegation {
+        name
+        amount
+      }
+      resistance {
+        name
+        amount
+      }
+    }
+  }
+`);
 
 export default function ArmorChart() {
-  const [data, setData] = useState<ArmorItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [progress, setProgress] = useState<number>(0);
-
   // Controls State
   const [xVar, setXVar] = useState<StatKey>('weight');
   const [yVar, setYVar] = useState<StatKey>('total_negation');
@@ -44,98 +50,79 @@ export default function ArmorChart() {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const chartRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchAllArmors();
-  }, []);
-
-  const fetchAllArmors = async () => {
-    setLoading(true);
-    setError(null);
-    try {
+  // React Query Fetcher using graphql-request and our compiled GraphQL query
+  const { data: armorsData = [], isLoading, error } = useQuery({
+    queryKey: ['armors'],
+    queryFn: async () => {
       const pages = [0, 1, 2, 3, 4, 5, 6];
-      let loaded = 0;
       
-      const fetchPage = async (page: number): Promise<ApiArmor[]> => {
-        const res = await fetch(`https://eldenring.fanapis.com/api/armors?limit=100&page=${page}`);
-        if (!res.ok) throw new Error('Network response was not ok');
-        const json = await res.json();
-        loaded++;
-        setProgress(Math.round((loaded / pages.length) * 100));
-        return json.data || [];
+      const fetchPage = async (page: number) => {
+        const response = await request(
+          'https://eldenring.fanapis.com/api/graphql',
+          GET_ARMOR_PAGE,
+          { page, limit: 100 }
+        );
+        return response.armor || [];
       };
 
-      const results = await Promise.allSettled(pages.map(fetchPage));
+      const results = await Promise.all(pages.map(fetchPage));
       
-      let allArmors: ApiArmor[] = [];
-      results.forEach(result => {
-        if (result.status === 'fulfilled') {
-          allArmors = [...allArmors, ...result.value];
-        }
+      let allArmors: any[] = [];
+      results.forEach(pageData => {
+        allArmors = [...allArmors, ...pageData];
       });
-
-      if (allArmors.length === 0) throw new Error("Failed to load data from the fan API.");
 
       const processedData: ArmorItem[] = allArmors.map(item => {
-        const getStat = (arr: ApiStat[] | undefined, searchStr: string): number => {
-          if (!arr) return 0;
-          const stat = arr.find(s => s.name.toLowerCase().includes(searchStr.toLowerCase()));
-          return stat ? parseFloat(stat.amount as string) : 0;
-        };
-
-        const totalNegation = (item.dmgNegation || []).reduce((sum, s) => sum + parseFloat(s.amount as string || '0'), 0);
-        const totalResistance = (item.resistance || [])
-          .filter(s => !s.name.toLowerCase().includes('poise'))
-          .reduce((sum, s) => sum + parseFloat(s.amount as string || '0'), 0);
-
         return {
-          id: item.id,
-          name: item.name,
-          image: item.image,
-          category: item.category,
-          location: item.location || extractLocationOrLore(item.description),
+          id: item.id || '',
+          name: item.name || '',
+          image: item.image || null,
+          category: item.category || '',
+          description: item.description || '',
+          location: extractLocationOrLore(item.description),
           weight: parseFloat(item.weight as string || '0'),
-          
-          total_negation: totalNegation,
-          phy: getStat(item.dmgNegation, 'phy'),
-          strike: getStat(item.dmgNegation, 'strike'),
-          slash: getStat(item.dmgNegation, 'slash'),
-          pierce: getStat(item.dmgNegation, 'pierce'),
-          mag: getStat(item.dmgNegation, 'magic'),
-          fire: getStat(item.dmgNegation, 'fire'),
-          lite: getStat(item.dmgNegation, 'light'),
-          holy: getStat(item.dmgNegation, 'holy'),
-
-          total_resistance: totalResistance,
-          immunity: getStat(item.resistance, 'immun'),
-          robustness: getStat(item.resistance, 'robust'),
-          focus: getStat(item.resistance, 'focus'),
-          vitality: getStat(item.resistance, 'vital'),
-          poise: getStat(item.resistance, 'poise')
+          dmgNegation: (item.dmgNegation || []).map((s: any) => ({
+            name: s.name || '',
+            amount: parseFloat(s.amount as string || '0')
+          })),
+          resistance: (item.resistance || []).map((s: any) => ({
+            name: s.name || '',
+            amount: parseFloat(s.amount as string || '0')
+          }))
         };
       });
 
-      const uniqueData = Array.from(new Map(processedData.map(item => [item.name, item])).values());
-      setData(uniqueData);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
-    } finally {
-      setLoading(false);
+      // Filter out duplicate names
+      return Array.from(new Map(processedData.map(item => [item.name, item])).values());
     }
-  };
+  });
 
   const filteredData = useMemo(() => {
-    return data.filter(item => {
+    return armorsData.filter(item => {
       if (!activeCategories[item.category]) return false;
       if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [data, activeCategories, search]);
+  }, [armorsData, activeCategories, search]);
 
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => d[xVar]);
-    const yValues = filteredData.map(d => d[yVar]);
+    const xValues = filteredData.map(d => {
+      if (xVar === 'weight') return d.weight;
+      if (xVar === 'total_negation') return d.dmgNegation.reduce((sum, s) => sum + s.amount, 0);
+      if (xVar === 'total_resistance') return d.resistance.filter(s => s.name !== 'Poise').reduce((sum, s) => sum + s.amount, 0);
+      const stat = d.dmgNegation.find(s => s.name === xVar) || d.resistance.find(s => s.name === xVar);
+      return stat ? stat.amount : 0;
+    });
+
+    const yValues = filteredData.map(d => {
+      if (yVar === 'weight') return d.weight;
+      if (yVar === 'total_negation') return d.dmgNegation.reduce((sum, s) => sum + s.amount, 0);
+      if (yVar === 'total_resistance') return d.resistance.filter(s => s.name !== 'Poise').reduce((sum, s) => sum + s.amount, 0);
+      const stat = d.dmgNegation.find(s => s.name === yVar) || d.resistance.find(s => s.name === yVar);
+      return stat ? stat.amount : 0;
+    });
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -175,7 +162,7 @@ export default function ArmorChart() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans overflow-hidden">
-      <ArmorChartHeader loading={loading} itemCount={filteredData.length} />
+      <ArmorChartHeader loading={isLoading} itemCount={filteredData.length} />
 
       <div className="flex flex-1 overflow-hidden">
         <ArmorChartSidebar
@@ -190,28 +177,16 @@ export default function ArmorChart() {
         />
 
         <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>
-          {loading ? (
+          {isLoading ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20">
               <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-4" />
               <h2 className="text-xl font-medium text-white mb-2">Summoning Data...</h2>
-              <div className="w-64 h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-amber-500 transition-all duration-300 ease-out" 
-                  style={{ width: `${progress}%` }} 
-                />
-              </div>
             </div>
           ) : error ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20">
               <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
               <h2 className="text-xl font-medium text-white mb-2">Connection Lost</h2>
-              <p className="text-slate-400">{error}</p>
-              <button 
-                onClick={fetchAllArmors}
-                className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
-              >
-                Try Again
-              </button>
+              <p className="text-slate-400">{(error as any).message || 'Failed to fetch'}</p>
             </div>
           ) : (
             <ArmorChartPlot
@@ -227,7 +202,7 @@ export default function ArmorChart() {
             />
           )}
 
-          {hoveredItem && !loading && (
+          {hoveredItem && !isLoading && (
             <ArmorChartTooltip
               item={hoveredItem}
               tooltipPos={tooltipPos}

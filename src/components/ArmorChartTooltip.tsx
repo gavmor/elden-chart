@@ -1,6 +1,6 @@
 import { MapPin, Weight } from 'lucide-react';
 import type { ArmorItem, StatKey } from './types';
-import { stringToColor, getCategoryIcon } from './utils';
+import { stringToColor, getCategoryIcon, getItemStat } from './utils';
 
 interface TooltipProps {
   item: ArmorItem;
@@ -61,11 +61,11 @@ export default function ArmorChartTooltip({
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-slate-400">{xLabel}</span>
-            <span className="font-medium text-amber-400">{item[xVar].toFixed(1)}</span>
+            <span className="font-medium text-amber-400">{getItemStat(item, xVar).toFixed(1)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-slate-400">{yLabel}</span>
-            <span className="font-medium text-amber-400">{item[yVar].toFixed(1)}</span>
+            <span className="font-medium text-amber-400">{getItemStat(item, yVar).toFixed(1)}</span>
           </div>
         </div>
       </div>
