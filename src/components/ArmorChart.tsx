@@ -54,25 +54,28 @@ export default function ArmorChart() {
   const { data: armorsData = [], isLoading, error } = useQuery({
     queryKey: ['armors'],
     queryFn: async () => {
-      const pages = [0, 1, 2, 3, 4, 5, 6];
+      const allArmors: any[] = [];
       
-      const fetchPage = async (page: number) => {
+      // Fetch pages sequentially to prevent server parallel connection floods & JSON truncation
+      for (let page = 0; page <= 5; page++) {
         const response = await request(
           'https://eldenring.fanapis.com/api/graphql',
           GET_ARMOR_PAGE,
           { page, limit: 100 }
         );
-        return response.armor || [];
-      };
-
-      const results = await Promise.all(pages.map(fetchPage));
-      
-      let allArmors: any[] = [];
-      results.forEach(pageData => {
-        allArmors = [...allArmors, ...pageData];
-      });
+        const pageData = response.armor || [];
+        if (pageData.length === 0) break;
+        allArmors.push(...pageData);
+      }
 
       const processedData: ArmorItem[] = allArmors.map(item => {
+        const safeFloat = (val: any): number => {
+          if (typeof val === 'number') return val;
+          if (!val) return 0;
+          const parsed = parseFloat(val);
+          return isNaN(parsed) ? 0 : parsed;
+        };
+
         return {
           id: item.id || '',
           name: item.name || '',
@@ -80,14 +83,14 @@ export default function ArmorChart() {
           category: item.category || '',
           description: item.description || '',
           location: extractLocationOrLore(item.description),
-          weight: parseFloat(item.weight as string || '0'),
+          weight: safeFloat(item.weight),
           dmgNegation: (item.dmgNegation || []).map((s: any) => ({
             name: s.name || '',
-            amount: parseFloat(s.amount as string || '0')
+            amount: safeFloat(s.amount)
           })),
           resistance: (item.resistance || []).map((s: any) => ({
             name: s.name || '',
-            amount: parseFloat(s.amount as string || '0')
+            amount: safeFloat(s.amount)
           }))
         };
       });
