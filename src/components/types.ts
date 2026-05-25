@@ -12,7 +12,6 @@ export interface ArmorItem {
   image: string | null;
   category: string;
   description: string;
-  location: string;
   weight: number;
   dmgNegation: ApiStat[];
   resistance: ApiStat[];
@@ -36,7 +35,7 @@ export type StatKey =
   | 'Vitality'
   | 'Poise';
 
-export type ColorKey = 'location' | 'category' | StatKey;
+export type ColorKey = 'category' | StatKey;
 
 export interface StatOption {
   id: StatKey;

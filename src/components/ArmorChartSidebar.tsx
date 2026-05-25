@@ -74,7 +74,6 @@ export default function ArmorChartSidebar({
             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
           >
             <optgroup label="Categorical Grouping" className="bg-slate-950 font-semibold text-slate-400">
-              <option value="location" className="bg-slate-900 text-slate-200">Location / Set</option>
               <option value="category" className="bg-slate-900 text-slate-200">Category (Helm/Chest/etc.)</option>
             </optgroup>
             <optgroup label="Numerical Heatmap" className="bg-slate-950 font-semibold text-slate-400">
@@ -118,8 +117,8 @@ export default function ArmorChartSidebar({
         </h3>
         <p className="text-xs text-slate-400 leading-relaxed">
           Hover over items for details.<br/><br/>
-          <strong>Shapes</strong> represent armor type.<br/>
-          <strong>Colors</strong> represent location / origin.
+          <strong>Icons</strong> represent armor type.<br/>
+          <strong>Auras</strong> represent color theme stats.
         </p>
       </div>
     </aside>

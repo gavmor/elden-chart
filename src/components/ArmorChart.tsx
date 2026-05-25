@@ -9,7 +9,7 @@ import ArmorChartHeader from './ArmorChartHeader';
 import ArmorChartSidebar from './ArmorChartSidebar';
 import ArmorChartPlot from './ArmorChartPlot';
 import ArmorChartTooltip from './ArmorChartTooltip';
-import { extractLocationOrLore, getItemStat } from './utils';
+import { getItemStat } from './utils';
 
 // Import our generated GraphQL document compiler
 // @ts-ignore
@@ -40,7 +40,7 @@ export default function ArmorChart() {
   // Controls State
   const [xVar, setXVar] = useState<StatKey>('weight');
   const [yVar, setYVar] = useState<StatKey>('total_negation');
-  const [colorVar, setColorVar] = useState<ColorKey>('location');
+  const [colorVar, setColorVar] = useState<ColorKey>('category');
   const [search, setSearch] = useState<string>('');
   const [activeCategories, setActiveCategories] = useState<ActiveCategories>(
     CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: true }), {} as ActiveCategories)
@@ -94,7 +94,6 @@ export default function ArmorChart() {
           image: item.image || null,
           category: item.category || '',
           description: item.description || '',
-          location: extractLocationOrLore(item.description),
           weight: safeFloat(item.weight),
           dmgNegation: (item.dmgNegation || []).map((s: any) => ({
             name: s.name || '',
@@ -121,7 +120,7 @@ export default function ArmorChart() {
   }, [armorsData, activeCategories, search]);
 
   const colorMinMax = useMemo(() => {
-    if (colorVar === 'location' || colorVar === 'category') return null;
+    if (colorVar === 'category') return null;
     const values = filteredData.map(d => getItemStat(d, colorVar));
     if (values.length === 0) return null;
     return { min: Math.min(...values), max: Math.max(...values) };
