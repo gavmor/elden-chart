@@ -88,7 +88,7 @@ export default function ArmorChartPlot({
           const cy = `${(1 - (getItemStat(item, yVar) - chartProps.yMin) / (chartProps.yMax - chartProps.yMin)) * 100}%`;
           
           const isHovered = hoveredItemId === item.id;
-          const size = isHovered ? 24 : 16;
+          const size = isHovered ? 48 : 28;
           const color = getItemColor(item, colorVar, colorMinMax);
           
           return (
@@ -97,20 +97,50 @@ export default function ArmorChartPlot({
               x={cx}
               y={cy}
               style={{ overflow: 'visible' }}
-              opacity={hoveredItemId ? (isHovered ? 1 : 0.2) : 0.8}
-              className="transition-opacity duration-200 cursor-pointer"
+              opacity={hoveredItemId ? (isHovered ? 1 : 0.3) : 0.85}
+              className="transition-all duration-200 cursor-pointer"
               onMouseEnter={(e) => onHoverItem(e, item)}
               onMouseMove={(e) => onHoverItem(e, item)}
             >
-              <g transform={`translate(-${size/2}, -${size/2})`}>
-                {getCategoryIcon(item.category, {
-                  width: size,
-                  height: size,
-                  color: color,
-                  fill: color,
-                  strokeWidth: isHovered ? 2.5 : 1.5
-                })}
-              </g>
+              <foreignObject
+                x={-size / 2}
+                y={-size / 2}
+                width={size}
+                height={size}
+                style={{ overflow: 'visible' }}
+              >
+                <div 
+                  className="rounded-full bg-slate-900 border flex items-center justify-center transition-all duration-200 overflow-hidden"
+                  style={{
+                    width: size,
+                    height: size,
+                    borderColor: color,
+                    borderWidth: isHovered ? '2.5px' : '1.5px',
+                    boxShadow: isHovered 
+                      ? `0 0 16px ${color}, inset 0 0 8px rgba(0,0,0,0.8)` 
+                      : `0 2px 4px rgba(0,0,0,0.5)`,
+                    transform: isHovered ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                >
+                  {item.image ? (
+                    <img 
+                      src={item.image} 
+                      alt={item.name} 
+                      className="w-[85%] h-[85%] object-contain rounded-full transition-transform duration-200"
+                      style={{
+                        transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+                      }}
+                    />
+                  ) : (
+                    getCategoryIcon(item.category, {
+                      className: "w-[60%] h-[60%] transition-transform duration-200",
+                      color: color,
+                      fill: color,
+                      style: { transform: isHovered ? 'scale(1.05)' : 'scale(1)' }
+                    })
+                  )}
+                </div>
+              </foreignObject>
             </svg>
           );
         })}
