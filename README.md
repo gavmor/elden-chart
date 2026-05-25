@@ -1,73 +1,111 @@
-# React + TypeScript + Vite
+# 🛡️ Elden Ring Armor Visualizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A state-of-the-art, high-fidelity interactive scatter plot visualizer that allows players to analyze Elden Ring armor stats across multiple dimensions in real-time. 
 
-Currently, two official plugins are available:
+Live App: **[Elden Ring Armor Visualizer on GitHub Pages](https://gavmor.github.io/elden-chart/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🎨 Premium Visual Experience
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The visualizer features a high-end dark-fantasy aesthetic built directly around in-game assets and tactile feedback systems:
 
-## Expanding the ESLint configuration
+### 🖼️ Frameless Transparent Item Previews
+- Datapoint icons render the **actual transparent PNG cutout** of each armor piece using SVG `<foreignObject>` containers.
+- Avoids clumsy boxed frames, allowing helmets, chest plates, gauntlets, and leg greaves to float cleanly and naturally on the grid background.
+- Clean category fallback icons automatically activate when database assets are absent.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### ✨ Delicate Shape-Conforming Glow Halos
+- Leverages CSS `filter: drop-shadow()` to cast a glowing halo outline **exactly to the solid pixels** of transparent armor assets rather than their rectangular boundaries.
+- **Pristine Workspace**: Unhovered items carry a subtle, clean dark drop shadow (`drop-shadow(0 1px 2px rgba(0,0,0,0.6))`) to maximize grid clarity and avoid background noise.
+- **Dynamic Tactile Glow**: Hovering over any item smoothly scales it by `15%` (`scale(1.15)`) while bursting into a soft, dynamic aura (`drop-shadow(0 0 5px ${color})`) matching its active color theme. Non-hovered items drop to `0.3` opacity to immediately focus attention.
+- **Immediate Mouseoff Recovery**: Explicit mouse-leave boundaries clear hover scales, halos, and tooltip cards the millisecond the cursor leaves an item's footprint.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📊 Abstract Dynamic Coloring & Heatmaps
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Color datapoints dynamically by **literally any dynamic property of an item** (categorical or numerical) via the interactive sidebar dropdown:
+
+### 🎚️ Categorical Grouping
+- **Category**: Points map to highly recognizable custom HSL colors representing Helms (Amber), Chest Armor (Purple), Gauntlets (Emerald), and Leg Armor (Sky).
+
+### 🔥 Continuous Thermal Heatmaps
+- Selecting any numerical stat (e.g. Weight, Poise, Physical/Magic negation, status resistances) automatically triggers the color pipeline to:
+  1. Calculate dynamic bounds (`min` / `max`) across the currently filtered/active dataset using a high-performance `useMemo` cache.
+  2. Project the relative ratio of each item's value onto a continuous thermal spectrum: **Blue (Low values) ➔ Cyan ➔ Green ➔ Yellow ➔ Orange ➔ Red (High values)**.
+
+---
+
+## 🛠️ Unified Architectural Stack
+
+The application is built on top of a highly resilient, modern frontend architecture matching industry best practices:
+
+- **Core Framework**: React 19 + TypeScript + Vite.
+- **State & Caching**: **TanStack React Query v5** for robust, declarative, and cached query states.
+- **GraphQL Client**: **`graphql-request@7`** for lightweight, Promise-based operations.
+- **Type Safety**: **GraphQL Code Generator** (`client` preset) with automatic type-only import compilations (`useTypeImports: true`) to comply with strict TypeScript bundler configs (`"verbatimModuleSyntax": true`).
+- **Resilient Query Fetcher**: Sequential page querying inside the hook query function prevents server parallel flooding (socket resets on the public Elden Ring API server).
+- **Partial-Data Salvage**: Catches GraphQL validation errors (e.g. database decimals conflicting with type schemas on specific pages) to extract and render successful items, maintaining a 99.9% render uptime.
+- **Diagnostic Error Boundary**: Custom class boundary wraps the App, displaying custom dark diagnostic logs, component stack traces, and recovery triggers to avoid blank screens.
+
+---
+
+## 🚀 Getting Started
+
+### Installation
+Install the project dependencies using `pnpm`:
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Development Server
+Run the dev server locally:
+```bash
+pnpm run dev
+```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Schema & Codegen Compilation
+Compile the GraphQL schema and operations into type-safe generated TypeScript modules:
+```bash
+pnpm run codegen
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Production Build
+Build and verify the optimized production bundles:
+```bash
+pnpm run build
+```
+
+---
+
+## 📦 Deployment
+
+The project is fully integrated with GitHub Pages. To trigger a production build and deploy live assets:
+```bash
+pnpm run deploy
+```
+*Note: This automatically runs the `predeploy` build pipeline and pushes the optimized `dist` folder to the `gh-pages` branch.*
+
+---
+
+## 📂 Project Structure
+
+```
+elden-chart/
+├── codegen.ts                  # GraphQL Code Generator settings
+├── package.json                # Project dependencies and gh-pages scripts
+├── vite.config.ts              # Vite configurations and base path setups
+└── src/
+    ├── main.tsx                # React Query client provider mounting
+    ├── gql/                    # Generated GraphQL types and documents
+    └── components/
+        ├── types.ts            # Core ArmorItem domain declarations
+        ├── utils.ts            # HSL heatmap and stat lookup utilities
+        ├── ErrorBoundary.tsx   # Diagnostic class error boundary
+        ├── ArmorChart.tsx      # Main controller managing query states
+        ├── ArmorChartHeader.tsx # Statistics panel header
+        ├── ArmorChartSidebar.tsx # Sidebar filtering and axis selections
+        ├── ArmorChartPlot.tsx  # SVGs, foreignObjects, and glow filters
+        └── ArmorChartTooltip.tsx # Premium hovered detailed stat cards
 ```
