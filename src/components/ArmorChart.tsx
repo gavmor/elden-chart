@@ -58,14 +58,25 @@ export default function ArmorChart() {
       
       // Fetch pages sequentially to prevent server parallel connection floods & JSON truncation
       for (let page = 0; page <= 5; page++) {
-        const response = await request(
-          'https://eldenring.fanapis.com/api/graphql',
-          GET_ARMOR_PAGE,
-          { page, limit: 100 }
-        );
-        const pageData = response.armor || [];
-        if (pageData.length === 0) break;
-        allArmors.push(...pageData);
+        try {
+          const response = await request(
+            'https://eldenring.fanapis.com/api/graphql',
+            GET_ARMOR_PAGE,
+            { page, limit: 100 }
+          );
+          const pageData = response.armor || [];
+          if (pageData.length === 0) break;
+          allArmors.push(...pageData);
+        } catch (err: any) {
+          // If the server throws a GraphQL validation/serialization error (e.g. Int cannot represent Float),
+          // graphql-request throws an error containing the partial data!
+          // We can catch it and recover the resolved items on that page.
+          if (err.response && err.response.data && err.response.data.armor) {
+            allArmors.push(...err.response.data.armor);
+          } else {
+            console.error("Fetch page failed:", err);
+          }
+        }
       }
 
       const processedData: ArmorItem[] = allArmors.map(item => {
