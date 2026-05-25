@@ -15,6 +15,23 @@ export default function ArmorCompareModal({ isOpen, onClose, customSet }: Compar
   const negationStats = ['Phy', 'Strike', 'Slash', 'Pierce', 'Magic', 'Fire', 'Ligt', 'Holy'];
   const resistanceStats = ['Immunity', 'Robustness', 'Focus', 'Vitality', 'Poise'];
 
+  // Row-normalized heatmap background: cool (blue) to warm (red) via HSL hue sweep.
+  // invert=true means lower values get warm colors (used for weight).
+  const getHeatmapBg = (value: number, min: number, max: number, invert: boolean): string => {
+    const range = max - min;
+    if (range === 0) return 'transparent';
+    let ratio = (value - min) / range;
+    if (invert) ratio = 1 - ratio;
+    const hue = 220 - ratio * 220;
+    return `hsl(${hue}, 30%, 18%)`;
+  };
+
+  // Compute row-wide min/max for a given stat across all customSet items
+  const statRange = (statName: string): { min: number; max: number } => {
+    const vals = customSet.map(item => getItemStat(item, statName));
+    return { min: Math.min(...vals), max: Math.max(...vals) };
+  };
+
   return (
     <div 
       className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
@@ -77,11 +94,18 @@ export default function ArmorCompareModal({ isOpen, onClose, customSet }: Compar
                   {/* General Stats */}
                   <tr className="hover:bg-slate-850/50">
                     <td className="p-3 font-semibold text-slate-350 bg-slate-950/20 pl-4">Weight</td>
-                    {customSet.map(item => (
-                      <td key={`weight-${item.id}`} className="p-3 text-center text-white font-medium">
-                        {item.weight.toFixed(1)}
-                      </td>
-                    ))}
+                    {(() => {
+                      const { min, max } = statRange('weight');
+                      return customSet.map(item => (
+                        <td
+                          key={`weight-${item.id}`}
+                          className="p-3 text-center text-white font-medium transition-colors"
+                          style={{ backgroundColor: getHeatmapBg(item.weight, min, max, true) }}
+                        >
+                          {item.weight.toFixed(1)}
+                        </td>
+                      ));
+                    })()}
                   </tr>
                   
                   {/* Negation Subheading */}
@@ -91,18 +115,24 @@ export default function ArmorCompareModal({ isOpen, onClose, customSet }: Compar
                     </td>
                   </tr>
 
-                  {negationStats.map(stat => (
+                  {negationStats.map(stat => {
+                    const { min, max } = statRange(stat);
+                    return (
                     <tr key={stat} className="hover:bg-slate-855/30">
                       <td className="p-3 text-slate-400 pl-6 bg-slate-950/20">
                         {stat === 'Ligt' ? 'Lightning' : (stat === 'Phy' ? 'Physical' : stat)}
                       </td>
                       {customSet.map(item => (
-                        <td key={`${stat}-${item.id}`} className="p-3 text-center text-white font-medium">
+                        <td
+                          key={`${stat}-${item.id}`}
+                          className="p-3 text-center text-white font-medium transition-colors"
+                          style={{ backgroundColor: getHeatmapBg(getItemStat(item, stat), min, max, false) }}
+                        >
                           {getItemStat(item, stat).toFixed(1)}
                         </td>
                       ))}
                     </tr>
-                  ))}
+                  )})}
 
                   {/* Resistance Subheading */}
                   <tr className="bg-slate-950/40">
@@ -111,18 +141,24 @@ export default function ArmorCompareModal({ isOpen, onClose, customSet }: Compar
                     </td>
                   </tr>
 
-                  {resistanceStats.map(stat => (
+                  {resistanceStats.map(stat => {
+                    const { min, max } = statRange(stat);
+                    return (
                     <tr key={stat} className="hover:bg-slate-855/30">
                       <td className="p-3 text-slate-400 pl-6 bg-slate-950/20 font-semibold">
                         {stat}
                       </td>
                       {customSet.map(item => (
-                        <td key={`${stat}-${item.id}`} className="p-3 text-center text-white font-medium">
+                        <td
+                          key={`${stat}-${item.id}`}
+                          className="p-3 text-center text-white font-medium transition-colors"
+                          style={{ backgroundColor: getHeatmapBg(getItemStat(item, stat), min, max, false) }}
+                        >
                           {getItemStat(item, stat).toFixed(0)}
                         </td>
                       ))}
                     </tr>
-                  ))}
+                  )})}
                 </tbody>
               </table>
             </div>
