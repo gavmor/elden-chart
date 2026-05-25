@@ -128,25 +128,22 @@ export default function ArmorChartSidebar({
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="bg-slate-900/60 rounded-lg border border-slate-700/50 overflow-hidden divide-y divide-slate-800/80">
+            <div className="flex flex-wrap gap-2 bg-slate-900/40 p-3 rounded-lg border border-slate-700/50">
               {customSet.map(item => (
                 <div 
                   key={`set-${item.id}`} 
-                  className="flex items-center justify-between gap-3 p-2 bg-slate-900/30 hover:bg-slate-800/40 group/item cursor-pointer transition-colors"
+                  className="relative w-10 h-10 rounded bg-slate-950 border border-slate-700 hover:border-red-500 cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
                   onClick={() => onRemoveFromSet(item)}
-                  title="Click to remove from set"
+                  title={`${item.name} (Click to remove)`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded bg-slate-950 flex-shrink-0 flex items-center justify-center border border-slate-800 overflow-hidden">
-                      {item.image ? (
-                        <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
-                      ) : (
-                        getCategoryIcon(item.category, { className: "w-4 h-4 text-slate-500", fill: "currentColor" })
-                      )}
-                    </div>
-                    <span className="text-xs text-slate-300 group-hover/item:text-white truncate font-medium">{item.name}</span>
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-[85%] h-[85%] object-contain" />
+                  ) : (
+                    getCategoryIcon(item.category, { className: "w-5 h-5 text-slate-500", fill: "currentColor" })
+                  )}
+                  <div className="absolute inset-0 bg-red-950/80 flex items-center justify-center opacity-0 group-hover/set-item:opacity-100 transition-opacity duration-150">
+                    <X className="w-4 h-4 text-red-400" />
                   </div>
-                  <X className="w-3.5 h-3.5 text-slate-500 group-hover/item:text-red-400 hover:scale-110 transition-all flex-shrink-0" />
                 </div>
               ))}
             </div>
