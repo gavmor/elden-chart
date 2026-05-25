@@ -1,6 +1,6 @@
 import React from 'react';
-import type { ArmorItem, StatKey } from './types';
-import { stringToColor, getCategoryIcon, getItemStat } from './utils';
+import type { ArmorItem, StatKey, ColorKey } from './types';
+import { getCategoryIcon, getItemStat, getItemColor } from './utils';
 
 interface PlotProps {
   filteredData: ArmorItem[];
@@ -9,6 +9,8 @@ interface PlotProps {
   xLabel: string;
   yLabel: string;
   chartProps: { xMin: number; xMax: number; yMin: number; yMax: number } | null;
+  colorVar: ColorKey;
+  colorMinMax: { min: number; max: number } | null;
   hoveredItemId: string | null;
   onHoverItem: (e: React.MouseEvent, item: ArmorItem) => void;
   onLeavePlot: () => void;
@@ -21,6 +23,8 @@ export default function ArmorChartPlot({
   xLabel,
   yLabel,
   chartProps,
+  colorVar,
+  colorMinMax,
   hoveredItemId,
   onHoverItem,
   onLeavePlot
@@ -85,7 +89,7 @@ export default function ArmorChartPlot({
           
           const isHovered = hoveredItemId === item.id;
           const size = isHovered ? 24 : 16;
-          const color = stringToColor(item.location);
+          const color = getItemColor(item, colorVar, colorMinMax);
           
           return (
             <svg

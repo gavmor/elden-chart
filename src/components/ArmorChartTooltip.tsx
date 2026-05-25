@@ -1,6 +1,6 @@
 import { MapPin, Weight } from 'lucide-react';
-import type { ArmorItem, StatKey } from './types';
-import { stringToColor, getCategoryIcon, getItemStat } from './utils';
+import type { ArmorItem, StatKey, ColorKey } from './types';
+import { getCategoryIcon, getItemStat, getItemColor } from './utils';
 
 interface TooltipProps {
   item: ArmorItem;
@@ -9,6 +9,8 @@ interface TooltipProps {
   yLabel: string;
   xVar: StatKey;
   yVar: StatKey;
+  colorVar: ColorKey;
+  colorMinMax: { min: number; max: number } | null;
 }
 
 export default function ArmorChartTooltip({
@@ -17,9 +19,11 @@ export default function ArmorChartTooltip({
   xLabel,
   yLabel,
   xVar,
-  yVar
+  yVar,
+  colorVar,
+  colorMinMax
 }: TooltipProps) {
-  const color = stringToColor(item.location);
+  const color = getItemColor(item, colorVar, colorMinMax);
 
   return (
     <div 

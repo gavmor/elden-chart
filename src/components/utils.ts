@@ -61,3 +61,36 @@ export const getItemStat = (item: ArmorItem, statName: string): number => {
   
   return 0;
 };
+
+export const getItemColor = (
+  item: ArmorItem,
+  colorVar: string,
+  minMax: { min: number; max: number } | null
+): string => {
+  if (colorVar === 'location') {
+    return stringToColor(item.location);
+  }
+  if (colorVar === 'category') {
+    // Specific premium colors for our 4 categories to keep them highly recognizable
+    switch(item.category) {
+      case 'Helm': return 'hsl(34, 97%, 64%)'; // Amber
+      case 'Chest Armor': return 'hsl(262, 83%, 68%)'; // Purple
+      case 'Gauntlets': return 'hsl(142, 70%, 50%)'; // Emerald
+      case 'Leg Armor': return 'hsl(199, 89%, 48%)'; // Sky
+      default: return 'hsl(215, 20%, 65%)'; // Slate
+    }
+  }
+  
+  // Otherwise, it's a numerical stat!
+  const val = getItemStat(item, colorVar);
+  if (!minMax) return '#94a3b8';
+  
+  const { min, max } = minMax;
+  const range = max - min || 1;
+  const ratio = Math.max(0, Math.min(1, (val - min) / range));
+  
+  // Heatmap gradient: Blue (cold/low, hue 220) ➔ Cyan ➔ Green ➔ Yellow ➔ Orange ➔ Red (hot/high, hue 0)
+  // Maps ratio (0 to 1) onto hue (220 to 0)
+  const hue = 220 - ratio * 220;
+  return `hsl(${hue}, 85%, 60%)`;
+};

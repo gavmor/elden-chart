@@ -36,6 +36,8 @@ export type StatKey =
   | 'Vitality'
   | 'Poise';
 
+export type ColorKey = 'location' | 'category' | StatKey;
+
 export interface StatOption {
   id: StatKey;
   label: string;

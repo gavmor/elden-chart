@@ -1,5 +1,5 @@
 import { Search, Info } from 'lucide-react';
-import type { StatKey, ActiveCategories } from './types';
+import type { StatKey, ActiveCategories, ColorKey } from './types';
 import { STAT_OPTIONS, CATEGORIES } from './types';
 import { getCategoryIcon } from './utils';
 
@@ -10,6 +10,8 @@ interface SidebarProps {
   onXVarChange: (val: StatKey) => void;
   yVar: StatKey;
   onYVarChange: (val: StatKey) => void;
+  colorVar: ColorKey;
+  onColorVarChange: (val: ColorKey) => void;
   activeCategories: ActiveCategories;
   onCategoryToggle: (cat: string, checked: boolean) => void;
 }
@@ -21,6 +23,8 @@ export default function ArmorChartSidebar({
   onXVarChange,
   yVar,
   onYVarChange,
+  colorVar,
+  onColorVarChange,
   activeCategories,
   onCategoryToggle
 }: SidebarProps) {
@@ -60,6 +64,24 @@ export default function ArmorChartSidebar({
             {STAT_OPTIONS.map(opt => (
               <option key={`x-${opt.id}`} value={opt.id}>{opt.label}</option>
             ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Color (Point Theme)</label>
+          <select
+            value={colorVar}
+            onChange={(e) => onColorVarChange(e.target.value as ColorKey)}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+          >
+            <optgroup label="Categorical Grouping" className="bg-slate-950 font-semibold text-slate-400">
+              <option value="location" className="bg-slate-900 text-slate-200">Location / Set</option>
+              <option value="category" className="bg-slate-900 text-slate-200">Category (Helm/Chest/etc.)</option>
+            </optgroup>
+            <optgroup label="Numerical Heatmap" className="bg-slate-950 font-semibold text-slate-400">
+              {STAT_OPTIONS.map(opt => (
+                <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>

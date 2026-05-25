@@ -3,13 +3,13 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import request from 'graphql-request';
 
-import type { ArmorItem, StatKey, ActiveCategories } from './types';
+import type { ArmorItem, StatKey, ActiveCategories, ColorKey } from './types';
 import { CATEGORIES, STAT_OPTIONS } from './types';
 import ArmorChartHeader from './ArmorChartHeader';
 import ArmorChartSidebar from './ArmorChartSidebar';
 import ArmorChartPlot from './ArmorChartPlot';
 import ArmorChartTooltip from './ArmorChartTooltip';
-import { extractLocationOrLore } from './utils';
+import { extractLocationOrLore, getItemStat } from './utils';
 
 // Import our generated GraphQL document compiler
 // @ts-ignore
@@ -40,6 +40,7 @@ export default function ArmorChart() {
   // Controls State
   const [xVar, setXVar] = useState<StatKey>('weight');
   const [yVar, setYVar] = useState<StatKey>('total_negation');
+  const [colorVar, setColorVar] = useState<ColorKey>('location');
   const [search, setSearch] = useState<string>('');
   const [activeCategories, setActiveCategories] = useState<ActiveCategories>(
     CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: true }), {} as ActiveCategories)
@@ -119,24 +120,18 @@ export default function ArmorChart() {
     });
   }, [armorsData, activeCategories, search]);
 
+  const colorMinMax = useMemo(() => {
+    if (colorVar === 'location' || colorVar === 'category') return null;
+    const values = filteredData.map(d => getItemStat(d, colorVar));
+    if (values.length === 0) return null;
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [filteredData, colorVar]);
+
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => {
-      if (xVar === 'weight') return d.weight;
-      if (xVar === 'total_negation') return d.dmgNegation.reduce((sum, s) => sum + s.amount, 0);
-      if (xVar === 'total_resistance') return d.resistance.filter(s => s.name !== 'Poise').reduce((sum, s) => sum + s.amount, 0);
-      const stat = d.dmgNegation.find(s => s.name === xVar) || d.resistance.find(s => s.name === xVar);
-      return stat ? stat.amount : 0;
-    });
-
-    const yValues = filteredData.map(d => {
-      if (yVar === 'weight') return d.weight;
-      if (yVar === 'total_negation') return d.dmgNegation.reduce((sum, s) => sum + s.amount, 0);
-      if (yVar === 'total_resistance') return d.resistance.filter(s => s.name !== 'Poise').reduce((sum, s) => sum + s.amount, 0);
-      const stat = d.dmgNegation.find(s => s.name === yVar) || d.resistance.find(s => s.name === yVar);
-      return stat ? stat.amount : 0;
-    });
+    const xValues = filteredData.map(d => getItemStat(d, xVar));
+    const yValues = filteredData.map(d => getItemStat(d, yVar));
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -186,6 +181,8 @@ export default function ArmorChart() {
           onXVarChange={setXVar}
           yVar={yVar}
           onYVarChange={setYVar}
+          colorVar={colorVar}
+          onColorVarChange={setColorVar}
           activeCategories={activeCategories}
           onCategoryToggle={handleCategoryToggle}
         />
@@ -210,6 +207,8 @@ export default function ArmorChart() {
               xLabel={xLabel}
               yLabel={yLabel}
               chartProps={chartProps}
+              colorVar={colorVar}
+              colorMinMax={colorMinMax}
               hoveredItemId={hoveredItem ? hoveredItem.id : null}
               onHoverItem={handleMouseMove}
               onLeavePlot={() => setHoveredItem(null)}
@@ -224,6 +223,8 @@ export default function ArmorChart() {
               yLabel={yLabel}
               xVar={xVar}
               yVar={yVar}
+              colorVar={colorVar}
+              colorMinMax={colorMinMax}
             />
           )}
         </main>
