@@ -103,6 +103,7 @@ export default function ArmorChartPlot({
                   width: size,
                   height: size,
                   color: color,
+                  fill: color,
                   strokeWidth: isHovered ? 2.5 : 1.5
                 })}
               </g>

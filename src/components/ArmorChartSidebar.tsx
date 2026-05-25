@@ -81,7 +81,7 @@ export default function ArmorChartSidebar({
                     activeCategories[cat] ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-slate-800 text-slate-500 border border-slate-700 group-hover:border-slate-500 group-hover:text-slate-400'
                   }`}
                 >
-                  {getCategoryIcon(cat, { className: "w-4 h-4" })}
+                  {getCategoryIcon(cat, { className: "w-4 h-4", fill: "currentColor" })}
                 </div>
               </div>
               <span className="text-sm text-slate-300 group-hover:text-white transition-colors">{cat}</span>

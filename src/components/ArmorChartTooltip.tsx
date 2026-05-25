@@ -38,13 +38,13 @@ export default function ArmorChartTooltip({
             {item.image ? (
               <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
             ) : (
-              getCategoryIcon(item.category, { className: "w-6 h-6 text-slate-500" })
+              getCategoryIcon(item.category, { className: "w-6 h-6 text-slate-500", fill: "currentColor" })
             )}
           </div>
           <div>
             <h4 className="font-bold text-white text-sm leading-tight mb-1">{item.name}</h4>
             <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1 w-fit">
-              {getCategoryIcon(item.category, { className: "w-3 h-3" })}
+              {getCategoryIcon(item.category, { className: "w-3 h-3", fill: "currentColor" })}
               {item.category}
             </span>
           </div>
