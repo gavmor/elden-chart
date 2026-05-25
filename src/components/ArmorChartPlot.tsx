@@ -114,8 +114,8 @@ export default function ArmorChartPlot({
                   style={{
                     transform: isHovered ? 'scale(1.15)' : 'scale(1)',
                     filter: isHovered 
-                      ? `drop-shadow(0 0 8px ${color})` 
-                      : `drop-shadow(0 1px 2px rgba(0,0,0,0.6))`
+                      ? `drop-shadow(0 0 10px ${color})` 
+                      : `drop-shadow(0 0 3px ${color}) drop-shadow(0 1px 1px rgba(0,0,0,0.5))`
                   }}
                 >
                   {item.image ? (
