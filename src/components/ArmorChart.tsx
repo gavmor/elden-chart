@@ -46,6 +46,7 @@ export default function ArmorChart() {
   const [activeCategories, setActiveCategories] = useState<ActiveCategories>(
     CATEGORIES.reduce((acc, cat) => ({ ...acc, [cat]: true }), {} as ActiveCategories)
   );
+  const [showPareto, setShowPareto] = useState<boolean>(false);
 
   // Set Planner State
   const [customSet, setCustomSet] = useState<ArmorItem[]>([]);
@@ -203,6 +204,8 @@ export default function ArmorChart() {
           customSet={customSet}
           onRemoveFromSet={handleToggleSet}
           onCompareSet={() => setIsCompareOpen(true)}
+          showPareto={showPareto}
+          onShowParetoChange={setShowPareto}
         />
 
         <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>
@@ -232,6 +235,7 @@ export default function ArmorChart() {
               onLeavePlot={() => setHoveredItem(null)}
               customSet={customSet}
               onClickItem={handleToggleSet}
+              showPareto={showPareto}
             />
           )}
 

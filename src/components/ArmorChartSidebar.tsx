@@ -1,4 +1,4 @@
-import { Search, Info, X, Scale } from 'lucide-react';
+import { Search, Info, X, Scale, TrendingUp } from 'lucide-react';
 import type { StatKey, ActiveCategories, ColorKey, ArmorItem } from './types';
 import { STAT_OPTIONS, CATEGORIES } from './types';
 import { getCategoryIcon, getItemStat } from './utils';
@@ -17,6 +17,8 @@ interface SidebarProps {
   customSet: ArmorItem[];
   onRemoveFromSet: (item: ArmorItem) => void;
   onCompareSet: () => void;
+  showPareto: boolean;
+  onShowParetoChange: (val: boolean) => void;
 }
 
 export default function ArmorChartSidebar({
@@ -32,7 +34,9 @@ export default function ArmorChartSidebar({
   onCategoryToggle,
   customSet,
   onRemoveFromSet,
-  onCompareSet
+  onCompareSet,
+  showPareto,
+  onShowParetoChange
 }: SidebarProps) {
   // Aggregate stats of selected build set
   const totalWeight = customSet.reduce((sum, item) => sum + item.weight, 0);
@@ -120,6 +124,31 @@ export default function ArmorChartSidebar({
             </label>
           ))}
         </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Statistical Analysis</label>
+        <label className="flex items-center gap-3 cursor-pointer group">
+          <div className="relative flex items-center justify-center">
+            <input
+              type="checkbox"
+              checked={showPareto}
+              onChange={(e) => onShowParetoChange(e.target.checked)}
+              className="sr-only"
+            />
+            <div 
+              className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${
+                showPareto ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-slate-800 text-slate-500 border border-slate-700 group-hover:border-slate-500 group-hover:text-slate-400'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Pareto Frontier</span>
+            <span className={`text-[10px] leading-tight transition-all duration-300 ${showPareto ? 'text-amber-500/70 max-h-8 opacity-100 mt-0.5' : 'text-slate-600 max-h-0 opacity-0'} overflow-hidden`}>Best trade-off curve (Min X / Max Y)</span>
+          </div>
+        </label>
       </div>
 
       <div className="flex flex-col gap-3">
