@@ -17,7 +17,6 @@ import {
 	heaterShieldItem,
 } from './CompareModal/test-fixtures';
 import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
-import React from 'react';
 
 // ---------------------------------------------------------------------------
 // getCategoryIcon
