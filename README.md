@@ -4,6 +4,8 @@ A state-of-the-art, high-fidelity interactive scatter plot visualizer that allow
 
 Live App: **[Elden Ring Armor Visualizer on GitHub Pages](https://gavmor.github.io/elden-chart/)**
 
+[![CI/CD](https://github.com/gavmor/elden-chart/actions/workflows/ci.yml/badge.svg)](https://github.com/gavmor/elden-chart/actions/workflows/ci.yml)
+
 ---
 
 ## 🎨 Premium Visual Experience
