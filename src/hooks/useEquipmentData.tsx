@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import request from 'graphql-request';
 import type { EquipmentItem, ArmorItem, WeaponItem, ShieldItem } from '../components/types';
-// @ts-ignore
 import { graphql } from '../gql/gql';
 
 const API_URL = 'https://eldenring.fanapis.com/api/graphql';
@@ -85,30 +84,60 @@ const GET_SHIELD_PAGE = graphql(/* GraphQL */ `
   }
 `);
 
-const safeFloat = (val: any): number => {
+/** Raw shape of a { name, amount } stat as returned by the API (amount may be a string or number). */
+interface RawStat { name?: unknown; amount?: unknown; }
+/** Raw shape of a { name, scaling } scaling stat. */
+interface RawScalingStat { name?: unknown; scaling?: unknown; }
+/** Raw shape of a top-level item record from the API. */
+interface RawItem {
+  id?: unknown;
+  name?: unknown;
+  image?: unknown;
+  category?: unknown;
+  description?: unknown;
+  weight?: unknown;
+  dmgNegation?: RawStat[];
+  resistance?: RawStat[];
+  attack?: RawStat[];
+  defence?: RawStat[];
+  scalesWith?: RawScalingStat[];
+  requiredAttributes?: RawStat[];
+}
+
+const safeFloat = (val: unknown): number => {
   if (typeof val === 'number') return val;
   if (!val) return 0;
-  const parsed = parseFloat(val);
+  const parsed = parseFloat(String(val));
   return isNaN(parsed) ? 0 : parsed;
 };
 
+const safeStr = (val: unknown): string =>
+  typeof val === 'string' ? val : '';
+
+const safeStrOrNull = (val: unknown): string | null =>
+  typeof val === 'string' ? val : null;
+
+const mapStat = (s: RawStat) => ({ name: safeStr(s.name), amount: safeFloat(s.amount) });
+const mapScaling = (s: RawScalingStat) => ({ name: safeStr(s.name), scaling: safeStr(s.scaling) });
+
 const fetchAllPages = async (
-  query: any,
+  query: unknown,
   field: string,
   maxPage: number,
   limit = 100
-): Promise<any[]> => {
-  const allItems: any[] = [];
+): Promise<RawItem[]> => {
+  const allItems: RawItem[] = [];
 
   for (let page = 0; page <= maxPage; page++) {
     try {
-      const response = await request(API_URL, query, { page, limit });
-      const pageData = response[field] || [];
+      const response = await request(API_URL, query as Parameters<typeof request>[1], { page, limit });
+      const pageData = (response as Record<string, RawItem[]>)[field] || [];
       if (pageData.length === 0) break;
       allItems.push(...pageData);
-    } catch (err: any) {
-      if (err.response && err.response.data && err.response.data[field]) {
-        allItems.push(...err.response.data[field]);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: Record<string, RawItem[]> } };
+      if (e.response?.data?.[field]) {
+        allItems.push(...e.response.data[field]);
       } else {
         console.error(`Fetch ${field} page failed:`, err);
       }
@@ -133,78 +162,48 @@ export const useEquipmentData = () => {
       ]);
 
       const armors: ArmorItem[] = deduplicate(
-        rawArmors.map((item: any) => ({
-          id: item.id || '',
-          name: item.name || '',
-          image: item.image || null,
-          category: item.category || '',
-          description: item.description || '',
+        rawArmors.map((item: RawItem) => ({
+          id: safeStr(item.id),
+          name: safeStr(item.name),
+          image: safeStrOrNull(item.image),
+          category: safeStr(item.category),
+          description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'armor' as const,
-          dmgNegation: (item.dmgNegation || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
-          resistance: (item.resistance || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
+          dmgNegation: (item.dmgNegation || []).map(mapStat),
+          resistance: (item.resistance || []).map(mapStat),
         }))
       );
 
       const weapons: WeaponItem[] = deduplicate(
-        rawWeapons.map((item: any) => ({
-          id: item.id || '',
-          name: item.name || '',
-          image: item.image || null,
-          category: item.category || '',
-          description: item.description || '',
+        rawWeapons.map((item: RawItem) => ({
+          id: safeStr(item.id),
+          name: safeStr(item.name),
+          image: safeStrOrNull(item.image),
+          category: safeStr(item.category),
+          description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'weapon' as const,
-          attack: (item.attack || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
-          defence: (item.defence || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
-          scalesWith: (item.scalesWith || []).map((s: any) => ({
-            name: s.name || '',
-            scaling: s.scaling || '',
-          })),
-          requiredAttributes: (item.requiredAttributes || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
+          attack: (item.attack || []).map(mapStat),
+          defence: (item.defence || []).map(mapStat),
+          scalesWith: (item.scalesWith || []).map(mapScaling),
+          requiredAttributes: (item.requiredAttributes || []).map(mapStat),
         }))
       );
 
       const shields: ShieldItem[] = deduplicate(
-        rawShields.map((item: any) => ({
-          id: item.id || '',
-          name: item.name || '',
-          image: item.image || null,
-          category: item.category || '',
-          description: item.description || '',
+        rawShields.map((item: RawItem) => ({
+          id: safeStr(item.id),
+          name: safeStr(item.name),
+          image: safeStrOrNull(item.image),
+          category: safeStr(item.category),
+          description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'shield' as const,
-          attack: (item.attack || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
-          defence: (item.defence || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
-          scalesWith: (item.scalesWith || []).map((s: any) => ({
-            name: s.name || '',
-            scaling: s.scaling || '',
-          })),
-          requiredAttributes: (item.requiredAttributes || []).map((s: any) => ({
-            name: s.name || '',
-            amount: safeFloat(s.amount),
-          })),
+          attack: (item.attack || []).map(mapStat),
+          defence: (item.defence || []).map(mapStat),
+          scalesWith: (item.scalesWith || []).map(mapScaling),
+          requiredAttributes: (item.requiredAttributes || []).map(mapStat),
         }))
       );
 

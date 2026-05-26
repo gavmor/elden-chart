@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Loader2, AlertCircle, Sliders, Sparkles } from 'lucide-react';
 import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
@@ -18,8 +18,10 @@ export default function EquipmentChart() {
   const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [localSearch, setLocalSearch] = useState(search);
 
-  // Sync localSearch when the URL search param changes (e.g. on back/forward or initial load)
+  // Sync localSearch when the URL search param changes (e.g. on back/forward or initial load).
+  // This is intentional: localSearch is a debounce buffer, not derived state.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalSearch(search);
   }, [search]);
 
@@ -117,7 +119,7 @@ export default function EquipmentChart() {
     if (nonWeightStats.length > 0 && !searchParams.has('y')) {
       setParam('y', nonWeightStats[0].id);
     }
-  }, [categoryGroups, equipment, searchParams, params.cats]);
+  }, [categoryGroups, equipment, searchParams, params.cats, setParam]);
 
   const filteredData = useMemo(() => {
     return equipment.filter(item => {
@@ -174,7 +176,7 @@ export default function EquipmentChart() {
     return { xMin, xMax, yMin, yMax };
   }, [filteredData, resolvedXVar, resolvedYVar]);
 
-  const handleMouseMove = (e: React.MouseEvent, item: EquipmentItem) => {
+  const handleMouseMove = (e: MouseEvent, item: EquipmentItem) => {
     if (!chartRef.current) return;
     const rect = chartRef.current.getBoundingClientRect();
 
@@ -280,7 +282,7 @@ export default function EquipmentChart() {
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20">
               <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
               <h2 className="text-xl font-medium text-white mb-2">Connection Lost</h2>
-              <p className="text-slate-400">{(error as any).message || 'Failed to fetch'}</p>
+              <p className="text-slate-400">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
             </div>
           ) : (
             <EquipmentChartPlot

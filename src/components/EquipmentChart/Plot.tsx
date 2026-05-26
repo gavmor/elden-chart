@@ -13,7 +13,7 @@ interface PlotProps {
   colorVar: ColorKey;
   colorMinMax: { min: number; max: number } | null;
   hoveredItemId: string | null;
-  onHoverItem: (e: React.MouseEvent, item: EquipmentItem) => void;
+  onHoverItem: (e: MouseEvent, item: EquipmentItem) => void;
   onLeavePlot: () => void;
   customSet: EquipmentItem[];
   onClickItem: (item: EquipmentItem) => void;
@@ -42,17 +42,21 @@ export default function EquipmentChartPlot({
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 600, height: 400 });
 
-  // Stable refs for callbacks — prevents plot destruction on every hover/click
+  // Stable refs for callbacks — updated synchronously before the effect reads them
   const onHoverItemRef = useRef(onHoverItem);
   const onLeavePlotRef = useRef(onLeavePlot);
   const onClickItemRef = useRef(onClickItem);
   const customSetRef = useRef(customSet);
-  onHoverItemRef.current = onHoverItem;
-  onLeavePlotRef.current = onLeavePlot;
-  onClickItemRef.current = onClickItem;
-  customSetRef.current = customSet;
+  // useLayoutEffect keeps updates synchronous (before paint) without triggering a re-render
+  React.useLayoutEffect(() => {
+    onHoverItemRef.current = onHoverItem;
+    onLeavePlotRef.current = onLeavePlot;
+    onClickItemRef.current = onClickItem;
+    customSetRef.current = customSet;
+  });
 
   // 1. Hook ResizeObserver to measure the container size in real-time
+  const hasData = filteredData.length > 0;
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -62,7 +66,7 @@ export default function EquipmentChartPlot({
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [filteredData.length > 0]);
+  }, [hasData]);
 
   // 2. Compute Pareto optimal items using useMemo
   const paretoItems = useMemo(() => {
@@ -95,7 +99,7 @@ export default function EquipmentChartPlot({
     containerRef.current.appendChild(xLabelEl);
 
     // Build Plot marks list
-    const marks: any[] = [];
+    const marks: Plot.Markish[] = [];
 
     // Layer 1: Pareto Path Glow (Thick blurred line)
     if (showPareto && paretoItems.length > 1) {
@@ -108,7 +112,7 @@ export default function EquipmentChartPlot({
           strokeLinecap: 'round',
           strokeLinejoin: 'round',
           opacity: 0.15,
-          render: (index: any, scales: any, values: any, dimensions: any, context: any, next: any) => {
+          render: (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
             const path = next?.(index, scales, values, dimensions, context);
             if (path) {
               path.setAttribute('style', 'filter: blur(4px);');
@@ -143,11 +147,11 @@ export default function EquipmentChartPlot({
           stroke: '#fbbf24',
           strokeWidth: 1,
           opacity: 0.7,
-          render: (index: any, scales: any, values: any, dimensions: any, context: any, next: any) => {
+          render: (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
             const group = next?.(index, scales, values, dimensions, context);
             if (group) {
               const circles = group.querySelectorAll('circle');
-              circles.forEach((circle: HTMLElement) => {
+              circles.forEach((circle: SVGCircleElement) => {
                 circle.setAttribute('class', 'animate-pulse');
               });
             }
@@ -336,11 +340,11 @@ export default function EquipmentChartPlot({
         });
 
         // Trigger React tooltip via stable ref
-        onHoverItemRef.current(e as any, item);
+        onHoverItemRef.current(e, item);
       };
 
       const handleMouseMove = (e: MouseEvent) => {
-        onHoverItemRef.current(e as any, item);
+        onHoverItemRef.current(e, item);
       };
 
       const handleMouseLeave = () => {
