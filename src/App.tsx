@@ -1,8 +1,8 @@
-import ArmorChart from './components/ArmorChart/index';
+import EquipmentChart from './components/EquipmentChart/index';
 
 function App() {
   return (
-    <ArmorChart />
+    <EquipmentChart />
   );
 }
 

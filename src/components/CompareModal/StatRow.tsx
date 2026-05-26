@@ -1,9 +1,9 @@
-import type { ArmorItem } from '../types';
+import type { EquipmentItem } from '../types';
 import { getItemStat, getStatRange } from '../utils';
 import CompareModalStatCell from './StatCell';
 
 interface Props {
-  customSet: ArmorItem[];
+  customSet: EquipmentItem[];
   statName: string;
   label: string;
   labelClassName?: string;

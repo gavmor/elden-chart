@@ -1,8 +1,8 @@
-import type { ArmorItem } from '../types';
+import type { EquipmentItem } from '../types';
 import { getCategoryIcon } from '../utils';
 
 interface Props {
-  item: ArmorItem;
+  item: EquipmentItem;
 }
 
 export default function CompareModalItemHeader({ item }: Props) {
@@ -13,12 +13,12 @@ export default function CompareModalItemHeader({ item }: Props) {
           {item.image ? (
             <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
           ) : (
-            getCategoryIcon(item.category, { className: "w-6 h-6 text-muted", fill: "currentColor" })
+            getCategoryIcon(item.category, item.kind, { className: "w-6 h-6 text-muted", fill: "currentColor" })
           )}
         </div>
         <span className="font-bold text-body text-xs line-clamp-1">{item.name}</span>
         <span className="text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-panel-active text-muted border border-accent/10 flex items-center gap-1 w-fit">
-          {getCategoryIcon(item.category, { className: "w-2.5 h-2.5", fill: "currentColor" })}
+          {getCategoryIcon(item.category, item.kind, { className: "w-2.5 h-2.5", fill: "currentColor" })}
           {item.category.replace(' Armor', '')}
         </span>
       </div>

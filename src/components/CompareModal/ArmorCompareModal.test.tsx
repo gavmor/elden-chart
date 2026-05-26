@@ -1,36 +1,36 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ArmorCompareModal from './ArmorCompareModal';
+import EquipmentCompareModal from './EquipmentCompareModal';
 import { mockCustomSet } from './test-fixtures';
 
-describe('ArmorCompareModal', () => {
+describe('EquipmentCompareModal', () => {
   it('returns null when isOpen is false', () => {
     const { container } = render(
-      <ArmorCompareModal isOpen={false} onClose={() => {}} customSet={[]} />
+      <EquipmentCompareModal isOpen={false} onClose={() => {}} customSet={[]} />
     );
     expect(container.innerHTML).toBe('');
   });
 
   it('renders the modal when isOpen is true', () => {
     render(
-      <ArmorCompareModal isOpen={true} onClose={() => {}} customSet={[]} />
+      <EquipmentCompareModal isOpen={true} onClose={() => {}} customSet={[]} />
     );
-    expect(screen.getByText('Armor Set Comparison')).toBeInTheDocument();
+    expect(screen.getByText('Equipment Set Comparison')).toBeInTheDocument();
   });
 
   it('shows empty state when customSet is empty', () => {
     render(
-      <ArmorCompareModal isOpen={true} onClose={() => {}} customSet={[]} />
+      <EquipmentCompareModal isOpen={true} onClose={() => {}} customSet={[]} />
     );
     expect(
-      screen.getByText('Your build set is empty. Click points on the plot to add armor pieces.')
+      screen.getByText('Your build set is empty. Click points on the plot to add equipment.')
     ).toBeInTheDocument();
   });
 
   it('shows the comparison table when customSet has items', () => {
     render(
-      <ArmorCompareModal isOpen={true} onClose={() => {}} customSet={mockCustomSet} />
+      <EquipmentCompareModal isOpen={true} onClose={() => {}} customSet={mockCustomSet} />
     );
     expect(screen.getByText('Weight')).toBeInTheDocument();
     expect(screen.getByText('Damage Negation (%)')).toBeInTheDocument();
@@ -41,11 +41,11 @@ describe('ArmorCompareModal', () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     render(
-      <ArmorCompareModal isOpen={true} onClose={onClose} customSet={[]} />
+      <EquipmentCompareModal isOpen={true} onClose={onClose} customSet={[]} />
     );
 
     // Click on the backdrop overlay
-    const overlay = screen.getByText('Armor Set Comparison').closest('.fixed');
+    const overlay = screen.getByText('Equipment Set Comparison').closest('.fixed');
     await user.click(overlay!);
 
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -55,11 +55,11 @@ describe('ArmorCompareModal', () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     render(
-      <ArmorCompareModal isOpen={true} onClose={onClose} customSet={mockCustomSet} />
+      <EquipmentCompareModal isOpen={true} onClose={onClose} customSet={mockCustomSet} />
     );
 
     // Click inside the modal content
-    await user.click(screen.getByText('Armor Set Comparison'));
+    await user.click(screen.getByText('Equipment Set Comparison'));
     expect(onClose).not.toHaveBeenCalled();
   });
 
@@ -67,7 +67,7 @@ describe('ArmorCompareModal', () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     render(
-      <ArmorCompareModal isOpen={true} onClose={onClose} customSet={[]} />
+      <EquipmentCompareModal isOpen={true} onClose={onClose} customSet={[]} />
     );
 
     // The header has a close button
@@ -80,7 +80,7 @@ describe('ArmorCompareModal', () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
     render(
-      <ArmorCompareModal isOpen={true} onClose={onClose} customSet={[]} />
+      <EquipmentCompareModal isOpen={true} onClose={onClose} customSet={[]} />
     );
 
     const buttons = screen.getAllByRole('button', { name: 'Close' });

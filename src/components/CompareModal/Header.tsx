@@ -9,7 +9,7 @@ export default function CompareModalHeader({ onClose }: Props) {
     <div className="flex items-center justify-between p-5 border-b border-accent/20 bg-panel/50">
       <div>
         <h3 className="text-lg font-bold text-body flex items-center gap-2">
-          <Scale className="w-5 h-5 text-accent" /> Armor Set Comparison
+          <Scale className="w-5 h-5 text-accent" /> Equipment Set Comparison
         </h3>
         <p className="text-xs text-muted mt-0.5">Compare stats across your selected build items side-by-side</p>
       </div>

@@ -1,4 +1,4 @@
-import type { ArmorItem } from '../types';
+import type { EquipmentItem } from '../types';
 import CompareModalHeader from './Header';
 import CompareModalEmptyState from './EmptyState';
 import CompareModalTable from './Table';
@@ -7,10 +7,10 @@ import CompareModalFooter from './Footer';
 interface CompareModalProps {
   isOpen: boolean;
   onClose: () => void;
-  customSet: ArmorItem[];
+  customSet: EquipmentItem[];
 }
 
-export default function ArmorCompareModal({ isOpen, onClose, customSet }: CompareModalProps) {
+export default function EquipmentCompareModal({ isOpen, onClose, customSet }: CompareModalProps) {
   if (!isOpen) return null;
 
   return (

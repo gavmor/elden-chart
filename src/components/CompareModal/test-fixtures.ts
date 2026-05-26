@@ -1,4 +1,4 @@
-import type { ArmorItem } from '../types';
+import type { ArmorItem, WeaponItem, ShieldItem } from '../types';
 
 export const helmItem: ArmorItem = {
   id: 'helm-1',
@@ -7,6 +7,7 @@ export const helmItem: ArmorItem = {
   category: 'Helm',
   description: 'Helm of the Tree Sentinel',
   weight: 4.2,
+  kind: 'armor',
   dmgNegation: [
     { name: 'Phy', amount: 5.5 },
     { name: 'Strike', amount: 4.0 },
@@ -33,6 +34,7 @@ export const chestItem: ArmorItem = {
   category: 'Chest Armor',
   description: 'Chest piece of the Tree Sentinel',
   weight: 11.5,
+  kind: 'armor',
   dmgNegation: [
     { name: 'Phy', amount: 12.0 },
     { name: 'Strike', amount: 9.5 },
@@ -59,6 +61,7 @@ export const gauntletsItem: ArmorItem = {
   category: 'Gauntlets',
   description: 'Gauntlets of the Tree Sentinel',
   weight: 3.0,
+  kind: 'armor',
   dmgNegation: [
     { name: 'Phy', amount: 3.0 },
     { name: 'Strike', amount: 2.5 },
@@ -78,4 +81,63 @@ export const gauntletsItem: ArmorItem = {
   ],
 };
 
+export const longswordItem: WeaponItem = {
+  id: 'weapon-1',
+  name: 'Longsword',
+  image: null,
+  category: 'Straight Sword',
+  description: 'A standard straight sword',
+  weight: 3.5,
+  kind: 'weapon',
+  attack: [
+    { name: 'Phy', amount: 110 },
+    { name: 'Crit', amount: 100 },
+  ],
+  defence: [
+    { name: 'Phy', amount: 45 },
+    { name: 'Mag', amount: 0 },
+    { name: 'Fire', amount: 0 },
+    { name: 'Ligt', amount: 0 },
+    { name: 'Holy', amount: 0 },
+    { name: 'Boost', amount: 30 },
+  ],
+  scalesWith: [
+    { name: 'Str', scaling: 'D' },
+    { name: 'Dex', scaling: 'D' },
+  ],
+  requiredAttributes: [
+    { name: 'Str', amount: 10 },
+    { name: 'Dex', amount: 10 },
+  ],
+};
+
+export const heaterShieldItem: ShieldItem = {
+  id: 'shield-1',
+  name: 'Heater Shield',
+  image: null,
+  category: 'Small Shield',
+  description: 'A standard heater shield',
+  weight: 3.5,
+  kind: 'shield',
+  attack: [
+    { name: 'Phy', amount: 65 },
+  ],
+  defence: [
+    { name: 'Phy', amount: 100 },
+    { name: 'Mag', amount: 50 },
+    { name: 'Fire', amount: 60 },
+    { name: 'Ligt', amount: 40 },
+    { name: 'Holy', amount: 55 },
+    { name: 'Boost', amount: 48 },
+  ],
+  scalesWith: [
+    { name: 'Str', scaling: 'D' },
+  ],
+  requiredAttributes: [
+    { name: 'Str', amount: 8 },
+  ],
+};
+
 export const mockCustomSet = [helmItem, chestItem, gauntletsItem];
+export const mockWeaponSet = [longswordItem];
+export const mockMixedSet = [helmItem, longswordItem];

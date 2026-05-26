@@ -6,7 +6,7 @@ describe('CompareModalEmptyState', () => {
   it('renders the empty state message', () => {
     render(<CompareModalEmptyState />);
     expect(
-      screen.getByText('Your build set is empty. Click points on the plot to add armor pieces.')
+      screen.getByText('Your build set is empty. Click points on the plot to add equipment.')
     ).toBeInTheDocument();
   });
 

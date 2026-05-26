@@ -6,7 +6,7 @@ import CompareModalHeader from './Header';
 describe('CompareModalHeader', () => {
   it('renders the title and subtitle', () => {
     render(<CompareModalHeader onClose={() => {}} />);
-    expect(screen.getByText('Armor Set Comparison')).toBeInTheDocument();
+    expect(screen.getByText('Equipment Set Comparison')).toBeInTheDocument();
     expect(
       screen.getByText('Compare stats across your selected build items side-by-side')
     ).toBeInTheDocument();
