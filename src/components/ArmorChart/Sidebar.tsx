@@ -1,7 +1,7 @@
 import { Search, Info, X, Scale, TrendingUp } from 'lucide-react';
-import type { StatKey, ActiveCategories, ColorKey, ArmorItem } from './types';
-import { STAT_OPTIONS, CATEGORIES } from './types';
-import { getCategoryIcon, getItemStat } from './utils';
+import type { StatKey, ActiveCategories, ColorKey, ArmorItem } from '../types';
+import { STAT_OPTIONS, CATEGORIES } from '../types';
+import { getCategoryIcon, getItemStat } from '../utils';
 
 interface SidebarProps {
   search: string;

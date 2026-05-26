@@ -3,14 +3,14 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import request from 'graphql-request';
 
-import type { ArmorItem, StatKey, ActiveCategories, ColorKey } from './types';
-import { CATEGORIES, STAT_OPTIONS } from './types';
-import ArmorChartHeader from './ArmorChartHeader';
-import ArmorChartSidebar from './ArmorChartSidebar';
-import ArmorChartPlot from './ArmorChartPlot';
-import ArmorChartTooltip from './ArmorChartTooltip';
-import ArmorCompareModal from './ArmorCompareModal';
-import { getItemStat } from './utils';
+import type { ArmorItem, StatKey, ActiveCategories, ColorKey } from '../types';
+import { CATEGORIES, STAT_OPTIONS } from '../types';
+import ArmorChartHeader from './Header';
+import ArmorChartSidebar from './Sidebar';
+import ArmorChartPlot from './Plot';
+import ArmorChartTooltip from './Tooltip';
+import ArmorCompareModal from '../CompareModal/ArmorCompareModal';
+import { getItemStat } from '../utils';
 
 // Import our generated GraphQL document compiler
 // @ts-ignore

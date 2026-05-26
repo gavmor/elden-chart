@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as Plot from '@observablehq/plot';
-import type { ArmorItem, StatKey, ColorKey } from './types';
-import { getItemStat, getItemColor, getItemImageUrl, getParetoFrontier } from './utils';
+import type { ArmorItem, StatKey, ColorKey } from '../types';
+import { getItemStat, getItemColor, getItemImageUrl, getParetoFrontier } from '../utils';
 
 interface PlotProps {
   filteredData: ArmorItem[];

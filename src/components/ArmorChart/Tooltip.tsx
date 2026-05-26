@@ -1,6 +1,6 @@
 import { Weight } from 'lucide-react';
-import type { ArmorItem, StatKey, ColorKey } from './types';
-import { getCategoryIcon, getItemStat, getItemColor } from './utils';
+import type { ArmorItem, StatKey, ColorKey } from '../types';
+import { getCategoryIcon, getItemStat, getItemColor } from '../utils';
 
 interface TooltipProps {
   item: ArmorItem;
