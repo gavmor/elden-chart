@@ -415,10 +415,9 @@ describe('getAvailableStats', () => {
 		expect(resistance?.group).toBe('Armor Resistance');
 	});
 
-	it('returns weight-only for empty items', () => {
+	it('returns empty for empty items', () => {
 		const stats = getAvailableStats([]);
-		expect(stats).toHaveLength(1);
-		expect(stats[0].id).toBe('weight');
+		expect(stats).toHaveLength(0);
 	});
 
 	it('handles shield-only items', () => {

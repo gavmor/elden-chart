@@ -231,19 +231,24 @@ export const buildGroup = (
 	];
 };
 
+const toTitleCase = (s: string): string =>
+	s.charAt(0).toUpperCase() + s.slice(1);
+
 /**
  * Generates dynamic stat options based on which equipment kinds are present.
  * Stat names are derived from the actual item data — not hardcoded.
  * When armor and weapons/shields are mixed, only weight is offered (incompatible stat systems).
  */
 export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
-	const weightStat: StatOption = { id: 'weight', label: 'Weight', group: 'General' };
+	if (items.length === 0) return [];
+
+	const weightKey = 'weight' satisfies keyof EquipmentItem;
+	const weightStat: StatOption = { id: weightKey, label: toTitleCase(weightKey), group: 'General' };
 
 	const hasArmor = items.some(i => i.kind === 'armor');
 	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield');
 
 	if (hasArmor && hasWeaponLike) return [weightStat];
-	if (!hasArmor && !hasWeaponLike) return [weightStat];
 
 	if (hasArmor) {
 		const negationNames = collectStatNames(items, i => i.kind === 'armor' ? i.dmgNegation : []);
