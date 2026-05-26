@@ -260,16 +260,25 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
     const attackNames = collectStatNames(items, i => i.kind !== 'armor' ? i.attack : []);
     const defenceNames = collectStatNames(items, i => i.kind !== 'armor' ? i.defence : []);
 
+    // Attack and defence share stat names (e.g. "Mag", "Fire"), so deduplicate by ID
+    const seenIds = new Set<string>();
+
     if (attackNames.length > 0) {
       stats.push({ id: 'total_attack', label: 'Total Attack', group: 'Weapon Attack' });
       for (const name of attackNames) {
-        stats.push({ id: name, label: formatStatName(name, 'Attack'), group: 'Weapon Attack' });
+        if (!seenIds.has(name)) {
+          seenIds.add(name);
+          stats.push({ id: name, label: formatStatName(name, 'Attack'), group: 'Weapon Attack' });
+        }
       }
     }
     if (defenceNames.length > 0) {
       stats.push({ id: 'total_defence', label: 'Total Defence', group: 'Weapon Defence' });
       for (const name of defenceNames) {
-        stats.push({ id: name, label: formatStatName(name, 'Defence'), group: 'Weapon Defence' });
+        if (!seenIds.has(name)) {
+          seenIds.add(name);
+          stats.push({ id: name, label: formatStatName(name, 'Defence'), group: 'Weapon Defence' });
+        }
       }
     }
   }

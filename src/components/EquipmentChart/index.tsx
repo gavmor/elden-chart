@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
-import type { EquipmentItem, ActiveCategories, ColorKey } from '../types';
+import type { EquipmentItem, ActiveCategories, ColorKey, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
 import EquipmentChartHeader from './Header';
@@ -115,6 +115,31 @@ export default function EquipmentChart() {
     setActiveCategories(prev => ({ ...prev, [categoryName]: checked }));
   };
 
+  const handleToggleGroup = (kind: EquipmentKind, selectAll: boolean) => {
+    setActiveCategories(prev => {
+      const next = { ...prev };
+      const group = categoryGroups.find(g => g.kind === kind);
+      if (group) {
+        for (const cat of group.categories) {
+          next[cat] = selectAll;
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleToggleAll = (selectAll: boolean) => {
+    setActiveCategories(prev => {
+      const next = { ...prev };
+      for (const group of categoryGroups) {
+        for (const cat of group.categories) {
+          next[cat] = selectAll;
+        }
+      }
+      return next;
+    });
+  };
+
   const handleToggleSet = (item: EquipmentItem) => {
     setCustomSet(prev => {
       const exists = prev.some(i => i.id === item.id);
@@ -155,6 +180,8 @@ export default function EquipmentChart() {
           categoryGroups={categoryGroups}
           activeCategories={activeCategories}
           onCategoryToggle={handleCategoryToggle}
+          onToggleGroup={handleToggleGroup}
+          onToggleAll={handleToggleAll}
           customSet={customSet}
           onRemoveFromSet={handleToggleSet}
           onCompareSet={() => setIsCompareOpen(true)}

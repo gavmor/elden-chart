@@ -15,6 +15,8 @@ interface SidebarProps {
   categoryGroups: { kind: EquipmentKind; categories: string[] }[];
   activeCategories: ActiveCategories;
   onCategoryToggle: (cat: string, checked: boolean) => void;
+  onToggleGroup: (kind: EquipmentKind, selectAll: boolean) => void;
+  onToggleAll: (selectAll: boolean) => void;
   customSet: EquipmentItem[];
   onRemoveFromSet: (item: EquipmentItem) => void;
   onCompareSet: () => void;
@@ -35,6 +37,8 @@ export default function EquipmentChartSidebar({
   categoryGroups,
   activeCategories,
   onCategoryToggle,
+  onToggleGroup,
+  onToggleAll,
   customSet,
   onRemoveFromSet,
   onCompareSet,
@@ -111,12 +115,44 @@ export default function EquipmentChartSidebar({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Categories</label>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Categories</label>
+          <div className="flex gap-1">
+            <button
+              onClick={() => onToggleAll(true)}
+              className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-amber-400 hover:bg-slate-700 border border-slate-700 transition-colors"
+            >
+              All
+            </button>
+            <button
+              onClick={() => onToggleAll(false)}
+              className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-red-400 hover:bg-slate-700 border border-slate-700 transition-colors"
+            >
+              None
+            </button>
+          </div>
+        </div>
         <div className="space-y-3">
           {categoryGroups.map(group => (
             <div key={group.kind}>
-              <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-500 mb-1.5 px-1">
-                {group.kind === 'armor' ? 'Armor' : group.kind === 'weapon' ? 'Weapons' : 'Shields'}
+              <div className="flex items-center justify-between mb-1.5 px-1">
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">
+                  {group.kind === 'armor' ? 'Armor' : group.kind === 'weapon' ? 'Weapons' : 'Shields'}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => onToggleGroup(group.kind, true)}
+                    className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 hover:text-amber-400 hover:bg-slate-700 border border-slate-700/50 transition-colors"
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => onToggleGroup(group.kind, false)}
+                    className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-slate-700 border border-slate-700/50 transition-colors"
+                  >
+                    None
+                  </button>
+                </div>
               </div>
               <div className="space-y-2">
                 {group.categories.map(cat => (
