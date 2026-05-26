@@ -72,25 +72,33 @@ export default function EquipmentChartSidebar({
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Y-Axis (Vertical)</label>
           <select
-            value={yVar}
+            value={statOptions.length > 0 ? yVar : ''}
             onChange={(e) => onYVarChange(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+            disabled={statOptions.length === 0}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {statOptions.map(opt => (
-              <option key={`y-${opt.id}`} value={opt.id}>{opt.label}</option>
-            ))}
+            {statOptions.length === 0
+              ? <option value="">None</option>
+              : statOptions.map(opt => (
+                  <option key={`y-${opt.id}`} value={opt.id}>{opt.label}</option>
+                ))
+            }
           </select>
         </div>
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">X-Axis (Horizontal)</label>
           <select
-            value={xVar}
+            value={statOptions.length > 0 ? xVar : ''}
             onChange={(e) => onXVarChange(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+            disabled={statOptions.length === 0}
+            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {statOptions.map(opt => (
-              <option key={`x-${opt.id}`} value={opt.id}>{opt.label}</option>
-            ))}
+            {statOptions.length === 0
+              ? <option value="">None</option>
+              : statOptions.map(opt => (
+                  <option key={`x-${opt.id}`} value={opt.id}>{opt.label}</option>
+                ))
+            }
           </select>
         </div>
         <div>
