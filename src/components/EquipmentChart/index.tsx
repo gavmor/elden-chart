@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import { Loader2, AlertCircle, Sliders, Sparkles } from 'lucide-react';
 import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
@@ -8,7 +8,8 @@ import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
 import EquipmentChartTooltip from './Tooltip';
-import EquipmentCompareModal from '../CompareModal/EquipmentCompareModal';
+
+const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
 export default function EquipmentChart() {
   const { params, setParam, searchParams } = useValidatedParams();
@@ -414,11 +415,15 @@ export default function EquipmentChart() {
         </main>
       </div>
 
-      <EquipmentCompareModal
-        isOpen={isCompareOpen}
-        onClose={() => setIsCompareOpen(false)}
-        customSet={customSet}
-      />
+      <Suspense fallback={null}>
+        {isCompareOpen && (
+          <EquipmentCompareModal
+            isOpen={isCompareOpen}
+            onClose={() => setIsCompareOpen(false)}
+            customSet={customSet}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
