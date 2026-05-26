@@ -6,3 +6,6 @@ pre-commit:
 
     - name: test
       run: pnpm run test
+
+    - name: lint
+      run: pnpm run lint
