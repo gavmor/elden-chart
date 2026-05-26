@@ -72,6 +72,7 @@ export default function EquipmentChartSidebar({
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Y-Axis (Vertical)</label>
           <select
+            aria-label="Y-Axis"
             value={statOptions.length > 0 ? yVar : ''}
             onChange={(e) => onYVarChange(e.target.value)}
             disabled={statOptions.length === 0}
@@ -88,6 +89,7 @@ export default function EquipmentChartSidebar({
         <div>
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">X-Axis (Horizontal)</label>
           <select
+            aria-label="X-Axis"
             value={statOptions.length > 0 ? xVar : ''}
             onChange={(e) => onXVarChange(e.target.value)}
             disabled={statOptions.length === 0}
