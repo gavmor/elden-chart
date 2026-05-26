@@ -1,4 +1,4 @@
-import ArmorChart from './components/ArmorChart';
+import ArmorChart from './components/ArmorChart/index';
 
 function App() {
   return (

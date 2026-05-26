@@ -33,7 +33,8 @@ Color datapoints dynamically by **literally any dynamic property of an item** (c
 ### 🔥 Continuous Thermal Heatmaps
 - Selecting any numerical stat (e.g. Weight, Poise, Physical/Magic negation, status resistances) automatically triggers the color pipeline to:
   1. Calculate dynamic bounds (`min` / `max`) across the currently filtered/active dataset using a high-performance `useMemo` cache.
-  2. Project the relative ratio of each item's value onto a continuous thermal spectrum: **Blue (Low values) ➔ Cyan ➔ Green ➔ Yellow ➔ Orange ➔ Red (High values)**.
+  2. Project the relative ratio of each item's value onto a continuous thermal spectrum: **Red (Low/Worse) ➔ Orange ➔ Yellow ➔ Green ➔ Cyan ➔ Blue (High/Better)**.
+  3. The direction flips automatically for stats like Weight where lower values are better — the same intuitive blue = good mapping applies.
 
 ---
 
@@ -56,13 +57,16 @@ We introduced a powerful custom build set designer directly integrated within th
   - **Total Negation**: Summed damage reduction percentages.
 
 ### 3. **Side-by-Side Attribute Comparison Modal**
-- Clicking the `"Compare Set Attributes"` button opens a stunning glassmorphic overlay modal centered on the screen.
-- Dynamically generates a side-by-side grid mapping of all crucial selected item stats:
+- Clicking the `"Compare Set Attributes"` button opens an Elden Ring-styled comparison modal centered on the screen.
+- Dynamically generates a side-by-side table grid mapping of all crucial selected item stats:
   - **Armor Thumbnails & Category Badges**
   - **Weight**
   - **Damage Negations**: Physical, Strike, Slash, Pierce, Magic, Fire, Lightning, Holy.
   - **Status Resistances & Poise**: Immunity, Robustness, Focus, Vitality, Poise.
-- Highly performant horizontal scroll mechanics prevent clipping and easily support comparison across a massive set of items.
+- **Row-Normalized Heatmap**: Each stat row is independently scaled (min/max), with cell backgrounds shaded from **red (worse) to blue (better)**, making relative strengths instantly scannable.
+- **Best-Value Highlighting**: The best cell in each row is marked with Frost Blue text and a subtle Tarnished Gold bottom glow.
+- **Delta Column**: When comparing exactly 2 items, a dedicated `Δ` column appears showing the exact difference, color-coded Frost Blue (better) or Crimson Red (worse) — mirroring *Elden Ring*'s own comparison UI.
+- **Authentic Palette**: Styled with the game's actual color scheme — Void Charcoal panels, Tarnished Gold accents, Stormhill Gray labels — defined as centralized CSS theme tokens via Tailwind v4's `@theme` directive.
 
 ---
 
@@ -125,16 +129,32 @@ elden-chart/
 ├── codegen.ts                  # GraphQL Code Generator settings
 ├── package.json                # Project dependencies and gh-pages scripts
 ├── vite.config.ts              # Vite configurations and base path setups
-└── src/
-    ├── main.tsx                # React Query client provider mounting
-    ├── gql/                    # Generated GraphQL types and documents
-    └── components/
-        ├── types.ts            # Core ArmorItem domain declarations
-        ├── utils.ts            # HSL heatmap and stat lookup utilities
-        ├── ErrorBoundary.tsx   # Diagnostic class error boundary
-        ├── ArmorChart.tsx      # Main controller managing query states
-        ├── ArmorChartHeader.tsx # Statistics panel header
-        ├── ArmorChartSidebar.tsx # Sidebar filtering and axis selections
-        ├── ArmorChartPlot.tsx  # SVGs, foreignObjects, and glow filters
-        └── ArmorChartTooltip.tsx # Premium hovered detailed stat cards
+├── src/
+│   ├── index.css               # Tailwind v4 entry + @theme Elden Ring token definitions
+│   ├── main.tsx                # React Query client provider mounting
+│   ├── App.tsx                 # Root component
+│   ├── gql/                    # Generated GraphQL types and documents
+│   └── components/
+│       ├── types.ts            # Core ArmorItem domain declarations
+│       ├── utils.ts            # HSL heatmap, stat lookup, Pareto frontier utilities
+│       ├── ErrorBoundary.tsx   # Diagnostic class error boundary
+│       ├── ArmorChart/
+│       │   ├── index.tsx       # Main controller managing query states
+│       │   ├── Header.tsx      # Statistics panel header
+│       │   ├── Sidebar.tsx     # Filtering, axis controls, build set manager
+│       │   ├── Plot.tsx        # SVG scatter plot with foreignObject icons
+│       │   └── Tooltip.tsx     # Premium hovered stat card overlay
+│       └── CompareModal/
+│           ├── ArmorCompareModal.tsx # Modal shell (overlay, close, layout)
+│           ├── Header.tsx      # Title bar with Elden Ring accent styling
+│           ├── Footer.tsx      # Close button with palette-themed button
+│           ├── EmptyState.tsx  # Prompt when build set is empty
+│           ├── Table.tsx       # Stats table with section grouping
+│           ├── ItemHeader.tsx  # Armor thumbnail, name, category badge
+│           ├── StatRow.tsx     # Data row with heatmap + delta column
+│           ├── StatCell.tsx    # Heatmap cell with best-value highlighting
+│           ├── WeightRow.tsx   # Special row with inverted weight coloring
+│           ├── test-fixtures.ts, *.test.tsx # Unit tests
+│           └── utils.test.ts  # Heatmap utility tests
+└── lib/                        # Research docs for design reference
 ```

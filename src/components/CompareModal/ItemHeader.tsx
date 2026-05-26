@@ -7,17 +7,17 @@ interface Props {
 
 export default function CompareModalItemHeader({ item }: Props) {
   return (
-    <th className="p-3 bg-slate-950/10 min-w-[150px]">
+    <th className="p-3 bg-panel/30 min-w-[150px]">
       <div className="flex flex-col items-center text-center gap-2">
-        <div className="w-12 h-12 rounded bg-slate-950 flex items-center justify-center border border-slate-800 overflow-hidden">
+        <div className="w-12 h-12 rounded bg-panel-empty flex items-center justify-center border border-accent/20 overflow-hidden">
           {item.image ? (
             <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
           ) : (
-            getCategoryIcon(item.category, { className: "w-6 h-6 text-slate-600", fill: "currentColor" })
+            getCategoryIcon(item.category, { className: "w-6 h-6 text-muted", fill: "currentColor" })
           )}
         </div>
-        <span className="font-bold text-white text-xs line-clamp-1">{item.name}</span>
-        <span className="text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-750 flex items-center gap-1 w-fit">
+        <span className="font-bold text-body text-xs line-clamp-1">{item.name}</span>
+        <span className="text-[9px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-panel-active text-muted border border-accent/10 flex items-center gap-1 w-fit">
           {getCategoryIcon(item.category, { className: "w-2.5 h-2.5", fill: "currentColor" })}
           {item.category.replace(' Armor', '')}
         </span>

@@ -7,19 +7,19 @@ describe('getHeatmapBg', () => {
     expect(getHeatmapBg(5, 5, 5, false)).toBe('transparent');
   });
 
-  it('returns cool hue (blueish) for low value', () => {
+  it('returns warm hue (reddish) for low value', () => {
     const result = getHeatmapBg(0, 0, 100, false);
-    expect(result).toBe('hsl(220, 30%, 18%)');
+    expect(result).toBe('hsl(0, 50%, 22%)');
   });
 
-  it('returns warm hue (reddish) for high value', () => {
+  it('returns cool hue (blueish) for high value', () => {
     const result = getHeatmapBg(100, 0, 100, false);
-    expect(result).toBe('hsl(0, 30%, 18%)');
+    expect(result).toBe('hsl(220, 50%, 22%)');
   });
 
   it('returns mid hue for midpoint', () => {
     const result = getHeatmapBg(50, 0, 100, false);
-    expect(result).toBe('hsl(110, 30%, 18%)');
+    expect(result).toBe('hsl(110, 50%, 22%)');
   });
 
   it('inverts the hue when invert is true', () => {
@@ -31,8 +31,8 @@ describe('getHeatmapBg', () => {
   it('clamps ratio correctly for edge values', () => {
     const low = getHeatmapBg(0, 0, 10, false);
     const high = getHeatmapBg(10, 0, 10, false);
-    expect(low).toBe('hsl(220, 30%, 18%)');
-    expect(high).toBe('hsl(0, 30%, 18%)');
+    expect(low).toBe('hsl(0, 50%, 22%)');
+    expect(high).toBe('hsl(220, 50%, 22%)');
   });
 });
 

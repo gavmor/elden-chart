@@ -14,7 +14,7 @@ import { getItemStat } from '../utils';
 
 // Import our generated GraphQL document compiler
 // @ts-ignore
-import { graphql } from '../gql/gql';
+import { graphql } from '../../gql/gql';
 
 const GET_ARMOR_PAGE = graphql(/* GraphQL */ `
   query GetArmorPage($page: Int!, $limit: Int!) {

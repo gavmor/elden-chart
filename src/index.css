@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  /* Elden Ring UI Palette — Semantic Tokens */
+  --color-panel: #1A1A1C;
+  --color-panel-active: #2A2A2D;
+  --color-panel-empty: #000000;
+  --color-accent: #C5A566;
+  --color-body: #E5E5E5;
+  --color-muted: #8C8C8C;
+  --color-better: #6B99C5;
+  --color-worse: #C73D40;
+}

@@ -6,16 +6,16 @@ interface Props {
 
 export default function CompareModalHeader({ onClose }: Props) {
   return (
-    <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-900/50">
+    <div className="flex items-center justify-between p-5 border-b border-accent/20 bg-panel/50">
       <div>
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <Scale className="w-5 h-5 text-amber-500" /> Armor Set Comparison
+        <h3 className="text-lg font-bold text-body flex items-center gap-2">
+          <Scale className="w-5 h-5 text-accent" /> Armor Set Comparison
         </h3>
-        <p className="text-xs text-slate-400 mt-0.5">Compare stats across your selected build items side-by-side</p>
+        <p className="text-xs text-muted mt-0.5">Compare stats across your selected build items side-by-side</p>
       </div>
       <button
         onClick={onClose}
-        className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-red-950/40 hover:text-red-400 flex items-center justify-center border border-slate-700 transition-colors"
+        className="w-8 h-8 rounded-lg bg-panel-active hover:bg-worse/20 hover:text-worse flex items-center justify-center border border-accent/20 transition-colors"
       >
         <X className="w-4 h-4" />
       </button>

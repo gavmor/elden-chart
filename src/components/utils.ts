@@ -40,8 +40,8 @@ export const getHeatmapBg = (value: number, min: number, max: number, invert: bo
   if (range === 0) return 'transparent';
   let ratio = (value - min) / range;
   if (invert) ratio = 1 - ratio;
-  const hue = 220 - ratio * 220;
-  return `hsl(${hue}, 30%, 18%)`;
+  const hue = Math.round(ratio * 220);
+  return `hsl(${hue}, 50%, 22%)`;
 };
 
 /**
@@ -76,9 +76,9 @@ export const getItemColor = (
   const range = max - min || 1;
   const ratio = Math.max(0, Math.min(1, (val - min) / range));
   
-  // Heatmap gradient: Blue (cold/low, hue 220) ➔ Cyan ➔ Green ➔ Yellow ➔ Orange ➔ Red (hot/high, hue 0)
-  // Maps ratio (0 to 1) onto hue (220 to 0)
-  const hue = 220 - ratio * 220;
+  // Heatmap gradient: Red (worse, hue 0) ➔ Orange ➔ Yellow ➔ Green ➔ Cyan ➔ Blue (better, hue 220)
+  // Maps ratio (0 to 1) onto hue (0 to 220)
+  const hue = Math.round(ratio * 220);
   return `hsl(${hue}, 85%, 60%)`;
 };
 

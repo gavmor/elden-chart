@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CompareModalTable from './Table';
-import { mockCustomSet, helmItem } from './test-fixtures';
+import { mockCustomSet, helmItem, chestItem } from './test-fixtures';
 
 describe('CompareModalTable', () => {
   it('renders section headings', () => {
@@ -64,5 +64,15 @@ describe('CompareModalTable', () => {
     render(<CompareModalTable customSet={[helmItem]} />);
     expect(screen.getByText('Tree Sentinel Helm')).toBeInTheDocument();
     expect(screen.getByText('Weight')).toBeInTheDocument();
+  });
+
+  it('shows delta column header when exactly 2 items are compared', () => {
+    render(<CompareModalTable customSet={[helmItem, chestItem]} />);
+    expect(screen.getByText('Δ')).toBeInTheDocument();
+  });
+
+  it('does not show delta column header with 3+ items', () => {
+    render(<CompareModalTable customSet={mockCustomSet} />);
+    expect(screen.queryByText('Δ')).not.toBeInTheDocument();
   });
 });
