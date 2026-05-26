@@ -111,13 +111,20 @@ export default function EquipmentChartSidebar({
             <optgroup label="Categorical Grouping" className="bg-slate-950 font-semibold text-slate-400">
               <option value="category" className="bg-slate-900 text-slate-200">Category (by equipment type)</option>
             </optgroup>
-            {Object.entries(statGroups).map(([groupName, opts]) => (
-              <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
-                {opts.map(opt => (
-                  <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
-                ))}
-              </optgroup>
-            ))}
+            {statOptions.length === 0
+              ? (
+                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
+                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                </optgroup>
+              )
+              : Object.entries(statGroups).map(([groupName, opts]) => (
+                <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                  {opts.map(opt => (
+                    <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
+                  ))}
+                </optgroup>
+              ))
+            }
           </select>
         </div>
       </div>
