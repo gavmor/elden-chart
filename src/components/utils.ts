@@ -1,57 +1,53 @@
 import type { LucideProps } from 'lucide-react';
 import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
-import React from 'react';
+import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import * as R from 'remeda';
 import type { EquipmentItem, EquipmentKind, StatOption } from './types';
 
 export const getCategoryIcon = (category: string, kind: EquipmentKind, props: LucideProps) => {
-	if (kind === 'weapon') return React.createElement(Sword, props);
-	if (kind === 'shield') return React.createElement(Shield, props);
+	if (kind === 'weapon') return createElement(Sword, props);
+	if (kind === 'shield') return createElement(Shield, props);
 
 	// Armor categories
 	switch (category) {
-		case 'Helm': return React.createElement(HardHat, props);
-		case 'Chest Armor': return React.createElement(Shirt, props);
-		case 'Gauntlets': return React.createElement(Hand, props);
-		case 'Leg Armor': return React.createElement(Footprints, props);
-		default: return React.createElement(Circle, props);
+		case 'Helm': return createElement(HardHat, props);
+		case 'Chest Armor': return createElement(Shirt, props);
+		case 'Gauntlets': return createElement(Hand, props);
+		case 'Leg Armor': return createElement(Footprints, props);
+		default: return createElement(Circle, props);
 	}
 };
 
 export const getItemStat = (item: EquipmentItem, statName: string): number => {
 	if (statName === 'weight') return item.weight;
 
-	if (statName === 'total_attack') {
-		if (item.kind === 'armor') return 0;
-		return item.attack.reduce((sum, s) => sum + s.amount, 0);
-	}
-	if (statName === 'total_defence') {
-		if (item.kind === 'armor') return 0;
-		return item.defence.reduce((sum, s) => sum + s.amount, 0);
-	}
-	if (statName === 'total_negation') {
-		if (item.kind !== 'armor') return 0;
-		return item.dmgNegation.reduce((sum, s) => sum + s.amount, 0);
-	}
-	if (statName === 'total_resistance') {
-		if (item.kind !== 'armor') return 0;
-		return item.resistance.filter(s => s.name !== 'Poise').reduce((sum, s) => sum + s.amount, 0);
+	const getAmount = R.prop('amount');
+
+	switch (statName) {
+		case 'total_attack':
+			return item.kind === 'armor' ? 0 : R.sumBy(item.attack, getAmount);
+		case 'total_defence':
+			return item.kind === 'armor' ? 0 : R.sumBy(item.defence, getAmount);
+		case 'total_negation':
+			return item.kind !== 'armor' ? 0 : R.sumBy(item.dmgNegation, getAmount);
+		case 'total_resistance':
+			return item.kind !== 'armor' ? 0 : R.pipe(
+				item.resistance,
+				R.filter(s => s.name !== 'Poise'),
+				R.sumBy(getAmount)
+			);
 	}
 
-	// Named stats — check appropriate arrays based on item kind
+	// Named stats — discriminated union requires separate lookups per kind
 	if (item.kind === 'armor') {
-		const negation = item.dmgNegation.find(s => s.name === statName);
-		if (negation) return negation.amount;
-		const resistance = item.resistance.find(s => s.name === statName);
-		if (resistance) return resistance.amount;
-	} else {
-		const attack = item.attack.find(s => s.name === statName);
-		if (attack) return attack.amount;
-		const defence = item.defence.find(s => s.name === statName);
-		if (defence) return defence.amount;
+		return R.find(item.dmgNegation, s => s.name === statName)?.amount
+			?? R.find(item.resistance, s => s.name === statName)?.amount
+			?? 0;
 	}
-
-	return 0;
+	return R.find(item.attack, s => s.name === statName)?.amount
+		?? R.find(item.defence, s => s.name === statName)?.amount
+		?? 0;
 };
 
 /**
@@ -115,7 +111,7 @@ export const getItemColor = (
  */
 const iconToDataUri = (icon: React.ComponentType<LucideProps>, color: string): string => {
 	const svg = renderToStaticMarkup(
-		React.createElement(icon, { size: 24, color, strokeWidth: 2, absoluteStrokeWidth: true })
+		createElement(icon, { size: 24, color, strokeWidth: 2, absoluteStrokeWidth: true })
 	);
 	return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
@@ -147,8 +143,11 @@ export const getParetoFrontier = (
 ): EquipmentItem[] => {
 	if (items.length === 0) return [];
 
-	const optX = xVar === 'weight' ? 'minimize' : 'maximize';
-	const optY = yVar === 'weight' ? 'minimize' : 'maximize';
+	const isBetter = (valA: number, valB: number, stat: string, strict = false) => {
+		const minimize = stat === 'weight';
+		if (minimize) return strict ? valA < valB : valA <= valB;
+		return strict ? valA > valB : valA >= valB;
+	};
 
 	const dominates = (a: EquipmentItem, b: EquipmentItem): boolean => {
 		const xA = getItemStat(a, xVar);
@@ -156,30 +155,21 @@ export const getParetoFrontier = (
 		const yA = getItemStat(a, yVar);
 		const yB = getItemStat(b, yVar);
 
-		const betterOrEqualX = optX === 'minimize' ? xA <= xB : xA >= xB;
-		const betterOrEqualY = optY === 'minimize' ? yA <= yB : yA >= yB;
-
-		const strictlyBetterX = optX === 'minimize' ? xA < xB : xA > xB;
-		const strictlyBetterY = optY === 'minimize' ? yA < yB : yA > yB;
-
-		return betterOrEqualX && betterOrEqualY && (strictlyBetterX || strictlyBetterY);
+		return (
+			isBetter(xA, xB, xVar) &&
+			isBetter(yA, yB, yVar) &&
+			(isBetter(xA, xB, xVar, true) || isBetter(yA, yB, yVar, true))
+		);
 	};
 
-	const frontier = items.filter(item => {
-		return !items.some(other => other.id !== item.id && dominates(other, item));
-	});
-
-	frontier.sort((a, b) => {
-		const xA = getItemStat(a, xVar);
-		const xB = getItemStat(b, xVar);
-		if (xA !== xB) return xA - xB;
-
-		const yA = getItemStat(a, yVar);
-		const yB = getItemStat(b, yVar);
-		return yA - yB;
-	});
-
-	return frontier;
+	return R.pipe(
+		items,
+		R.filter(item => !items.some(other => other.id !== item.id && dominates(other, item))),
+		R.sortBy(
+			item => getItemStat(item, xVar),
+			item => getItemStat(item, yVar)
+		)
+	);
 };
 
 /**
@@ -212,14 +202,33 @@ const formatStatName = (name: string, suffix?: string): string => {
 /**
  * Collect unique stat names from items for a given accessor function.
  */
-const collectStatNames = (items: EquipmentItem[], accessor: (item: EquipmentItem) => { name: string }[]): string[] => {
-	const names = new Set<string>();
-	for (const item of items) {
-		for (const s of accessor(item)) {
-			names.add(s.name);
-		}
-	}
-	return [...names];
+export const collectStatNames = (
+	items: EquipmentItem[],
+	accessor: (item: EquipmentItem) => { name: string }[]
+): string[] => {
+	return R.pipe(
+		items,
+		R.flatMap(accessor),       // 1. Extract and flatten the stat arrays
+		R.map(R.prop('name')),     // 2. Pluck just the 'name' string from each stat object
+		R.unique()                 // 3. Deduplicate the resulting array of strings
+	);
+};
+
+
+export const buildGroup = (
+	names: string[],
+	totalId: string,
+	totalLabel: string,
+	group: string,
+	suffix?: string
+): StatOption[] => {
+	if (names.length === 0) return [];
+	return [
+		{ id: totalId, label: totalLabel, group },
+		...R.map(names, id => ({
+			id, label: formatStatName(id, suffix), group
+		}))
+	];
 };
 
 /**
@@ -228,62 +237,37 @@ const collectStatNames = (items: EquipmentItem[], accessor: (item: EquipmentItem
  * When armor and weapons/shields are mixed, only weight is offered (incompatible stat systems).
  */
 export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
-	const kinds = new Set(items.map(i => i.kind));
-	const stats: StatOption[] = [];
+	const weightStat: StatOption = { id: 'weight', label: 'Weight', group: 'General' };
 
-	// weight is always available
-	stats.push({ id: 'weight', label: 'Weight', group: 'General' });
+	const hasArmor = items.some(i => i.kind === 'armor');
+	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield');
 
-	const hasArmor = kinds.has('armor');
-	const hasWeaponLike = kinds.has('weapon') || kinds.has('shield');
-
-	// If both armor and weapon-like items are present, stat systems are incompatible
-	if (hasArmor && hasWeaponLike) return stats;
+	if (hasArmor && hasWeaponLike) return [weightStat];
+	if (!hasArmor && !hasWeaponLike) return [weightStat];
 
 	if (hasArmor) {
 		const negationNames = collectStatNames(items, i => i.kind === 'armor' ? i.dmgNegation : []);
 		const resistanceNames = collectStatNames(items, i => i.kind === 'armor' ? i.resistance : []);
 
-		if (negationNames.length > 0) {
-			stats.push({ id: 'total_negation', label: 'Total Damage Negation', group: 'Armor Negation' });
-			for (const name of negationNames) {
-				stats.push({ id: name, label: formatStatName(name, 'Negation'), group: 'Armor Negation' });
-			}
-		}
-		if (resistanceNames.length > 0) {
-			stats.push({ id: 'total_resistance', label: 'Total Resistance', group: 'Armor Resistance' });
-			for (const name of resistanceNames) {
-				stats.push({ id: name, label: formatStatName(name), group: 'Armor Resistance' });
-			}
-		}
-	} else if (hasWeaponLike) {
-		const attackNames = collectStatNames(items, i => i.kind !== 'armor' ? i.attack : []);
-		const defenceNames = collectStatNames(items, i => i.kind !== 'armor' ? i.defence : []);
-
-		// Attack and defence share stat names (e.g. "Mag", "Fire"), so deduplicate by ID
-		const seenIds = new Set<string>();
-
-		if (attackNames.length > 0) {
-			stats.push({ id: 'total_attack', label: 'Total Attack', group: 'Weapon Attack' });
-			for (const name of attackNames) {
-				if (!seenIds.has(name)) {
-					seenIds.add(name);
-					stats.push({ id: name, label: formatStatName(name, 'Attack'), group: 'Weapon Attack' });
-				}
-			}
-		}
-		if (defenceNames.length > 0) {
-			stats.push({ id: 'total_defence', label: 'Total Defence', group: 'Weapon Defence' });
-			for (const name of defenceNames) {
-				if (!seenIds.has(name)) {
-					seenIds.add(name);
-					stats.push({ id: name, label: formatStatName(name, 'Defence'), group: 'Weapon Defence' });
-				}
-			}
-		}
+		return [
+			weightStat,
+			...buildGroup(negationNames, 'total_negation', 'Total Damage Negation', 'Armor Negation', 'Negation'),
+			...buildGroup(resistanceNames, 'total_resistance', 'Total Resistance', 'Armor Resistance')
+		];
 	}
 
-	return stats;
+	// hasWeaponLike is true
+	const attackNames = collectStatNames(items, i => i.kind !== 'armor' ? i.attack : []);
+	const defenceNames = collectStatNames(items, i => i.kind !== 'armor' ? i.defence : []);
+
+	return R.pipe(
+		[
+			weightStat,
+			...buildGroup(attackNames, 'total_attack', 'Total Attack', 'Weapon Attack', 'Attack'),
+			...buildGroup(defenceNames, 'total_defence', 'Total Defence', 'Weapon Defence', 'Defence')
+		],
+		R.uniqueBy(R.prop('id'))
+	);
 };
 
 /**
