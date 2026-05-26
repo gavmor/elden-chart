@@ -16,7 +16,7 @@ export default function CompareModalWeightRow({ customSet }: Props) {
   return (
     <tr className="hover:bg-panel-active/40">
       <td className="p-3 font-semibold text-body bg-panel/40 pl-4">Weight</td>
-      {customSet.map((item, i) => (
+      {customSet.map((item) => (
         <CompareModalStatCell
           key={`weight-${item.id}`}
           value={item.weight}

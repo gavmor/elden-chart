@@ -28,7 +28,7 @@ export default function CompareModalStatRow({
   return (
     <tr className="hover:bg-panel-active/40">
       <td className={`p-3 text-muted pl-6 bg-panel/40 ${labelClassName}`}>{label}</td>
-      {customSet.map((item, i) => (
+      {customSet.map((item) => (
         <CompareModalStatCell
           key={`${statName}-${item.id}`}
           value={getItemStat(item, statName)}
