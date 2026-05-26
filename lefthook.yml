@@ -2,7 +2,7 @@ pre-commit:
   parallel: true
   jobs:
     - name: typecheck
-      run: pnpm exec tsc -b
+      run: pnpm run typecheck
 
     - name: test
-      run: pnpm exec vitest run
+      run: pnpm run test
