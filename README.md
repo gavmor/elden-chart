@@ -116,8 +116,8 @@ pnpm run build
 
 ## 📦 Deployment
 
-The project is fully integrated with GitHub Pages. To trigger a production build and deploy live assets:
-```bash
-pnpm run deploy
-```
-*Note: This automatically runs the `predeploy` build pipeline and pushes the optimized `dist` folder to the `gh-pages` branch.*
+The project is fully integrated with GitHub Pages via native GitHub Actions. 
+
+Whenever changes are pushed or merged to the `main` branch, a GitHub Action automatically triggers, builds the static bundle, uploads the build artifacts, and deploys them directly to the GitHub Pages environment.
+
+You can inspect the active workflow and deployment logs under the **Actions** tab of the GitHub repository.

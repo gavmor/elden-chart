@@ -10,7 +10,7 @@
 | `pnpm run build` | `codegen → tsc -b → vite build` (runs codegen first) |
 | `pnpm run lint` | ESLint on all files |
 | `pnpm run preview` | Preview production build locally |
-| `pnpm run deploy` | Build + push `dist/` to `gh-pages` branch |
+| Push to `main` | Automatically triggers CI/CD build & deployment to GitHub Pages |
 
 ## Tech Stack
 
