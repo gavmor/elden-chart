@@ -18,6 +18,7 @@ interface PlotProps {
   customSet: EquipmentItem[];
   onClickItem: (item: EquipmentItem) => void;
   showPareto: boolean;
+  glowIntensity: number;
 }
 
 export default function EquipmentChartPlot({
@@ -33,7 +34,8 @@ export default function EquipmentChartPlot({
   onLeavePlot,
   customSet,
   onClickItem,
-  showPareto
+  showPareto,
+  glowIntensity
 }: PlotProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 600, height: 400 });
@@ -58,7 +60,7 @@ export default function EquipmentChartPlot({
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [filteredData.length > 0]);
 
   // 2. Compute Pareto optimal items using useMemo
   const paretoItems = useMemo(() => {
@@ -192,7 +194,12 @@ export default function EquipmentChartPlot({
       style: {
         background: 'transparent',
         color: '#64748b', // slate-500 ticks and texts
-        fontFamily: 'system-ui, -apple-system, sans-serif'
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%'
       },
       marginLeft: 45,
       marginBottom: 45,
@@ -254,14 +261,22 @@ export default function EquipmentChartPlot({
 
       // Initial dropshadow glow if optimal or in set!
       const initialColor = getItemColor(item, colorVar, colorMinMax);
-      if (isOptimal) {
-        img.style.filter = 'drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 1px #d97706)';
+      const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
+        if (glowIntensity === 0) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+        if (isOpt) {
+          return `drop-shadow(0 0 ${glowIntensity * 2.5}px #fbbf24) drop-shadow(0 0 ${glowIntensity}px #d97706) drop-shadow(0 0 ${glowIntensity}px ${initialColor})`;
+        }
+        if (inSet) {
+          return `drop-shadow(0 0 ${glowIntensity * 2}px #fbbf24) drop-shadow(0 0 ${glowIntensity * 0.7}px #d97706) drop-shadow(0 0 ${glowIntensity}px ${initialColor})`;
+        }
+        return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${glowIntensity}px ${initialColor})`;
+      };
+
+      img.style.filter = getGlowFilter(isOptimal, isInSet);
+      if (isOptimal || isInSet) {
         img.style.opacity = '1';
-      } else if (isInSet) {
-        img.style.filter = 'drop-shadow(0 0 4px #fbbf24)';
-        img.style.opacity = '1';
-      } else {
-        img.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
       }
 
       // Transition styles for ultra smooth scaling
@@ -286,7 +301,7 @@ export default function EquipmentChartPlot({
         }
 
         // Apply powerful drop shadow glow
-        img.style.filter = `drop-shadow(0 0 8px ${initialColor})`;
+        img.style.filter = `drop-shadow(0 0 12px ${initialColor}) drop-shadow(0 0 4px ${initialColor})`;
         img.style.opacity = '1';
 
         // Dim other images (read customSet from ref for latest value)
@@ -315,14 +330,10 @@ export default function EquipmentChartPlot({
         img.setAttribute('y', orgY.toString());
 
         // Restore original visual states
-        if (isOptimal) {
-          img.style.filter = 'drop-shadow(0 0 6px #fbbf24) drop-shadow(0 0 1px #d97706)';
-          img.style.opacity = '1';
-        } else if (isInSet) {
-          img.style.filter = 'drop-shadow(0 0 4px #fbbf24)';
+        img.style.filter = getGlowFilter(isOptimal, isInSet);
+        if (isOptimal || isInSet) {
           img.style.opacity = '1';
         } else {
-          img.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
           img.style.opacity = '0.85';
         }
 
@@ -352,7 +363,7 @@ export default function EquipmentChartPlot({
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, customSet, showPareto, paretoItems, paretoIds, xLabel, yLabel, chartProps]);
+  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, customSet, showPareto, paretoItems, paretoIds, xLabel, yLabel, chartProps, glowIntensity]);
 
   if (filteredData.length === 0) {
     return (
@@ -364,7 +375,7 @@ export default function EquipmentChartPlot({
 
   return (
     <div
-      className="flex-1 relative border-l border-b border-slate-700 ml-12 mb-12 mt-4 mr-4 bg-slate-900/10 rounded-br-sm"
+      className="flex-1 min-w-0 min-h-0 relative border-l border-b border-slate-700 ml-12 mb-12 mt-4 mr-4 bg-slate-900/10 rounded-br-sm"
       ref={containerRef}
       role="img"
       aria-label={`Scatter plot showing Elden Ring equipment stats relationship between ${xLabel} and ${yLabel}. Active equipment points are plotted.`}

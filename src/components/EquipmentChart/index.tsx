@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
-import type { EquipmentItem, ActiveCategories, ColorKey, EquipmentKind } from '../types';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Loader2, AlertCircle, Sliders, Sparkles } from 'lucide-react';
+import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
+import { useValidatedParams } from '../../hooks/useValidatedParams';
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
@@ -10,11 +11,39 @@ import EquipmentChartTooltip from './Tooltip';
 import EquipmentCompareModal from '../CompareModal/EquipmentCompareModal';
 
 export default function EquipmentChart() {
-  // Controls State
-  const [xVar, setXVar] = useState<string>('weight');
-  const [yVar, setYVar] = useState<string>('weight');
-  const [colorVar, setColorVar] = useState<ColorKey>('category');
-  const [search, setSearch] = useState<string>('');
+  const { params, setParam, searchParams } = useValidatedParams();
+  const { x: xVar, y: yVar, color: colorVar, q: search } = params;
+
+  // Local debounced search state to ensure responsive typing without URL lag
+  const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [localSearch, setLocalSearch] = useState(search);
+
+  // Sync localSearch when the URL search param changes (e.g. on back/forward or initial load)
+  useEffect(() => {
+    setLocalSearch(search);
+  }, [search]);
+
+  // Clean up debounce timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer.current) {
+        clearTimeout(searchDebounceTimer.current);
+      }
+    };
+  }, []);
+
+  const handleSearchChange = (newSearch: string) => {
+    setLocalSearch(newSearch);
+
+    if (searchDebounceTimer.current) {
+      clearTimeout(searchDebounceTimer.current);
+    }
+
+    searchDebounceTimer.current = setTimeout(() => {
+      setParam('q', newSearch);
+    }, 300);
+  };
+
   const [activeCategories, setActiveCategories] = useState<ActiveCategories>({});
   const [showPareto, setShowPareto] = useState<boolean>(false);
 
@@ -27,6 +56,26 @@ export default function EquipmentChart() {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const chartRef = useRef<HTMLDivElement>(null);
 
+  // Glow Control State
+  const [glowIntensity, setGlowIntensity] = useState<number>(3);
+  const [isGlowOpen, setIsGlowOpen] = useState<boolean>(false);
+  const glowContainerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close glow controls popover
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (glowContainerRef.current && !glowContainerRef.current.contains(event.target as Node)) {
+        setIsGlowOpen(false);
+      }
+    }
+    if (isGlowOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGlowOpen]);
+
   // Fetch all equipment data
   const { data: equipment = [], isLoading, error } = useEquipmentData();
 
@@ -38,23 +87,36 @@ export default function EquipmentChart() {
 
   // Set default active categories when data first loads
   const categoriesInitialized = useRef(false);
-  if (categoryGroups.length > 0 && !categoriesInitialized.current) {
+  useEffect(() => {
+    if (categoryGroups.length === 0 || categoriesInitialized.current) return;
     categoriesInitialized.current = true;
+
+    // Build all-active map for every known category
     const allActive: ActiveCategories = {};
     for (const group of categoryGroups) {
       for (const cat of group.categories) {
         allActive[cat] = true;
       }
     }
+
+    // If URL had a `cats` param, restrict to those categories
+    const initialCats = params.cats;
+    if (initialCats !== null) {
+      const activeCatSet = new Set(initialCats);
+      for (const cat of Object.keys(allActive)) {
+        allActive[cat] = activeCatSet.has(cat);
+      }
+    }
+
     setActiveCategories(allActive);
 
-    // Set default Y axis to first non-weight stat if available
+    // Set default Y axis to first non-weight stat, unless URL already specified one
     const stats = getAvailableStats(equipment);
     const nonWeightStats = stats.filter(s => s.id !== 'weight');
-    if (nonWeightStats.length > 0 && yVar === 'weight') {
-      setYVar(nonWeightStats[0].id);
+    if (nonWeightStats.length > 0 && !searchParams.has('y')) {
+      setParam('y', nonWeightStats[0].id);
     }
-  }
+  }, [categoryGroups, equipment, searchParams, params.cats]);
 
   const filteredData = useMemo(() => {
     return equipment.filter(item => {
@@ -69,18 +131,32 @@ export default function EquipmentChart() {
     return getAvailableStats(filteredData);
   }, [filteredData]);
 
+  // Derive resolved/active axes and color settings for the plot.
+  // If the URL-specified stat is not available in statOptions (e.g. during loading or due to kind switch),
+  // we fallback safely without mutating the URL.
+  const resolvedXVar = (statOptions.length > 0 && statOptions.some(o => o.id === xVar)) ? xVar : 'weight';
+  const resolvedYVar = (statOptions.length > 0 && statOptions.some(o => o.id === yVar))
+    ? yVar
+    : (statOptions.find(o => o.id !== 'weight')?.id || 'weight');
+  const resolvedColorVar = (colorVar === 'category' || (statOptions.length > 0 && statOptions.some(o => o.id === colorVar)))
+    ? colorVar
+    : 'category';
+
+  const xLabel = statOptions.find(o => o.id === resolvedXVar)?.label || '';
+  const yLabel = statOptions.find(o => o.id === resolvedYVar)?.label || '';
+
   const colorMinMax = useMemo(() => {
-    if (colorVar === 'category') return null;
-    const values = filteredData.map(d => getItemStat(d, colorVar));
+    if (resolvedColorVar === 'category') return null;
+    const values = filteredData.map(d => getItemStat(d, resolvedColorVar));
     if (values.length === 0) return null;
     return { min: Math.min(...values), max: Math.max(...values) };
-  }, [filteredData, colorVar]);
+  }, [filteredData, resolvedColorVar]);
 
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => getItemStat(d, xVar));
-    const yValues = filteredData.map(d => getItemStat(d, yVar));
+    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar));
+    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar));
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -95,7 +171,7 @@ export default function EquipmentChart() {
     const yMax = yMaxRaw + yRange * 0.05;
 
     return { xMin, xMax, yMin, yMax };
-  }, [filteredData, xVar, yVar]);
+  }, [filteredData, resolvedXVar, resolvedYVar]);
 
   const handleMouseMove = (e: React.MouseEvent, item: EquipmentItem) => {
     if (!chartRef.current) return;
@@ -112,7 +188,14 @@ export default function EquipmentChart() {
   };
 
   const handleCategoryToggle = (categoryName: string, checked: boolean) => {
-    setActiveCategories(prev => ({ ...prev, [categoryName]: checked }));
+    setActiveCategories(prev => {
+      const next = { ...prev, [categoryName]: checked };
+      const activeCatNames = Object.entries(next)
+        .filter(([, v]) => v)
+        .map(([k]) => k);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
+      return next;
+    });
   };
 
   const handleToggleGroup = (kind: EquipmentKind, selectAll: boolean) => {
@@ -124,6 +207,10 @@ export default function EquipmentChart() {
           next[cat] = selectAll;
         }
       }
+      const activeCatNames = Object.entries(next)
+        .filter(([, v]) => v)
+        .map(([k]) => k);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
       return next;
     });
   };
@@ -136,6 +223,10 @@ export default function EquipmentChart() {
           next[cat] = selectAll;
         }
       }
+      const activeCatNames = Object.entries(next)
+        .filter(([, v]) => v)
+        .map(([k]) => k);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
       return next;
     });
   };
@@ -151,31 +242,20 @@ export default function EquipmentChart() {
     });
   };
 
-  const xLabel = statOptions.find(o => o.id === xVar)?.label || '';
-  const yLabel = statOptions.find(o => o.id === yVar)?.label || '';
-
-  // Reset axes if current selection is no longer available
-  if (statOptions.length > 0 && !statOptions.some(o => o.id === xVar)) {
-    setXVar('weight');
-  }
-  if (statOptions.length > 0 && !statOptions.some(o => o.id === yVar)) {
-    setYVar(statOptions.find(o => o.id !== 'weight')?.id || 'weight');
-  }
-
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans overflow-hidden">
       <EquipmentChartHeader loading={isLoading} itemCount={filteredData.length} />
 
       <div className="flex flex-1 overflow-hidden">
         <EquipmentChartSidebar
-          search={search}
-          onSearchChange={setSearch}
-          xVar={xVar}
-          onXVarChange={setXVar}
-          yVar={yVar}
-          onYVarChange={setYVar}
-          colorVar={colorVar}
-          onColorVarChange={setColorVar}
+          search={localSearch}
+          onSearchChange={handleSearchChange}
+          xVar={resolvedXVar}
+          onXVarChange={(newX) => setParam('x', newX)}
+          yVar={resolvedYVar}
+          onYVarChange={(newY) => setParam('y', newY)}
+          colorVar={resolvedColorVar}
+          onColorVarChange={(newColor) => setParam('color', newColor)}
           statOptions={statOptions}
           categoryGroups={categoryGroups}
           activeCategories={activeCategories}
@@ -204,12 +284,12 @@ export default function EquipmentChart() {
           ) : (
             <EquipmentChartPlot
               filteredData={filteredData}
-              xVar={xVar}
-              yVar={yVar}
+              xVar={resolvedXVar}
+              yVar={resolvedYVar}
               xLabel={xLabel}
               yLabel={yLabel}
               chartProps={chartProps}
-              colorVar={colorVar}
+              colorVar={resolvedColorVar}
               colorMinMax={colorMinMax}
               hoveredItemId={hoveredItem ? hoveredItem.id : null}
               onHoverItem={handleMouseMove}
@@ -217,6 +297,7 @@ export default function EquipmentChart() {
               customSet={customSet}
               onClickItem={handleToggleSet}
               showPareto={showPareto}
+              glowIntensity={glowIntensity}
             />
           )}
 
@@ -226,11 +307,72 @@ export default function EquipmentChart() {
               tooltipPos={tooltipPos}
               xLabel={xLabel}
               yLabel={yLabel}
-              xVar={xVar}
-              yVar={yVar}
-              colorVar={colorVar}
+              xVar={resolvedXVar}
+              yVar={resolvedYVar}
+              colorVar={resolvedColorVar}
               colorMinMax={colorMinMax}
             />
+          )}
+
+          {/* Floating Action Button (FAB) for Glow Control */}
+          {!isLoading && !error && (
+            <div className="absolute bottom-6 right-6 z-30" ref={glowContainerRef}>
+              {isGlowOpen && (
+                <div 
+                  className="absolute bottom-16 right-0 w-64 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl rounded-xl p-4 flex flex-col gap-3 transition-all duration-200 z-40"
+                  role="dialog"
+                  aria-label="Adjust Aura Glow Intensity Settings"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
+                      <span className="text-sm font-semibold text-white">Adjust Aura Glow</span>
+                    </div>
+                    <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 shadow-sm">
+                      {glowIntensity === 0 ? 'None' : glowIntensity === 3 ? '3px (Default)' : glowIntensity === 10 ? '10px (Radiant)' : `${glowIntensity}px`}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2 py-1">
+                    <div className="flex justify-between text-[10px] font-medium text-slate-400">
+                      <span>Subtle (0px)</span>
+                      <span>Maximum (10px)</span>
+                    </div>
+                    <input
+                      id="glow-intensity-slider"
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={glowIntensity}
+                      onChange={(e) => setGlowIntensity(parseInt(e.target.value))}
+                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 hover:accent-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      aria-label="Aura Glow Intensity Slider"
+                    />
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 leading-relaxed italic">
+                    Slide to zero to completely disable glowing auras for all plotted equipment icons.
+                  </p>
+                </div>
+              )}
+
+              <button
+                id="glow-intensity-fab"
+                onClick={() => setIsGlowOpen(!isGlowOpen)}
+                className={`flex items-center justify-center w-12 h-12 rounded-full border shadow-lg transition-all duration-200 cursor-pointer outline-none focus:ring-2 focus:ring-amber-500/50 ${
+                  isGlowOpen 
+                    ? 'bg-amber-500 text-slate-900 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-100 hover:scale-105 active:scale-95' 
+                    : 'bg-slate-800/90 hover:bg-slate-700 text-amber-500 border-slate-700 hover:border-amber-500/40 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95'
+                }`}
+                aria-haspopup="dialog"
+                aria-expanded={isGlowOpen}
+                aria-label="Adjust Glow Intensity Panel"
+                title="Adjust Aura Glow"
+              >
+                <Sliders className={`w-5 h-5 transition-transform duration-300 ${isGlowOpen ? 'rotate-90' : 'hover:rotate-12'}`} />
+              </button>
+            </div>
           )}
         </main>
       </div>
