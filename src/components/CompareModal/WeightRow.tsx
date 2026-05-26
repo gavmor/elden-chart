@@ -1,6 +1,6 @@
-import type { ArmorItem } from './types';
-import { getStatRange } from './utils';
-import CompareModalStatCell from './CompareModalStatCell';
+import type { ArmorItem } from '../types';
+import { getStatRange } from '../utils';
+import CompareModalStatCell from './StatCell';
 
 interface Props {
   customSet: ArmorItem[];

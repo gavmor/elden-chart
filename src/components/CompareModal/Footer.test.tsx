@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import CompareModalFooter from './CompareModalFooter';
+import CompareModalFooter from './Footer';
 
 describe('CompareModalFooter', () => {
   it('renders a Close button', () => {

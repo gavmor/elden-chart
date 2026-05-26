@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalEmptyState from './CompareModalEmptyState';
+import CompareModalEmptyState from './EmptyState';
 
 describe('CompareModalEmptyState', () => {
   it('renders the empty state message', () => {

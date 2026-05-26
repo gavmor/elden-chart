@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getHeatmapBg, getStatRange } from './utils';
+import { getHeatmapBg, getStatRange } from '../utils';
 import { helmItem, chestItem, gauntletsItem } from './test-fixtures';
 
 describe('getHeatmapBg', () => {

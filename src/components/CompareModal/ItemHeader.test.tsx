@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalItemHeader from './CompareModalItemHeader';
+import CompareModalItemHeader from './ItemHeader';
 import { helmItem, chestItem } from './test-fixtures';
 
 describe('CompareModalItemHeader', () => {

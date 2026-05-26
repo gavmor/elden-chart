@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import CompareModalHeader from './CompareModalHeader';
+import CompareModalHeader from './Header';
 
 describe('CompareModalHeader', () => {
   it('renders the title and subtitle', () => {

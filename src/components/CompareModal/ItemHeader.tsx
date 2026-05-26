@@ -1,5 +1,5 @@
-import type { ArmorItem } from './types';
-import { getCategoryIcon } from './utils';
+import type { ArmorItem } from '../types';
+import { getCategoryIcon } from '../utils';
 
 interface Props {
   item: ArmorItem;

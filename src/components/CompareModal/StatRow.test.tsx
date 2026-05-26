@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalStatRow from './CompareModalStatRow';
+import CompareModalStatRow from './StatRow';
 import { mockCustomSet, helmItem } from './test-fixtures';
 
 function renderRow(props: Partial<React.ComponentProps<typeof CompareModalStatRow>> = {}) {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalTable from './CompareModalTable';
+import CompareModalTable from './Table';
 import { mockCustomSet, helmItem } from './test-fixtures';
 
 describe('CompareModalTable', () => {

@@ -1,4 +1,4 @@
-import type { ArmorItem } from './types';
+import type { ArmorItem } from '../types';
 
 export const helmItem: ArmorItem = {
   id: 'helm-1',

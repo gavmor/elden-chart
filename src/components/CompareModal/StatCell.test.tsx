@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalStatCell from './CompareModalStatCell';
+import CompareModalStatCell from './StatCell';
 
 function renderCell(props: Partial<React.ComponentProps<typeof CompareModalStatCell>> = {}) {
   const defaults = { value: 10, min: 0, max: 100 };

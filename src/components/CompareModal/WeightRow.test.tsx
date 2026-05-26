@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import CompareModalWeightRow from './CompareModalWeightRow';
+import CompareModalWeightRow from './WeightRow';
 import { mockCustomSet, helmItem } from './test-fixtures';
 
 function renderRow(items = mockCustomSet) {

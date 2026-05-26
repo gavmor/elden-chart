@@ -1,7 +1,7 @@
-import type { ArmorItem } from './types';
-import CompareModalItemHeader from './CompareModalItemHeader';
-import CompareModalWeightRow from './CompareModalWeightRow';
-import CompareModalStatRow from './CompareModalStatRow';
+import type { ArmorItem } from '../types';
+import CompareModalItemHeader from './ItemHeader';
+import CompareModalWeightRow from './WeightRow';
+import CompareModalStatRow from './StatRow';
 
 interface Props {
   customSet: ArmorItem[];
