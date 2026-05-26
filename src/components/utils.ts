@@ -31,6 +31,27 @@ export const getItemStat = (item: ArmorItem, statName: string): number => {
   return 0;
 };
 
+/**
+ * Row-normalized heatmap background: cool (blue) to warm (red) via HSL hue sweep.
+ * invert=true means lower values get warm colors (used for weight).
+ */
+export const getHeatmapBg = (value: number, min: number, max: number, invert: boolean): string => {
+  const range = max - min;
+  if (range === 0) return 'transparent';
+  let ratio = (value - min) / range;
+  if (invert) ratio = 1 - ratio;
+  const hue = 220 - ratio * 220;
+  return `hsl(${hue}, 30%, 18%)`;
+};
+
+/**
+ * Compute row-wide min/max for a given stat across an array of items.
+ */
+export const getStatRange = (items: ArmorItem[], statName: string): { min: number; max: number } => {
+  const vals = items.map(item => getItemStat(item, statName));
+  return { min: Math.min(...vals), max: Math.max(...vals) };
+};
+
 export const getItemColor = (
   item: ArmorItem,
   colorVar: string,
