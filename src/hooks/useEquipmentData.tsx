@@ -117,7 +117,45 @@ const safeStr = (val: unknown): string =>
 const safeStrOrNull = (val: unknown): string | null =>
   typeof val === 'string' ? val : null;
 
-const mapStat = (s: RawStat) => ({ name: safeStr(s.name), amount: safeFloat(s.amount) });
+/** Map of raw item name or category anomalies to standard correct categories */
+export const CATEGORY_CLEANUP_MAP: Record<string, string> = {
+  "Spellblade's Gloves": 'Gauntlets',
+  'Smoldering Shield': 'Small Shield',
+  'Cuckoo Greatshield': 'Greatshield',
+};
+
+/** Resolves category anomalies by exact item name or general category typos */
+export const getCleanCategory = (name: unknown, rawCategory: unknown): string => {
+  const cleanName = safeStr(name);
+  if (cleanName in CATEGORY_CLEANUP_MAP) {
+    return CATEGORY_CLEANUP_MAP[cleanName];
+  }
+  const category = safeStr(rawCategory);
+  if (category === 'Gauntlet') return 'Gauntlets';
+  if (category === 'Small Shields') return 'Small Shield';
+  return category;
+};
+
+/** Map of raw malformed/duplicate stat names to standard unified keys */
+export const STAT_NAME_CLEANUP_MAP: Record<string, string> = {
+  'Sor': 'Sorc', // Consolidate Sorcery Scaling
+  'e-color="">Mag': 'Mag',
+  'e">Mag': 'Mag',
+  'Mag63': 'Mag',
+  'Phy120': 'Phy',
+  'Light': 'Ligt',
+};
+
+/** Standardizes duplicate or malformed API stat names */
+export const getCleanStatName = (rawName: unknown): string => {
+  const name = safeStr(rawName);
+  if (name in STAT_NAME_CLEANUP_MAP) {
+    return STAT_NAME_CLEANUP_MAP[name];
+  }
+  return name;
+};
+
+const mapStat = (s: RawStat) => ({ name: getCleanStatName(s.name), amount: safeFloat(s.amount) });
 const mapScaling = (s: RawScalingStat) => ({ name: safeStr(s.name), scaling: safeStr(s.scaling) });
 
 const fetchAllPages = async (
@@ -166,7 +204,7 @@ export const useEquipmentData = () => {
           id: safeStr(item.id),
           name: safeStr(item.name),
           image: safeStrOrNull(item.image),
-          category: safeStr(item.category),
+          category: getCleanCategory(item.name, item.category),
           description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'armor' as const,
@@ -180,7 +218,7 @@ export const useEquipmentData = () => {
           id: safeStr(item.id),
           name: safeStr(item.name),
           image: safeStrOrNull(item.image),
-          category: safeStr(item.category),
+          category: getCleanCategory(item.name, item.category),
           description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'weapon' as const,
@@ -196,7 +234,7 @@ export const useEquipmentData = () => {
           id: safeStr(item.id),
           name: safeStr(item.name),
           image: safeStrOrNull(item.image),
-          category: safeStr(item.category),
+          category: getCleanCategory(item.name, item.category),
           description: safeStr(item.description),
           weight: safeFloat(item.weight),
           kind: 'shield' as const,

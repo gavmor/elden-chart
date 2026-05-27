@@ -512,6 +512,12 @@ describe('buildGroup', () => {
 		expect(result[2].label).toBe('Poise');
 	});
 
+	it('handles Sorc and Inc stat names with proper formatting', () => {
+		const result = buildGroup(['Sorc', 'Inc'], 'total_scaling', 'Total Scaling', 'G');
+		expect(result[1].label).toBe('Sorcery Scaling');
+		expect(result[2].label).toBe('Incantation Scaling');
+	});
+
 	it('handles unknown stat names by passing them through', () => {
 		const result = buildGroup(['UnknownStat'], 'total_x', 'Total X', 'G');
 		expect(result[1].label).toBe('UnknownStat');

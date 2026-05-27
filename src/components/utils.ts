@@ -187,6 +187,8 @@ const STAT_NAME_LABELS: Record<string, string> = {
 	Holy: 'Holy',
 	Crit: 'Critical',
 	Boost: 'Boost',
+	Sorc: 'Sorcery Scaling',
+	Inc: 'Incantation Scaling',
 	Immunity: 'Immunity',
 	Robustness: 'Robustness',
 	Focus: 'Focus',
