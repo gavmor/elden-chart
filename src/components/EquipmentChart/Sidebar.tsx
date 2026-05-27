@@ -171,25 +171,23 @@ export default function EquipmentChartSidebar({
                   </button>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-1.5">
                 {group.categories.map(cat => (
-                  <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                    <div className="relative flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        checked={activeCategories[cat] || false}
-                        onChange={(e) => onCategoryToggle(cat, e.target.checked)}
-                        className="sr-only"
-                      />
-                      <div
-                        className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${
-                          activeCategories[cat] ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-slate-800 text-slate-500 border border-slate-700 group-hover:border-slate-500 group-hover:text-slate-400'
-                        }`}
-                      >
-                        {getCategoryIcon(cat, group.kind, { className: "w-4 h-4", fill: "currentColor" })}
-                      </div>
-                    </div>
-                    <span className="text-sm text-slate-300 group-hover:text-white transition-colors">{cat}</span>
+                  <label
+                    key={cat}
+                    className={`px-2.5 py-1 text-xs rounded-full border transition-all cursor-pointer select-none ${
+                      activeCategories[cat]
+                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25 hover:border-amber-500/60'
+                        : 'bg-slate-800/40 text-slate-400 border-slate-700/60 hover:bg-slate-800/80 hover:text-slate-200 hover:border-slate-600'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={activeCategories[cat] || false}
+                      onChange={(e) => onCategoryToggle(cat, e.target.checked)}
+                      className="sr-only"
+                    />
+                    {cat}
                   </label>
                 ))}
               </div>
