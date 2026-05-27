@@ -18,8 +18,6 @@ interface PlotProps {
   customSet: EquipmentItem[];
   onClickItem: (item: EquipmentItem) => void;
   showPareto: boolean;
-  auraSize: number;
-  auraStyle: 'glow' | 'outline';
 }
 
 export default function EquipmentChartPlot({
@@ -35,10 +33,10 @@ export default function EquipmentChartPlot({
   onLeavePlot,
   customSet,
   onClickItem,
-  showPareto,
-  auraSize,
-  auraStyle
+  showPareto
 }: PlotProps) {
+  const auraSize: number = 3;
+  const auraStyle: 'glow' | 'outline' = 'glow';
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 600, height: 400 });
 
@@ -272,20 +270,29 @@ export default function EquipmentChartPlot({
           return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
         }
 
-        const color = isOpt || inSet ? '#fbbf24' : initialColor;
+        const isFocalItem = isOpt || inSet;
+        const color = isFocalItem ? '#fbbf24' : initialColor;
 
-        if (auraStyle === 'outline') {
+        // Adaptive performance bypass: if dataset is large, disable complex colored drop-shadow filters on non-focal items
+        if (!isFocalItem && filteredData.length > 80) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+
+        if ((auraStyle as string) === 'outline') {
           // Crisp outline thickness (1px for size 1-3, 2px for size 4-7, 3px for size 8+)
           const t = auraSize <= 3 ? 1 : auraSize <= 7 ? 2 : 3;
-          const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
-          
+
           if (isOpt) {
-            return `drop-shadow(0 0 4px #fbbf24) ${baseOutline}`;
-          }
-          if (inSet) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
             return `drop-shadow(0 0 3px #fbbf24) ${baseOutline}`;
           }
-          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) ${baseOutline}`;
+          if (inSet) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
+            return `drop-shadow(0 0 2px #fbbf24) ${baseOutline}`;
+          }
+          
+          // Regular background items in a small dataset: simplify from 4 chained drop shadows to a lighter dual drop shadow
+          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px ${color})`;
         }
 
         // Otherwise, 'glow' style
@@ -295,6 +302,8 @@ export default function EquipmentChartPlot({
         if (inSet) {
           return `drop-shadow(0 0 ${auraSize * 2}px #fbbf24) drop-shadow(0 0 ${auraSize * 0.7}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
         }
+
+        // Regular background items in a small dataset: single-pass drop-shadow is extremely lightweight
         return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
       };
 
@@ -303,8 +312,8 @@ export default function EquipmentChartPlot({
         img.style.opacity = '1';
       }
 
-      // Transition styles for ultra smooth scaling
-      img.style.transition = 'width 0.2s ease, height 0.2s ease, x 0.2s ease, y 0.2s ease, filter 0.2s ease, opacity 0.2s ease';
+      // Transition styles for ultra smooth scaling - only transition dimensions to prevent massive layout/compositing performance storm on filter and opacity transitions
+      img.style.transition = 'width 0.15s ease-out, height 0.15s ease-out, x 0.15s ease-out, y 0.15s ease-out';
 
       // Mouse Hover Interaction Handlers
       const handleMouseEnter = (e: MouseEvent) => {
@@ -330,11 +339,12 @@ export default function EquipmentChartPlot({
 
         // Dim other images (read customSet from ref for latest value)
         const curSet = customSetRef.current;
+        const curSetIds = new Set(curSet.map(s => s.id));
         images.forEach(other => {
           if (other !== img) {
-            const otherId = other.getAttribute('data-id');
-            const otherInSet = curSet.some(s => s.id === otherId);
-            const otherOptimal = paretoIds.has(otherId || '');
+            const otherId = other.getAttribute('data-id') || '';
+            const otherInSet = curSetIds.has(otherId);
+            const otherOptimal = paretoIds.has(otherId);
             other.style.opacity = otherInSet || otherOptimal ? '0.7' : '0.15';
           }
         });
@@ -363,10 +373,11 @@ export default function EquipmentChartPlot({
 
         // Restore all other image opacities (read customSet from ref)
         const curSet = customSetRef.current;
+        const curSetIds = new Set(curSet.map(s => s.id));
         images.forEach(other => {
-          const otherId = other.getAttribute('data-id');
-          const otherInSet = curSet.some(s => s.id === otherId);
-          const otherOptimal = paretoIds.has(otherId || '');
+          const otherId = other.getAttribute('data-id') || '';
+          const otherInSet = curSetIds.has(otherId);
+          const otherOptimal = paretoIds.has(otherId);
           other.style.opacity = otherInSet || otherOptimal ? '1' : '0.85';
         });
 

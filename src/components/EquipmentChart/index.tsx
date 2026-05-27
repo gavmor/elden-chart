@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
-import { Loader2, AlertCircle, Sliders, Sparkles } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
@@ -58,27 +58,6 @@ export default function EquipmentChart() {
   const [hoveredItem, setHoveredItem] = useState<EquipmentItem | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const chartRef = useRef<HTMLDivElement>(null);
-
-  // Aura Customizer State
-  const [auraSize, setAuraSize] = useState<number>(3);
-  const [auraStyle, setAuraStyle] = useState<'glow' | 'outline'>('glow');
-  const [isGlowOpen, setIsGlowOpen] = useState<boolean>(false);
-  const glowContainerRef = useRef<HTMLDivElement>(null);
-
-  // Click outside to close glow controls popover
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (glowContainerRef.current && !glowContainerRef.current.contains(event.target as Node)) {
-        setIsGlowOpen(false);
-      }
-    }
-    if (isGlowOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isGlowOpen]);
 
   // Fetch all equipment data
   const { data: equipment = [], isLoading, error } = useEquipmentData();
@@ -247,7 +226,7 @@ export default function EquipmentChart() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-900 text-slate-200 font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-slate-900 text-slate-200 font-sans overflow-hidden">
       <EquipmentChartHeader loading={isLoading} itemCount={filteredData.length} />
 
       <div className="flex flex-1 overflow-hidden">
@@ -301,8 +280,6 @@ export default function EquipmentChart() {
               customSet={customSet}
               onClickItem={handleToggleSet}
               showPareto={showPareto}
-              auraSize={auraSize}
-              auraStyle={auraStyle}
             />
           )}
 
@@ -317,100 +294,6 @@ export default function EquipmentChart() {
               colorVar={resolvedColorVar}
               colorMinMax={colorMinMax}
             />
-          )}
-
-          {/* Floating Action Button (FAB) for Glow Control */}
-          {!isLoading && !error && (
-            <div className="absolute bottom-6 right-6 z-30" ref={glowContainerRef}>
-              {isGlowOpen && (
-                <div 
-                  className="absolute bottom-16 right-0 w-64 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl rounded-xl p-4 flex flex-col gap-3 transition-all duration-200 z-40"
-                  role="dialog"
-                  aria-label="Adjust Aura Appearance Settings"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-                      <span className="text-sm font-semibold text-white">Aura Appearance</span>
-                    </div>
-                  </div>
-
-                  {/* Axis 1: Style Selection (Glow vs Outline) */}
-                  <div className="flex flex-col gap-1.5 border-b border-slate-800 pb-3">
-                    <span className="text-xs font-semibold text-slate-400">Aura Style</span>
-                    <div className="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
-                      <button
-                        onClick={() => setAuraStyle('glow')}
-                        className={`py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                          auraStyle === 'glow'
-                            ? 'bg-amber-500 text-slate-950 shadow-sm font-semibold'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
-                        }`}
-                        aria-label="Select soft glow style"
-                      >
-                        Soft Glow
-                      </button>
-                      <button
-                        onClick={() => setAuraStyle('outline')}
-                        className={`py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
-                          auraStyle === 'outline'
-                            ? 'bg-amber-500 text-slate-950 shadow-sm font-semibold'
-                            : 'text-slate-400 hover:text-white hover:bg-slate-900/50'
-                        }`}
-                        aria-label="Select solid outline style"
-                      >
-                        Solid Outline
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Axis 2: Size Slider */}
-                  <div className="flex flex-col gap-2 py-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-400">Aura Size / Weight</span>
-                      <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-400 shadow-sm">
-                        {auraSize === 0 ? 'None' : auraStyle === 'outline' ? `${auraSize <= 3 ? '1px' : auraSize <= 7 ? '2px' : '3px'}` : `${auraSize}px`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-[10px] font-medium text-slate-400">
-                      <span>Subtle (0px)</span>
-                      <span>Maximum (10px)</span>
-                    </div>
-                    <input
-                      id="glow-intensity-slider"
-                      type="range"
-                      min="0"
-                      max="10"
-                      step="1"
-                      value={auraSize}
-                      onChange={(e) => setAuraSize(parseInt(e.target.value))}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 hover:accent-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
-                      aria-label="Aura Size/Thickness Slider"
-                    />
-                  </div>
-
-                  <p className="text-[10px] text-slate-500 leading-relaxed italic">
-                    Slide to zero to completely disable glowing auras and solid outlines for all plotted equipment icons.
-                  </p>
-                </div>
-              )}
-
-              <button
-                id="glow-intensity-fab"
-                onClick={() => setIsGlowOpen(!isGlowOpen)}
-                className={`flex items-center justify-center w-12 h-12 rounded-full border shadow-lg transition-all duration-200 cursor-pointer outline-none focus:ring-2 focus:ring-amber-500/50 ${
-                  isGlowOpen 
-                    ? 'bg-amber-500 text-slate-900 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-100 hover:scale-105 active:scale-95' 
-                    : 'bg-slate-800/90 hover:bg-slate-700 text-amber-500 border-slate-700 hover:border-amber-500/40 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-105 active:scale-95'
-                }`}
-                aria-haspopup="dialog"
-                aria-expanded={isGlowOpen}
-                aria-label="Adjust Aura Settings Panel"
-                title="Adjust Aura Settings"
-              >
-                <Sliders className={`w-5 h-5 transition-transform duration-300 ${isGlowOpen ? 'rotate-90' : 'hover:rotate-12'}`} />
-              </button>
-            </div>
           )}
         </main>
       </div>

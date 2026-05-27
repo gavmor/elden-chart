@@ -11,3 +11,16 @@
   --color-better: #6B99C5;
   --color-worse: #C73D40;
 }
+
+/* Ensure full viewport height and dark background across all browsers and screen sizes */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: #0f172a; /* slate-900 */
+}
+
