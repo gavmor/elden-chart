@@ -1,5 +1,5 @@
 import type { LucideProps } from 'lucide-react';
-import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
+import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword, Target } from 'lucide-react';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import * as R from 'remeda';
@@ -8,6 +8,7 @@ import type { EquipmentItem, EquipmentKind, StatOption } from './types';
 export const getCategoryIcon = (category: string, kind: EquipmentKind, props: LucideProps) => {
 	if (kind === 'weapon') return createElement(Sword, props);
 	if (kind === 'shield') return createElement(Shield, props);
+	if (kind === 'ammo') return createElement(Target, props);
 
 	// Armor categories
 	switch (category) {
@@ -28,7 +29,7 @@ export const getItemStat = (item: EquipmentItem, statName: string): number => {
 		case 'total_attack':
 			return item.kind === 'armor' ? 0 : R.sumBy(item.attack, getAmount);
 		case 'total_defence':
-			return item.kind === 'armor' ? 0 : R.sumBy(item.defence, getAmount);
+			return (item.kind === 'armor' || item.kind === 'ammo') ? 0 : R.sumBy(item.defence, getAmount);
 		case 'total_negation':
 			return item.kind !== 'armor' ? 0 : R.sumBy(item.dmgNegation, getAmount);
 		case 'total_resistance':
@@ -44,6 +45,9 @@ export const getItemStat = (item: EquipmentItem, statName: string): number => {
 		return R.find(item.dmgNegation, s => s.name === statName)?.amount
 			?? R.find(item.resistance, s => s.name === statName)?.amount
 			?? 0;
+	}
+	if (item.kind === 'ammo') {
+		return R.find(item.attack, s => s.name === statName)?.amount ?? 0;
 	}
 	return R.find(item.attack, s => s.name === statName)?.amount
 		?? R.find(item.defence, s => s.name === statName)?.amount
@@ -121,6 +125,7 @@ export const getItemImageUrl = (item: EquipmentItem, color: string): string => {
 
 	if (item.kind === 'weapon') return iconToDataUri(Sword, color);
 	if (item.kind === 'shield') return iconToDataUri(Shield, color);
+	if (item.kind === 'ammo') return iconToDataUri(Target, color);
 
 	switch (item.category) {
 		case 'Helm': return iconToDataUri(HardHat, color);
@@ -248,7 +253,7 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 	const weightStat: StatOption = { id: weightKey, label: toTitleCase(weightKey), group: 'General' };
 
 	const hasArmor = items.some(i => i.kind === 'armor');
-	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield');
+	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo');
 
 	if (hasArmor && hasWeaponLike) return [weightStat];
 
@@ -265,7 +270,7 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 
 	// hasWeaponLike is true
 	const attackNames = collectStatNames(items, i => i.kind !== 'armor' ? i.attack : []);
-	const defenceNames = collectStatNames(items, i => i.kind !== 'armor' ? i.defence : []);
+	const defenceNames = collectStatNames(items, i => (i.kind !== 'armor' && i.kind !== 'ammo') ? i.defence : []);
 
 	return R.pipe(
 		[

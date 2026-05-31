@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import request from 'graphql-request';
-import type { EquipmentItem, ArmorItem, WeaponItem, ShieldItem } from '../components/types';
+import type { EquipmentItem, ArmorItem, WeaponItem, ShieldItem, AmmoItem } from '../components/types';
 import { graphql } from '../gql/gql';
 
 const API_URL = 'https://eldenring.fanapis.com/api/graphql';
@@ -84,6 +84,23 @@ const GET_SHIELD_PAGE = graphql(/* GraphQL */ `
   }
 `);
 
+const GET_AMMO_PAGE = graphql(/* GraphQL */ `
+  query GetAmmoPage($page: Int!, $limit: Int!) {
+    ammo(page: $page, limit: $limit) {
+      id
+      name
+      image
+      description
+      type
+      attackPower {
+        name
+        amount
+      }
+      passive
+    }
+  }
+`);
+
 /** Raw shape of a { name, amount } stat as returned by the API (amount may be a string or number). */
 interface RawStat { name?: unknown; amount?: unknown; }
 /** Raw shape of a { name, scaling } scaling stat. */
@@ -102,6 +119,9 @@ interface RawItem {
   defence?: RawStat[];
   scalesWith?: RawScalingStat[];
   requiredAttributes?: RawStat[];
+  attackPower?: RawStat[];
+  passive?: unknown;
+  type?: unknown;
 }
 
 const safeFloat = (val: unknown): number => {
@@ -134,6 +154,17 @@ export const getCleanCategory = (name: unknown, rawCategory: unknown): string =>
   if (category === 'Gauntlet') return 'Gauntlets';
   if (category === 'Small Shields') return 'Small Shield';
   return category;
+};
+
+/** Classifies ammunition dynamically based on its name */
+export const getAmmoCategory = (name: unknown): string => {
+  const n = safeStr(name).toLowerCase();
+  if (n.includes('ballista bolt')) return 'Ballista Bolt';
+  if (n.includes('great arrow') || n.includes('greatarrow') || n.includes("radahn's spear")) return 'Great Arrow';
+  if (n.includes('greatbolt') || n.includes('greabolt')) return 'Greatbolt';
+  if (n.includes('arrow')) return 'Arrow';
+  if (n.includes('bolt')) return 'Bolt';
+  return 'Arrow';
 };
 
 /** Map of raw malformed/duplicate stat names to standard unified keys */
@@ -193,10 +224,11 @@ export const useEquipmentData = () => {
   return useQuery({
     queryKey: ['equipment'],
     queryFn: async () => {
-      const [rawArmors, rawWeapons, rawShields] = await Promise.all([
+      const [rawArmors, rawWeapons, rawShields, rawAmmos] = await Promise.all([
         fetchAllPages(GET_ARMOR_PAGE, 'armor', 5),
         fetchAllPages(GET_WEAPON_PAGE, 'weapon', 4),
         fetchAllPages(GET_SHIELD_PAGE, 'shield', 1),
+        fetchAllPages(GET_AMMO_PAGE, 'ammo', 1),
       ]);
 
       const armors: ArmorItem[] = deduplicate(
@@ -245,7 +277,21 @@ export const useEquipmentData = () => {
         }))
       );
 
-      const all: EquipmentItem[] = [...armors, ...weapons, ...shields];
+      const ammos: AmmoItem[] = deduplicate(
+        rawAmmos.map((item: RawItem) => ({
+          id: safeStr(item.id),
+          name: safeStr(item.name),
+          image: safeStrOrNull(item.image),
+          category: getAmmoCategory(item.name),
+          description: safeStr(item.description),
+          weight: 0,
+          kind: 'ammo' as const,
+          attack: (item.attackPower || []).map(mapStat),
+          passive: safeStr(item.passive),
+        }))
+      );
+
+      const all: EquipmentItem[] = [...armors, ...weapons, ...shields, ...ammos];
       return all;
     },
   });

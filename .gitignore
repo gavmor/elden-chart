@@ -26,3 +26,7 @@ dist-ssr
 # ruflo
 lib/
 ruvector.db
+
+# Developer scratch files
+scratch*.js
+

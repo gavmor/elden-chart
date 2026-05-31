@@ -1,4 +1,4 @@
-import type { ArmorItem, WeaponItem, ShieldItem } from '../types';
+import type { ArmorItem, WeaponItem, ShieldItem, AmmoItem } from '../types';
 
 export const helmItem: ArmorItem = {
   id: 'helm-1',
@@ -141,3 +141,20 @@ export const heaterShieldItem: ShieldItem = {
 export const mockCustomSet = [helmItem, chestItem, gauntletsItem];
 export const mockWeaponSet = [longswordItem];
 export const mockMixedSet = [helmItem, longswordItem];
+
+export const ammoItem: AmmoItem = {
+  id: 'ammo-1',
+  name: 'Firebone Arrow',
+  image: null,
+  category: 'Arrow',
+  description: 'An arrow that deals fire damage',
+  weight: 0,
+  kind: 'ammo',
+  attack: [
+    { name: 'Phy', amount: 10 },
+    { name: 'Mag', amount: 0 },
+    { name: 'Fire', amount: 90 },
+    { name: 'Crit', amount: 100 },
+  ],
+  passive: 'None',
+};

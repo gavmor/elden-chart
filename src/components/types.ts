@@ -3,7 +3,7 @@ export interface ApiStat {
   amount: number;
 }
 
-export type EquipmentKind = 'armor' | 'weapon' | 'shield';
+export type EquipmentKind = 'armor' | 'weapon' | 'shield' | 'ammo';
 
 export interface EquipmentBase {
   id: string;
@@ -42,7 +42,13 @@ export interface ShieldItem extends EquipmentBase {
   requiredAttributes: ApiStat[];
 }
 
-export type EquipmentItem = ArmorItem | WeaponItem | ShieldItem;
+export interface AmmoItem extends EquipmentBase {
+  kind: 'ammo';
+  attack: ApiStat[];
+  passive: string;
+}
+
+export type EquipmentItem = ArmorItem | WeaponItem | ShieldItem | AmmoItem;
 
 export type ColorKey = string;
 

@@ -43,13 +43,13 @@ export default function CompareModalTable({ customSet }: Props) {
   // Determine what kinds are present
   const kinds = new Set(customSet.map(i => i.kind));
   const isAllArmor = kinds.size === 1 && kinds.has('armor');
-  const isAllWeaponLike = kinds.size === 1 && (kinds.has('weapon') || kinds.has('shield'));
+  const isAllWeaponLike = Array.from(kinds).every(k => k === 'weapon' || k === 'shield' || k === 'ammo') && !kinds.has('armor');
   // Mixed sets show only weight
 
   const negationStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.dmgNegation : []) : [];
   const resistanceStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.resistance : []) : [];
   const attackStats = isAllWeaponLike ? collectOrderedStats(customSet, i => i.kind !== 'armor' ? i.attack : []) : [];
-  const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => i.kind !== 'armor' ? i.defence : []) : [];
+  const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind !== 'armor' && i.kind !== 'ammo') ? i.defence : []) : [];
 
   return (
     <div className="overflow-x-auto">
