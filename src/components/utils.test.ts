@@ -431,6 +431,37 @@ describe('getAvailableStats', () => {
 		const phyAttack = stats.find(s => s.id === 'Phy' && s.group === 'Weapon Attack');
 		expect(phyAttack?.label).toMatch(/Attack$/);
 	});
+
+	it('returns dynamic properties grouped for Deadlock items', () => {
+		const dlItem: import('./types').ArmorItem = {
+			id: 'dl-1',
+			name: 'Restorative Locket',
+			image: null,
+			category: 'Vitality',
+			description: '',
+			weight: 500,
+			kind: 'armor',
+			dmgNegation: [
+				{ name: 'BulletShieldMax', amount: 80 },
+				{ name: 'BaseSprintHealth', amount: 50 }
+			],
+			resistance: []
+		};
+		const stats = getAvailableStats([dlItem]);
+		const ids = stats.map(s => s.id);
+
+		expect(ids).toContain('weight');
+		expect(ids).toContain('total_negation');
+		expect(ids).toContain('BulletShieldMax');
+		expect(ids).toContain('BaseSprintHealth');
+
+		const costStat = stats.find(s => s.id === 'weight');
+		expect(costStat?.label).toBe('Cost');
+		expect(costStat?.group).toBe('General');
+
+		const sprintHealth = stats.find(s => s.id === 'BaseSprintHealth');
+		expect(sprintHealth?.group).toBe('Item Properties');
+	});
 });
 
 // ---------------------------------------------------------------------------

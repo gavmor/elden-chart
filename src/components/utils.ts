@@ -113,11 +113,23 @@ export const getItemColor = (
 /**
  * Returns the item image URL, falling back to a lucide icon as an SVG data URI if null.
  */
+const dataUriCache = new Map<React.ComponentType<LucideProps>, Map<string, string>>();
+
 const iconToDataUri = (icon: React.ComponentType<LucideProps>, color: string): string => {
+	let colorMap = dataUriCache.get(icon);
+	if (!colorMap) {
+		colorMap = new Map<string, string>();
+		dataUriCache.set(icon, colorMap);
+	}
+	const cached = colorMap.get(color);
+	if (cached !== undefined) return cached;
+
 	const svg = renderToStaticMarkup(
 		createElement(icon, { size: 24, color, strokeWidth: 2, absoluteStrokeWidth: true })
 	);
-	return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+	const uri = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+	colorMap.set(color, uri);
+	return uri;
 };
 
 export const getItemImageUrl = (item: EquipmentItem, color: string): string => {
@@ -213,12 +225,8 @@ export const collectStatNames = (
 	items: EquipmentItem[],
 	accessor: (item: EquipmentItem) => { name: string }[]
 ): string[] => {
-	return R.pipe(
-		items,
-		R.flatMap(accessor),       // 1. Extract and flatten the stat arrays
-		R.map(R.prop('name')),     // 2. Pluck just the 'name' string from each stat object
-		R.unique()                 // 3. Deduplicate the resulting array of strings
-	);
+	const names = R.flatMap(items, item => R.map(accessor(item), R.prop('name')));
+	return R.unique(names);
 };
 
 
@@ -260,6 +268,16 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 	if (hasArmor) {
 		const negationNames = collectStatNames(items, i => i.kind === 'armor' ? i.dmgNegation : []);
 		const resistanceNames = collectStatNames(items, i => i.kind === 'armor' ? i.resistance : []);
+
+		// If it's a Deadlock item, it might have properties mapped inside dmgNegation.
+		// Let's create beautiful groups for those items!
+		const isDeadlock = items.some(i => i.id.startsWith('dl-'));
+		if (isDeadlock) {
+			return [
+				{ id: 'weight', label: 'Cost', group: 'General' },
+				...buildGroup(negationNames, 'total_negation', 'Total Stats', 'Item Properties')
+			];
+		}
 
 		return [
 			weightStat,

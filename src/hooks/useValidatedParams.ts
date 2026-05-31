@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { z } from 'zod';
 import type { ColorKey } from '../components/types';
 
@@ -9,6 +9,7 @@ export const queryParamsSchema = z.object({
   color: z.string().default('category').transform(val => val as ColorKey),
   q: z.string().default(''),
   cats: z.string().nullable().transform(val => val ? val.split(',').filter(Boolean) : null).default(null),
+  game: z.enum(['elden-ring', 'deadlock']).default('elden-ring'),
 });
 
 export type ValidatedQueryParams = z.infer<typeof queryParamsSchema>;
@@ -24,12 +25,13 @@ export function useValidatedParams() {
       color: searchParams.get('color') ?? undefined,
       q: searchParams.get('q') ?? undefined,
       cats: searchParams.get('cats') ?? null,
+      game: searchParams.get('game') ?? undefined,
     };
     return queryParamsSchema.parse(raw);
   }, [searchParams]);
 
   // Set/update a specific URL query parameter reactively
-  const setParam = (key: string, value: string | null) => {
+  const setParam = useCallback((key: string, value: string | null) => {
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
       if (
@@ -37,7 +39,8 @@ export function useValidatedParams() {
         value === '' ||
         (key === 'x' && value === 'weight') ||
         (key === 'y' && value === 'weight') ||
-        (key === 'color' && value === 'category')
+        (key === 'color' && value === 'category') ||
+        (key === 'game' && value === 'elden-ring')
       ) {
         next.delete(key);
       } else {
@@ -48,7 +51,7 @@ export function useValidatedParams() {
       window.history.replaceState(null, '', newUrl);
       return next;
     });
-  };
+  }, [setSearchParams]);
 
   return {
     params,

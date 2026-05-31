@@ -51,11 +51,22 @@ const CHEST: import('../types').ArmorItem = {
   ],
 };
 
+const MOCK_DATA = [HELM, CHEST];
+const MOCK_EMPTY_DATA: import('../types').EquipmentItem[] = [];
+
 // ---------------------------------------------------------------------------
-// Mock useEquipmentData so we never hit the network.
+// Mock useEquipmentData and useDeadlockData so we never hit the network.
 // ---------------------------------------------------------------------------
 vi.mock('../../hooks/useEquipmentData', () => ({
-  useEquipmentData: () => ({ data: [HELM, CHEST], isLoading: false, error: null }),
+  useEquipmentData: () => ({ data: MOCK_DATA, isLoading: false, error: null }),
+}));
+
+vi.mock('../../hooks/useDeadlockData', () => ({
+  useDeadlockData: () => ({ data: MOCK_EMPTY_DATA, isLoading: false, error: null }),
+}));
+
+vi.mock('./Plot', () => ({
+  default: () => <div data-testid="mock-plot" />,
 }));
 
 // ---------------------------------------------------------------------------

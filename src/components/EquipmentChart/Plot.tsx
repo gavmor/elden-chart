@@ -398,7 +398,7 @@ export default function EquipmentChartPlot({
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, customSet, showPareto, paretoItems, paretoIds, xLabel, yLabel, chartProps, auraSize, auraStyle]);
+  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle]);
 
   if (filteredData.length === 0) {
     return (

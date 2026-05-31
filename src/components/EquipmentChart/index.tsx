@@ -3,6 +3,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
+import { useDeadlockData } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
@@ -12,8 +13,24 @@ import EquipmentChartTooltip from './Tooltip';
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
 export default function EquipmentChart() {
-  const { params, setParam, searchParams } = useValidatedParams();
-  const { x: xVar, y: yVar, color: colorVar, q: search } = params;
+  // Fetch Elden Ring equipment data
+  const { data: eldenEquipment = [], isLoading: isEldenLoading, error: eldenError } = useEquipmentData();
+
+  // Fetch Deadlock items
+  const { params: validatedParams, setParam, searchParams } = useValidatedParams();
+  const activeGame = validatedParams.game;
+  const { x: xVar, y: yVar, color: colorVar, q: search } = validatedParams;
+
+  const { data: deadlockEquipment = [], isLoading: isDeadlockLoading, error: deadlockError } = useDeadlockData();
+
+  const equipment = useMemo(() => {
+    return activeGame === 'elden-ring' ? eldenEquipment : deadlockEquipment;
+  }, [activeGame, eldenEquipment, deadlockEquipment]);
+
+  const isLoading = activeGame === 'elden-ring' 
+    ? (isEldenLoading && eldenEquipment.length === 0) 
+    : (isDeadlockLoading && deadlockEquipment.length === 0);
+  const error = activeGame === 'elden-ring' ? eldenError : deadlockError;
 
   // Local debounced search state to ensure responsive typing without URL lag
   const searchDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,8 +76,11 @@ export default function EquipmentChart() {
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const chartRef = useRef<HTMLDivElement>(null);
 
-  // Fetch all equipment data
-  const { data: equipment = [], isLoading, error } = useEquipmentData();
+  // Reset custom set and active categories when game mode switches to prevent invalid visual states
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCustomSet([]);
+  }, [activeGame]);
 
   // Initialize active categories once data is loaded
   const categoryGroups = useMemo(() => {
@@ -68,11 +88,9 @@ export default function EquipmentChart() {
     return getActiveCategories(equipment);
   }, [equipment]);
 
-  // Set default active categories when data first loads
-  const categoriesInitialized = useRef(false);
+  // Set default active categories when data first loads or game changes
   useEffect(() => {
-    if (categoryGroups.length === 0 || categoriesInitialized.current) return;
-    categoriesInitialized.current = true;
+    if (categoryGroups.length === 0) return;
 
     // Build all-active map for every known category
     const allActive: ActiveCategories = {};
@@ -83,7 +101,7 @@ export default function EquipmentChart() {
     }
 
     // If URL had a `cats` param, restrict to those categories
-    const initialCats = params.cats;
+    const initialCats = validatedParams.cats;
     if (initialCats !== null) {
       const activeCatSet = new Set(initialCats);
       for (const cat of Object.keys(allActive)) {
@@ -91,6 +109,7 @@ export default function EquipmentChart() {
       }
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveCategories(allActive);
 
     // Set default Y axis to first non-weight stat, unless URL already specified one
@@ -99,7 +118,7 @@ export default function EquipmentChart() {
     if (nonWeightStats.length > 0 && !searchParams.has('y')) {
       setParam('y', nonWeightStats[0].id);
     }
-  }, [categoryGroups, equipment, searchParams, params.cats, setParam]);
+  }, [categoryGroups, equipment, searchParams, validatedParams.cats, setParam, activeGame]);
 
   const filteredData = useMemo(() => {
     return equipment.filter(item => {
@@ -227,7 +246,12 @@ export default function EquipmentChart() {
 
   return (
     <div className="flex flex-col h-full bg-slate-900 text-slate-200 font-sans overflow-hidden">
-      <EquipmentChartHeader loading={isLoading} itemCount={filteredData.length} />
+      <EquipmentChartHeader
+        loading={isLoading}
+        itemCount={filteredData.length}
+        activeGame={activeGame}
+        onGameChange={(game) => setParam('game', game)}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         <EquipmentChartSidebar

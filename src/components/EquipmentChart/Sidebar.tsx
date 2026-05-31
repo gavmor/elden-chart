@@ -79,9 +79,17 @@ export default function EquipmentChartSidebar({
             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {statOptions.length === 0
-              ? <option value="">None</option>
-              : statOptions.map(opt => (
-                  <option key={`y-${opt.id}`} value={opt.id}>{opt.label}</option>
+              ? (
+                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
+                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                </optgroup>
+              )
+              : Object.entries(statGroups).map(([groupName, opts]) => (
+                  <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                    {opts.map(opt => (
+                      <option key={`y-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
+                    ))}
+                  </optgroup>
                 ))
             }
           </select>
@@ -96,9 +104,17 @@ export default function EquipmentChartSidebar({
             className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {statOptions.length === 0
-              ? <option value="">None</option>
-              : statOptions.map(opt => (
-                  <option key={`x-${opt.id}`} value={opt.id}>{opt.label}</option>
+              ? (
+                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
+                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                </optgroup>
+              )
+              : Object.entries(statGroups).map(([groupName, opts]) => (
+                  <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                    {opts.map(opt => (
+                      <option key={`x-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
+                    ))}
+                  </optgroup>
                 ))
             }
           </select>
