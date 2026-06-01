@@ -68,40 +68,40 @@ export default function EquipmentChartSidebar({
   }, {});
 
   return (
-    <aside className="w-80 bg-slate-800/50 border-r border-slate-700 p-5 flex flex-col gap-6 overflow-y-auto">
+    <aside className="w-sidebar bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
         <input
           type="text"
           placeholder="Search equipment..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-amber-500 transition-colors"
+          className="w-full bg-bg-card border border-border-main rounded-btn pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand-accent transition-colors"
         />
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Y-Axis (Vertical)</label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Y-Axis (Vertical)</label>
           <select
             aria-label="Y-Axis"
             value={statOptions.length > 0 ? yVar : ''}
             onChange={(e) => onYVarChange(e.target.value)}
             disabled={statOptions.length === 0}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {statOptions.length === 0
               ? (
-                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
-                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                <optgroup label="Stats" className="bg-bg-card-dark font-semibold text-text-secondary">
+                  <option disabled value="" className="bg-bg-card text-text-tertiary">None</option>
                 </optgroup>
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
-                  <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                  <optgroup key={groupName} label={groupName} className="bg-bg-card-dark font-semibold text-text-secondary">
                     {opts.map(opt => {
                       const count = traitCounts[opt.id] ?? 0;
                       return (
-                        <option key={`y-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                        <option key={`y-${opt.id}`} value={opt.id} className="bg-bg-card text-text-primary">
                           {opt.label} ({count})
                         </option>
                       );
@@ -112,26 +112,26 @@ export default function EquipmentChartSidebar({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">X-Axis (Horizontal)</label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">X-Axis (Horizontal)</label>
           <select
             aria-label="X-Axis"
             value={statOptions.length > 0 ? xVar : ''}
             onChange={(e) => onXVarChange(e.target.value)}
             disabled={statOptions.length === 0}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {statOptions.length === 0
               ? (
-                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
-                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                <optgroup label="Stats" className="bg-bg-card-dark font-semibold text-text-secondary">
+                  <option disabled value="" className="bg-bg-card text-text-tertiary">None</option>
                 </optgroup>
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
-                  <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                  <optgroup key={groupName} label={groupName} className="bg-bg-card-dark font-semibold text-text-secondary">
                     {opts.map(opt => {
                       const count = traitCounts[opt.id] ?? 0;
                       return (
-                        <option key={`x-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                        <option key={`x-${opt.id}`} value={opt.id} className="bg-bg-card text-text-primary">
                           {opt.label} ({count})
                         </option>
                       );
@@ -142,27 +142,27 @@ export default function EquipmentChartSidebar({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Color (Point Theme)</label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Color (Point Theme)</label>
           <select
             value={colorVar}
             onChange={(e) => onColorVarChange(e.target.value as ColorKey)}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm focus:outline-none focus:border-amber-500"
+            className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent"
           >
-            <optgroup label="Categorical Grouping" className="bg-slate-950 font-semibold text-slate-400">
-              <option value="category" className="bg-slate-900 text-slate-200">Category (by equipment type)</option>
+            <optgroup label="Categorical Grouping" className="bg-bg-card-dark font-semibold text-text-secondary">
+              <option value="category" className="bg-bg-card text-text-primary">Category (by equipment type)</option>
             </optgroup>
             {statOptions.length === 0
               ? (
-                <optgroup label="Stats" className="bg-slate-950 font-semibold text-slate-400">
-                  <option disabled value="" className="bg-slate-900 text-slate-500">None</option>
+                <optgroup label="Stats" className="bg-bg-card-dark font-semibold text-text-secondary">
+                  <option disabled value="" className="bg-bg-card text-text-tertiary">None</option>
                 </optgroup>
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
-                <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
+                <optgroup key={groupName} label={groupName} className="bg-bg-card-dark font-semibold text-text-secondary">
                   {opts.map(opt => {
                     const count = traitCounts[opt.id] ?? 0;
                     return (
-                      <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                      <option key={`color-${opt.id}`} value={opt.id} className="bg-bg-card text-text-primary">
                         {opt.label} ({count})
                       </option>
                     );
@@ -176,17 +176,17 @@ export default function EquipmentChartSidebar({
 
       <div>
         <div className="flex items-center justify-between mb-3">
-          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Categories</label>
+          <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Categories</label>
           <div className="flex gap-1">
             <button
               onClick={() => onToggleAll(true)}
-              className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-amber-400 hover:bg-slate-700 border border-slate-700 transition-colors"
+              className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-bg-sidebar text-text-secondary hover:text-brand-hover hover:bg-slate-700 border border-border-main transition-colors cursor-pointer"
             >
               All
             </button>
             <button
               onClick={() => onToggleAll(false)}
-              className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-red-400 hover:bg-slate-700 border border-slate-700 transition-colors"
+              className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-bg-sidebar text-text-secondary hover:text-brand-danger hover:bg-slate-700 border border-border-main transition-colors cursor-pointer"
             >
               None
             </button>
@@ -196,19 +196,19 @@ export default function EquipmentChartSidebar({
           {categoryGroups.map(group => (
             <div key={group.kind}>
               <div className="flex items-center justify-between mb-1.5 px-1">
-                <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-500">
+                <span className="text-xxs uppercase tracking-wider font-semibold text-text-tertiary">
                   {group.kind === 'armor' ? 'Armor' : group.kind === 'weapon' ? 'Weapons' : 'Shields'}
                 </span>
                 <div className="flex gap-1">
                   <button
                     onClick={() => onToggleGroup(group.kind, true)}
-                    className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 hover:text-amber-400 hover:bg-slate-700 border border-slate-700/50 transition-colors"
+                    className="text-tiny uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-bg-sidebar text-text-tertiary hover:text-brand-hover hover:bg-slate-700 border border-border-subtle transition-colors cursor-pointer"
                   >
                     All
                   </button>
                   <button
                     onClick={() => onToggleGroup(group.kind, false)}
-                    className="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 hover:text-red-400 hover:bg-slate-700 border border-slate-700/50 transition-colors"
+                    className="text-tiny uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-bg-sidebar text-text-tertiary hover:text-brand-danger hover:bg-slate-700 border border-border-subtle transition-colors cursor-pointer"
                   >
                     None
                   </button>
@@ -220,8 +220,8 @@ export default function EquipmentChartSidebar({
                     key={cat}
                     className={`px-2.5 py-1 text-xs rounded-full border transition-all cursor-pointer select-none ${
                       activeCategories[cat]
-                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/40 hover:bg-amber-500/25 hover:border-amber-500/60'
-                        : 'bg-slate-800/40 text-slate-400 border-slate-700/60 hover:bg-slate-800/80 hover:text-slate-200 hover:border-slate-600'
+                        ? 'bg-brand-accent/15 text-brand-active border-brand-accent/40 hover:bg-brand-accent/25 hover:border-brand-accent/60'
+                        : 'bg-bg-sidebar/40 text-text-secondary border-border-subtle hover:bg-bg-sidebar/80 hover:text-text-primary hover:border-border-main'
                     }`}
                   >
                     <input
@@ -240,7 +240,7 @@ export default function EquipmentChartSidebar({
       </div>
 
       <div>
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Statistical Analysis</label>
+        <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Statistical Analysis</label>
         <label className="flex items-center gap-3 cursor-pointer group">
           <div className="relative flex items-center justify-center">
             <input
@@ -251,57 +251,57 @@ export default function EquipmentChartSidebar({
             />
             <div
               className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${
-                showPareto ? 'bg-amber-500/20 text-amber-500 border border-amber-500/50' : 'bg-slate-800 text-slate-500 border border-slate-700 group-hover:border-slate-500 group-hover:text-slate-400'
+                showPareto ? 'bg-brand-accent/20 text-brand-accent border border-brand-accent/50' : 'bg-bg-sidebar text-text-tertiary border border-border-main group-hover:border-border-main group-hover:text-text-secondary'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Pareto Frontier</span>
-            <span className={`text-[10px] leading-tight transition-all duration-300 ${showPareto ? 'text-amber-500/70 max-h-8 opacity-100 mt-0.5' : 'text-slate-600 max-h-0 opacity-0'} overflow-hidden`}>Best trade-off curve (Min X / Max Y)</span>
+            <span className="text-sm text-text-primary group-hover:text-text-bright transition-colors">Pareto Frontier</span>
+            <span className={`text-xxs leading-tight transition-all duration-300 ${showPareto ? 'text-brand-accent/70 max-h-8 opacity-100 mt-0.5' : 'text-text-tertiary max-h-0 opacity-0'} overflow-hidden`}>Best trade-off curve (Min X / Max Y)</span>
           </div>
         </label>
       </div>
 
       <div className="flex flex-col gap-3">
-        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Active Build Set</label>
+        <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Active Build Set</label>
         {customSet.length === 0 ? (
-          <div className="bg-slate-900/40 rounded-lg p-4 border border-dashed border-slate-700/50 text-center text-xs text-slate-500 leading-relaxed">
+          <div className="bg-bg-card/40 rounded-card p-4 border border-dashed border-border-subtle text-center text-xs text-text-tertiary leading-relaxed">
             Click points on the scatter plot to add items to your custom set.
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex flex-wrap gap-2 bg-slate-900/40 p-3 rounded-lg border border-slate-700/50">
+            <div className="flex flex-wrap gap-2 bg-bg-card/40 p-3 rounded-card border border-border-subtle">
               {customSet.map(item => (
                 <div
                   key={`set-${item.id}`}
-                  className="relative w-10 h-10 rounded bg-slate-950 border border-slate-700 hover:border-red-500 cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
+                  className="relative w-item-sm h-item-sm rounded-btn bg-bg-card-dark border border-border-main hover:border-brand-danger cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
                   onClick={() => onRemoveFromSet(item)}
                   title={`${item.name} (Click to remove)`}
                 >
                   {item.image ? (
                     <img src={item.image} alt={item.name} className="w-[85%] h-[85%] object-contain" />
                   ) : (
-                    getCategoryIcon(item.category, item.kind, { className: "w-5 h-5 text-slate-500", fill: "currentColor" })
+                    getCategoryIcon(item.category, item.kind, { className: "w-5 h-5 text-text-tertiary", fill: "currentColor" })
                   )}
                   <div className="absolute inset-0 bg-red-950/80 flex items-center justify-center opacity-0 group-hover/set-item:opacity-100 transition-opacity duration-150">
-                    <X className="w-4 h-4 text-red-400" />
+                    <X className="w-4 h-4 text-brand-danger" />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-slate-900/30 rounded-lg p-3 border border-slate-800/50 space-y-1.5 text-xs text-slate-400">
+            <div className="bg-bg-card/30 rounded-card p-3 border border-border-subtle space-y-1.5 text-xs text-text-secondary">
               <div className="flex justify-between">
                 <span>Total Weight:</span>
-                <span className="font-semibold text-white">{totalWeight.toFixed(1)}</span>
+                <span className="font-semibold text-text-bright">{totalWeight.toFixed(1)}</span>
               </div>
             </div>
 
             <button
               onClick={onCompareSet}
-              className="w-full py-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 hover:text-amber-300 font-semibold text-xs border border-amber-500/30 hover:border-amber-500/50 flex items-center justify-center gap-1.5 transition-all shadow-md shadow-amber-950/20 active:scale-[0.98]"
+              className="w-full py-2 rounded-btn bg-brand-accent/10 hover:bg-brand-accent/20 text-brand-hover hover:text-brand-active font-semibold text-xs border border-brand-accent/30 hover:border-brand-accent/50 flex items-center justify-center gap-1.5 transition-all shadow-md shadow-amber-950/20 active:scale-[0.98] cursor-pointer"
             >
               <Scale className="w-4 h-4" /> Compare Set Attributes
             </button>
@@ -309,11 +309,11 @@ export default function EquipmentChartSidebar({
         )}
       </div>
 
-      <div className="mt-auto bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
-        <h3 className="text-sm font-medium text-amber-500 flex items-center gap-2 mb-2">
+      <div className="mt-auto bg-bg-card/50 rounded-card p-4 border border-border-subtle">
+        <h3 className="text-sm font-medium text-brand-accent flex items-center gap-2 mb-2">
           <Info className="w-4 h-4" /> Usage Tips
         </h3>
-        <p className="text-xs text-slate-400 leading-relaxed">
+        <p className="text-xs text-text-secondary leading-relaxed">
           Hover over items for details.<br/><br/>
           <strong>Icons</strong> represent equipment type.<br/>
           <strong>Auras</strong> represent color theme stats.

@@ -86,11 +86,11 @@ export default function EquipmentChartPlot({
 
     // Recreate the wrappers for Y/X labels which were absolute positioned
     const yLabelEl = document.createElement('div');
-    yLabelEl.className = "absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] font-semibold text-slate-400 uppercase tracking-widest whitespace-nowrap";
+    yLabelEl.className = "absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-label font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap";
     yLabelEl.innerText = yLabel;
 
     const xLabelEl = document.createElement('div');
-    xLabelEl.className = "absolute -bottom-10 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-slate-400 uppercase tracking-widest";
+    xLabelEl.className = "absolute -bottom-10 left-1/2 -translate-x-1/2 text-label font-semibold text-text-secondary uppercase tracking-widest";
     xLabelEl.innerText = xLabel;
 
     containerRef.current.appendChild(yLabelEl);
@@ -197,7 +197,7 @@ export default function EquipmentChartPlot({
       height: size.height,
       style: {
         background: 'transparent',
-        color: '#64748b', // slate-500 ticks and texts
+        color: 'var(--color-text-tertiary)', // slate-500 ticks and texts
         fontFamily: 'system-ui, -apple-system, sans-serif',
         position: 'absolute',
         top: '0',
@@ -233,7 +233,7 @@ export default function EquipmentChartPlot({
       const stroke = line.getAttribute('stroke');
       // If it's a grid line (usually light gray/default), set it to our slate-700 grid style!
       if (stroke && stroke !== '#fbbf24') {
-        line.setAttribute('stroke', '#334155');
+        line.setAttribute('stroke', 'var(--color-border-main)');
         line.setAttribute('stroke-dasharray', '4 4');
       }
     });
@@ -402,7 +402,7 @@ export default function EquipmentChartPlot({
 
   if (filteredData.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-slate-500">
+      <div className="flex-1 flex items-center justify-center text-text-tertiary">
         No equipment matches your filters.
       </div>
     );
@@ -410,7 +410,7 @@ export default function EquipmentChartPlot({
 
   return (
     <div
-      className="flex-1 min-w-0 min-h-0 relative border-l border-b border-slate-700 ml-12 mb-12 mt-4 mr-4 bg-slate-900/10 rounded-br-sm"
+      className="flex-1 min-w-0 min-h-0 relative border-l border-b border-border-main ml-12 mb-12 mt-4 mr-4 bg-bg-main/10 rounded-br-sm"
       ref={containerRef}
       role="img"
       aria-label={`Scatter plot showing Elden Ring equipment stats relationship between ${xLabel} and ${yLabel}. Active equipment points are plotted.`}

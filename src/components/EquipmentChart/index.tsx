@@ -245,7 +245,7 @@ export default function EquipmentChart() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-200 font-sans overflow-hidden">
+    <div className="flex flex-col h-full bg-bg-main text-text-primary font-sans overflow-hidden">
       <EquipmentChartHeader
         loading={isLoading}
         itemCount={filteredData.length}
@@ -277,17 +277,17 @@ export default function EquipmentChart() {
           filteredData={filteredData}
         />
 
-        <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>
+        <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
           {isLoading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 z-20">
-              <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-4" />
-              <h2 className="text-xl font-medium text-white mb-2">Summoning Data...</h2>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-main/80 z-20">
+              <Loader2 className="w-12 h-12 text-brand-accent animate-spin mb-4" />
+              <h2 className="text-xl font-medium text-text-bright mb-2">Summoning Data...</h2>
             </div>
           ) : error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 z-20">
-              <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-              <h2 className="text-xl font-medium text-white mb-2">Connection Lost</h2>
-              <p className="text-slate-400">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-main z-20">
+              <AlertCircle className="w-12 h-12 text-brand-danger mb-4" />
+              <h2 className="text-xl font-medium text-text-bright mb-2">Connection Lost</h2>
+              <p className="text-text-secondary">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
             </div>
           ) : (
             <EquipmentChartPlot

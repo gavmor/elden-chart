@@ -33,7 +33,7 @@ export default function EquipmentChartTooltip({
 
   return (
     <div
-      className="absolute z-30 w-64 bg-slate-900 border border-slate-700 shadow-2xl rounded-xl overflow-hidden pointer-events-none transition-transform duration-75 ease-out"
+      className="absolute z-30 w-tooltip bg-bg-card border border-border-main shadow-2xl rounded-card overflow-hidden pointer-events-none transition-transform duration-75 ease-out"
       style={{
         transform: `translate(${tooltipPos.x}px, ${tooltipPos.y}px)`,
       }}
@@ -44,39 +44,39 @@ export default function EquipmentChartTooltip({
       />
       <div className="p-4">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-12 h-12 rounded bg-slate-800 flex-shrink-0 flex items-center justify-center border border-slate-700 overflow-hidden">
+          <div className="w-item-md h-item-md rounded-btn bg-bg-sidebar flex-shrink-0 flex items-center justify-center border border-border-main overflow-hidden">
             {item.image ? (
               <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
             ) : (
-              getCategoryIcon(item.category, item.kind, { className: "w-6 h-6 text-slate-500", fill: "currentColor" })
+              getCategoryIcon(item.category, item.kind, { className: "w-6 h-6 text-text-tertiary", fill: "currentColor" })
             )}
           </div>
           <div>
-            <h4 className="font-bold text-white text-sm leading-tight mb-1">{item.name}</h4>
+            <h4 className="font-bold text-text-bright text-sm leading-tight mb-1">{item.name}</h4>
             <div className="flex gap-1.5 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1 w-fit">
+              <span className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-bg-sidebar text-text-primary border border-border-main flex items-center gap-1 w-fit">
                 {getCategoryIcon(item.category, item.kind, { className: "w-3 h-3", fill: "currentColor" })}
                 {item.category}
               </span>
-              <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-amber-900/30 text-amber-400 border border-amber-700/50 flex items-center gap-1 w-fit">
+              <span className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-brand-accent/30 text-brand-hover border border-brand-accent/50 flex items-center gap-1 w-fit">
                 {kindLabel[item.kind] || item.kind}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-2 bg-slate-800/50 p-3 rounded-lg border border-slate-700/50">
+        <div className="space-y-2 bg-bg-sidebar/50 p-3 rounded-card border border-border-subtle">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-400 flex items-center gap-1.5"><Weight className="w-3.5 h-3.5" /> Weight</span>
-            <span className="font-medium text-white">{item.weight.toFixed(1)}</span>
+            <span className="text-text-secondary flex items-center gap-1.5"><Weight className="w-3.5 h-3.5" /> Weight</span>
+            <span className="font-medium text-text-bright">{item.weight.toFixed(1)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-400">{xLabel}</span>
-            <span className="font-medium text-amber-400">{getItemStat(item, xVar).toFixed(1)}</span>
+            <span className="text-text-secondary">{xLabel}</span>
+            <span className="font-medium text-brand-hover">{getItemStat(item, xVar).toFixed(1)}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-slate-400">{yLabel}</span>
-            <span className="font-medium text-amber-400">{getItemStat(item, yVar).toFixed(1)}</span>
+            <span className="text-text-secondary">{yLabel}</span>
+            <span className="font-medium text-brand-hover">{getItemStat(item, yVar).toFixed(1)}</span>
           </div>
         </div>
       </div>
