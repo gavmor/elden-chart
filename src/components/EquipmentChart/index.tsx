@@ -274,6 +274,7 @@ export default function EquipmentChart() {
           onCompareSet={() => setIsCompareOpen(true)}
           showPareto={showPareto}
           onShowParetoChange={setShowPareto}
+          filteredData={filteredData}
         />
 
         <main className="flex-1 relative p-6 bg-slate-900 flex flex-col" ref={chartRef}>

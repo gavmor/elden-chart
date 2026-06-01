@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { Search, Info, X, Scale, TrendingUp } from 'lucide-react';
 import type { ActiveCategories, ColorKey, EquipmentItem, StatOption, EquipmentKind } from '../types';
-import { getCategoryIcon } from '../utils';
+import { getCategoryIcon, getItemStat } from '../utils';
 
 interface SidebarProps {
   search: string;
@@ -22,6 +23,7 @@ interface SidebarProps {
   onCompareSet: () => void;
   showPareto: boolean;
   onShowParetoChange: (val: boolean) => void;
+  filteredData: EquipmentItem[];
 }
 
 export default function EquipmentChartSidebar({
@@ -43,10 +45,20 @@ export default function EquipmentChartSidebar({
   onRemoveFromSet,
   onCompareSet,
   showPareto,
-  onShowParetoChange
+  onShowParetoChange,
+  filteredData
 }: SidebarProps) {
   // Aggregate stats of selected build set
   const totalWeight = customSet.reduce((sum, item) => sum + item.weight, 0);
+
+  // Precompute trait counts for all available stats based on filtered items
+  const traitCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const opt of statOptions) {
+      counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id) > 0).length;
+    }
+    return counts;
+  }, [statOptions, filteredData]);
 
   // Group stat options for color dropdown
   const statGroups = statOptions.reduce<Record<string, StatOption[]>>((acc, opt) => {
@@ -86,9 +98,14 @@ export default function EquipmentChartSidebar({
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
                   <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
-                    {opts.map(opt => (
-                      <option key={`y-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
-                    ))}
+                    {opts.map(opt => {
+                      const count = traitCounts[opt.id] ?? 0;
+                      return (
+                        <option key={`y-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                          {opt.label} ({count})
+                        </option>
+                      );
+                    })}
                   </optgroup>
                 ))
             }
@@ -111,9 +128,14 @@ export default function EquipmentChartSidebar({
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
                   <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
-                    {opts.map(opt => (
-                      <option key={`x-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
-                    ))}
+                    {opts.map(opt => {
+                      const count = traitCounts[opt.id] ?? 0;
+                      return (
+                        <option key={`x-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                          {opt.label} ({count})
+                        </option>
+                      );
+                    })}
                   </optgroup>
                 ))
             }
@@ -137,9 +159,14 @@ export default function EquipmentChartSidebar({
               )
               : Object.entries(statGroups).map(([groupName, opts]) => (
                 <optgroup key={groupName} label={groupName} className="bg-slate-950 font-semibold text-slate-400">
-                  {opts.map(opt => (
-                    <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">{opt.label}</option>
-                  ))}
+                  {opts.map(opt => {
+                    const count = traitCounts[opt.id] ?? 0;
+                    return (
+                      <option key={`color-${opt.id}`} value={opt.id} className="bg-slate-900 text-slate-200">
+                        {opt.label} ({count})
+                      </option>
+                    );
+                  })}
                 </optgroup>
               ))
             }
