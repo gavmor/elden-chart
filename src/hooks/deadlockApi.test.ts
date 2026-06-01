@@ -171,7 +171,7 @@ describe('transformDeadlockAbilities', () => {
     expect(item.name).toBe('Test Ability');
     expect(item.kind).toBe('deadlock_ability');
     expect(item.category).toBe('ultimate');
-    expect(item.weight).toBe(0);
+    expect(item.weight).toBe(3000);
     expect(item.isUltimate).toBe(true);
     expect(item.startTrained).toBe(false);
     expect(item.properties).toEqual([{ name: 'Cooldown', amount: 45 }]);

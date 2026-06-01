@@ -110,7 +110,7 @@ export const transformDeadlockAbilities = (rawItems: Item[]): DeadlockAbilityIte
         image: ability.image ?? null,
         category: ability.ability_type ?? 'signature',
         description: ability.description?.desc ?? '',
-        weight: 0,
+        weight: ability.ability_type === 'ultimate' ? 3000 : 400,
         kind: 'deadlock_ability' as const,
         className: ability.class_name,
         isUltimate: ability.ability_type === 'ultimate',
