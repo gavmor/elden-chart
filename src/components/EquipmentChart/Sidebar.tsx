@@ -1,25 +1,22 @@
 import { useMemo } from 'react';
 import { Search, Info, X, Scale, TrendingUp } from 'lucide-react';
-import type { ActiveCategories, ColorKey, EquipmentItem, StatOption, EquipmentKind } from '../types';
+import type { ColorKey, EquipmentItem, StatOption, EquipmentKind } from '../types';
 import { getCategoryIcon, getItemStat } from '../utils';
+import type { ChartDimensions } from '../domain/ChartDimensions';
+import type { CategoryFilter } from '../domain/CategoryFilter';
+import type { BuildSet } from '../domain/BuildSet';
 
 interface SidebarProps {
   search: string;
   onSearchChange: (val: string) => void;
-  xVar: string;
-  onXVarChange: (val: string) => void;
-  yVar: string;
-  onYVarChange: (val: string) => void;
-  colorVar: ColorKey;
-  onColorVarChange: (val: ColorKey) => void;
+  dimensions: ChartDimensions;
+  onDimensionsChange: (dimensions: ChartDimensions) => void;
   statOptions: StatOption[];
   categoryGroups: { kind: EquipmentKind; categories: string[] }[];
-  activeCategories: ActiveCategories;
-  onCategoryToggle: (cat: string, checked: boolean) => void;
-  onToggleGroup: (kind: EquipmentKind, selectAll: boolean) => void;
-  onToggleAll: (selectAll: boolean) => void;
-  customSet: EquipmentItem[];
-  onRemoveFromSet: (item: EquipmentItem) => void;
+  categoryFilter: CategoryFilter;
+  onCategoryFilterChange: (filter: CategoryFilter) => void;
+  buildSet: BuildSet;
+  onBuildSetChange: (set: BuildSet) => void;
   onCompareSet: () => void;
   showPareto: boolean;
   onShowParetoChange: (val: boolean) => void;
@@ -29,28 +26,19 @@ interface SidebarProps {
 export default function EquipmentChartSidebar({
   search,
   onSearchChange,
-  xVar,
-  onXVarChange,
-  yVar,
-  onYVarChange,
-  colorVar,
-  onColorVarChange,
+  dimensions,
+  onDimensionsChange,
   statOptions,
   categoryGroups,
-  activeCategories,
-  onCategoryToggle,
-  onToggleGroup,
-  onToggleAll,
-  customSet,
-  onRemoveFromSet,
+  categoryFilter,
+  onCategoryFilterChange,
+  buildSet,
+  onBuildSetChange,
   onCompareSet,
   showPareto,
   onShowParetoChange,
   filteredData
 }: SidebarProps) {
-  // Aggregate stats of selected build set
-  const totalWeight = customSet.reduce((sum, item) => sum + item.weight, 0);
-
   // Precompute trait counts for all available stats based on filtered items
   const traitCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -85,8 +73,8 @@ export default function EquipmentChartSidebar({
           <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Y-Axis (Vertical)</label>
           <select
             aria-label="Y-Axis"
-            value={statOptions.length > 0 ? yVar : ''}
-            onChange={(e) => onYVarChange(e.target.value)}
+            value={statOptions.length > 0 ? dimensions.y : ''}
+            onChange={(e) => onDimensionsChange(dimensions.withY(e.target.value))}
             disabled={statOptions.length === 0}
             className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -115,8 +103,8 @@ export default function EquipmentChartSidebar({
           <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">X-Axis (Horizontal)</label>
           <select
             aria-label="X-Axis"
-            value={statOptions.length > 0 ? xVar : ''}
-            onChange={(e) => onXVarChange(e.target.value)}
+            value={statOptions.length > 0 ? dimensions.x : ''}
+            onChange={(e) => onDimensionsChange(dimensions.withX(e.target.value))}
             disabled={statOptions.length === 0}
             className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -144,8 +132,8 @@ export default function EquipmentChartSidebar({
         <div>
           <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Color (Point Theme)</label>
           <select
-            value={colorVar}
-            onChange={(e) => onColorVarChange(e.target.value as ColorKey)}
+            value={dimensions.color}
+            onChange={(e) => onDimensionsChange(dimensions.withColor(e.target.value as ColorKey))}
             className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent"
           >
             <optgroup label="Categorical Grouping" className="bg-bg-card-dark font-semibold text-text-secondary">
@@ -179,13 +167,13 @@ export default function EquipmentChartSidebar({
           <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Categories</label>
           <div className="flex gap-1">
             <button
-              onClick={() => onToggleAll(true)}
+              onClick={() => onCategoryFilterChange(categoryFilter.withAllToggled(categoryGroups, true))}
               className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-bg-sidebar text-text-secondary hover:text-brand-hover hover:bg-slate-700 border border-border-main transition-colors cursor-pointer"
             >
               All
             </button>
             <button
-              onClick={() => onToggleAll(false)}
+              onClick={() => onCategoryFilterChange(categoryFilter.withAllToggled(categoryGroups, false))}
               className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded bg-bg-sidebar text-text-secondary hover:text-brand-danger hover:bg-slate-700 border border-border-main transition-colors cursor-pointer"
             >
               None
@@ -201,13 +189,13 @@ export default function EquipmentChartSidebar({
                 </span>
                 <div className="flex gap-1">
                   <button
-                    onClick={() => onToggleGroup(group.kind, true)}
+                    onClick={() => onCategoryFilterChange(categoryFilter.withGroupToggled(group.categories, true))}
                     className="text-tiny uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-bg-sidebar text-text-tertiary hover:text-brand-hover hover:bg-slate-700 border border-border-subtle transition-colors cursor-pointer"
                   >
                     All
                   </button>
                   <button
-                    onClick={() => onToggleGroup(group.kind, false)}
+                    onClick={() => onCategoryFilterChange(categoryFilter.withGroupToggled(group.categories, false))}
                     className="text-tiny uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-bg-sidebar text-text-tertiary hover:text-brand-danger hover:bg-slate-700 border border-border-subtle transition-colors cursor-pointer"
                   >
                     None
@@ -219,15 +207,15 @@ export default function EquipmentChartSidebar({
                   <label
                     key={cat}
                     className={`px-2.5 py-1 text-xs rounded-full border transition-all cursor-pointer select-none ${
-                      activeCategories[cat]
+                      categoryFilter.isActive(cat)
                         ? 'bg-brand-accent/15 text-brand-active border-brand-accent/40 hover:bg-brand-accent/25 hover:border-brand-accent/60'
                         : 'bg-bg-sidebar/40 text-text-secondary border-border-subtle hover:bg-bg-sidebar/80 hover:text-text-primary hover:border-border-main'
                     }`}
                   >
                     <input
                       type="checkbox"
-                      checked={activeCategories[cat] || false}
-                      onChange={(e) => onCategoryToggle(cat, e.target.checked)}
+                      checked={categoryFilter.isActive(cat)}
+                      onChange={(e) => onCategoryFilterChange(categoryFilter.withToggled(cat, e.target.checked))}
                       className="sr-only"
                     />
                     {cat}
@@ -266,18 +254,18 @@ export default function EquipmentChartSidebar({
 
       <div className="flex flex-col gap-3">
         <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Active Build Set</label>
-        {customSet.length === 0 ? (
+        {buildSet.size === 0 ? (
           <div className="bg-bg-card/40 rounded-card p-4 border border-dashed border-border-subtle text-center text-xs text-text-tertiary leading-relaxed">
             Click points on the scatter plot to add items to your custom set.
           </div>
         ) : (
           <div className="space-y-3">
             <div className="flex flex-wrap gap-2 bg-bg-card/40 p-3 rounded-card border border-border-subtle">
-              {customSet.map(item => (
+              {buildSet.items.map(item => (
                 <div
                   key={`set-${item.id}`}
                   className="relative w-item-sm h-item-sm rounded-btn bg-bg-card-dark border border-border-main hover:border-brand-danger cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
-                  onClick={() => onRemoveFromSet(item)}
+                  onClick={() => onBuildSetChange(buildSet.withRemoved(item))}
                   title={`${item.name} (Click to remove)`}
                 >
                   {item.image ? (
@@ -295,7 +283,7 @@ export default function EquipmentChartSidebar({
             <div className="bg-bg-card/30 rounded-card p-3 border border-border-subtle space-y-1.5 text-xs text-text-secondary">
               <div className="flex justify-between">
                 <span>Total Weight:</span>
-                <span className="font-semibold text-text-bright">{totalWeight.toFixed(1)}</span>
+                <span className="font-semibold text-text-bright">{buildSet.totalWeight.toFixed(1)}</span>
               </div>
             </div>
 

@@ -1,7 +1,10 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
-import type { EquipmentItem, ActiveCategories, EquipmentKind } from '../types';
+import type { EquipmentItem, ActiveCategories } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
+import { ChartDimensions } from '../domain/ChartDimensions';
+import { CategoryFilter } from '../domain/CategoryFilter';
+import { BuildSet } from '../domain/BuildSet';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
 import { useDeadlockData } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
@@ -189,49 +192,6 @@ export default function EquipmentChart() {
     setHoveredItem(item);
   };
 
-  const handleCategoryToggle = (categoryName: string, checked: boolean) => {
-    setActiveCategories(prev => {
-      const next = { ...prev, [categoryName]: checked };
-      const activeCatNames = Object.entries(next)
-        .filter(([, v]) => v)
-        .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
-      return next;
-    });
-  };
-
-  const handleToggleGroup = (kind: EquipmentKind, selectAll: boolean) => {
-    setActiveCategories(prev => {
-      const next = { ...prev };
-      const group = categoryGroups.find(g => g.kind === kind);
-      if (group) {
-        for (const cat of group.categories) {
-          next[cat] = selectAll;
-        }
-      }
-      const activeCatNames = Object.entries(next)
-        .filter(([, v]) => v)
-        .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
-      return next;
-    });
-  };
-
-  const handleToggleAll = (selectAll: boolean) => {
-    setActiveCategories(prev => {
-      const next = { ...prev };
-      for (const group of categoryGroups) {
-        for (const cat of group.categories) {
-          next[cat] = selectAll;
-        }
-      }
-      const activeCatNames = Object.entries(next)
-        .filter(([, v]) => v)
-        .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
-      return next;
-    });
-  };
 
   const handleToggleSet = (item: EquipmentItem) => {
     setCustomSet(prev => {
@@ -243,6 +203,10 @@ export default function EquipmentChart() {
       }
     });
   };
+
+  const dimensions = new ChartDimensions(resolvedXVar, resolvedYVar, resolvedColorVar);
+  const categoryFilter = new CategoryFilter(activeCategories);
+  const buildSet = new BuildSet(customSet);
 
   return (
     <div className="flex flex-col h-full bg-bg-main text-text-primary font-sans overflow-hidden">
@@ -257,20 +221,23 @@ export default function EquipmentChart() {
         <EquipmentChartSidebar
           search={localSearch}
           onSearchChange={handleSearchChange}
-          xVar={resolvedXVar}
-          onXVarChange={(newX) => setParam('x', newX)}
-          yVar={resolvedYVar}
-          onYVarChange={(newY) => setParam('y', newY)}
-          colorVar={resolvedColorVar}
-          onColorVarChange={(newColor) => setParam('color', newColor)}
+          dimensions={dimensions}
+          onDimensionsChange={(newDim) => {
+            setParam('x', newDim.x);
+            setParam('y', newDim.y);
+            setParam('color', newDim.color);
+          }}
           statOptions={statOptions}
           categoryGroups={categoryGroups}
-          activeCategories={activeCategories}
-          onCategoryToggle={handleCategoryToggle}
-          onToggleGroup={handleToggleGroup}
-          onToggleAll={handleToggleAll}
-          customSet={customSet}
-          onRemoveFromSet={handleToggleSet}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={(filter) => {
+            const next = filter.getRawActive();
+            setActiveCategories(next);
+            const activeCatNames = filter.activeNames;
+            setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
+          }}
+          buildSet={buildSet}
+          onBuildSetChange={(set) => setCustomSet(set.toArray())}
           onCompareSet={() => setIsCompareOpen(true)}
           showPareto={showPareto}
           onShowParetoChange={setShowPareto}
