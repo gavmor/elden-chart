@@ -8,6 +8,7 @@ import {
 	getParetoFrontier,
 	getAvailableStats,
 	getActiveCategories,
+	getHeroNameFromClassName,
 } from './utils';
 import {
 	helmItem,
@@ -571,3 +572,23 @@ describe('buildGroup', () => {
 		expect(result[1].label).toBe('UnknownStat');
 	});
 });
+
+describe('getHeroNameFromClassName', () => {
+	it('resolves correct display names for known heroes', () => {
+		expect(getHeroNameFromClassName('citadel_ability_kelvin_blizzard')).toBe('Kelvin');
+		expect(getHeroNameFromClassName('citadel_ability_bebop_laser')).toBe('Bebop');
+		expect(getHeroNameFromClassName('citadel_ability_lady_geist_shard')).toBe('Lady Geist');
+		expect(getHeroNameFromClassName('citadel_ability_grey_talon_arrow')).toBe('Grey Talon');
+		expect(getHeroNameFromClassName('citadel_ability_mo_and_krill_burrow')).toBe('Mo & Krill');
+	});
+
+	it('returns capitalized fallback for unknown hero class tokens', () => {
+		expect(getHeroNameFromClassName('citadel_ability_super_cool_hero_ability')).toBe('Super');
+	});
+
+	it('returns empty string for invalid class names', () => {
+		expect(getHeroNameFromClassName('')).toBe('');
+		expect(getHeroNameFromClassName('citadel_ability')).toBe('');
+	});
+});
+

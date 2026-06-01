@@ -347,3 +347,42 @@ export const getActiveCategories = (items: EquipmentItem[]): { kind: EquipmentKi
 		}))
 		.sort((a, b) => a.kind.localeCompare(b.kind));
 };
+
+export const getHeroNameFromClassName = (className: string): string => {
+	if (!className) return '';
+	const tokens = className.split('_');
+	if (tokens.length < 3) return '';
+
+	const rawHero = tokens[2];
+
+	switch (rawHero.toLowerCase()) {
+		case 'lash': return 'Lash';
+		case 'haze': return 'Haze';
+		case 'grey': return 'Grey Talon';
+		case 'paradox': return 'Paradox';
+		case 'kelvin': return 'Kelvin';
+		case 'abrams': return 'Abrams';
+		case 'bebop': return 'Bebop';
+		case 'dynamo': return 'Dynamo';
+		case 'ivy': return 'Ivy';
+		case 'mcginnis': return 'McGinnis';
+		case 'mirage': return 'Mirage';
+		case 'pocket': return 'Pocket';
+		case 'seven': return 'Seven';
+		case 'shiv': return 'Shiv';
+		case 'vindicta': return 'Vindicta';
+		case 'viscous': return 'Viscous';
+		case 'warden': return 'Warden';
+		case 'wraith': return 'Wraith';
+		case 'yamato': return 'Yamato';
+		case 'infernus': return 'Infernus';
+		case 'talon': return 'Grey Talon';
+		case 'krill': return 'Mo & Krill';
+		case 'mo': return 'Mo & Krill';
+		case 'lady': return 'Lady Geist';
+		case 'geist': return 'Lady Geist';
+		default:
+			return rawHero.charAt(0).toUpperCase() + rawHero.slice(1);
+	}
+};
+

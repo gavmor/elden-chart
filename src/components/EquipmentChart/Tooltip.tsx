@@ -1,6 +1,6 @@
 import { Weight } from 'lucide-react';
 import type { EquipmentItem, ColorKey } from '../types';
-import { getCategoryIcon, getItemStat, getItemColor } from '../utils';
+import { getCategoryIcon, getItemStat, getItemColor, getHeroNameFromClassName } from '../utils';
 
 interface TooltipProps {
   item: EquipmentItem;
@@ -17,6 +17,8 @@ const kindLabel: Record<string, string> = {
   armor: 'Armor',
   weapon: 'Weapon',
   shield: 'Shield',
+  deadlock_upgrade: 'Upgrade',
+  deadlock_ability: 'Ability',
 };
 
 export default function EquipmentChartTooltip({
@@ -31,7 +33,7 @@ export default function EquipmentChartTooltip({
 }: TooltipProps) {
   const color = getItemColor(item, colorVar, colorMinMax);
 
-  const isDeadlock = item.kind === 'deadlock_upgrade';
+  const isDeadlock = item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability';
 
   return (
     <div
@@ -63,6 +65,11 @@ export default function EquipmentChartTooltip({
               <span className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-brand-accent/30 text-brand-hover border border-brand-accent/50 flex items-center gap-1 w-fit">
                 {kindLabel[item.kind] || item.kind}
               </span>
+              {item.kind === 'deadlock_ability' && (
+                <span className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-blue-950/40 text-blue-300 border border-blue-800/40 flex items-center gap-1 w-fit">
+                  Hero: {getHeroNameFromClassName(item.className)}
+                </span>
+              )}
             </div>
           </div>
         </div>
