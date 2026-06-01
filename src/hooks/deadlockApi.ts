@@ -1,6 +1,8 @@
 import { ItemsApi } from 'deadlock_api_client/apis/items-api';
+import { HeroesApi } from 'deadlock_api_client/apis/heroes-api';
 import type { Item, Ability } from 'deadlock_api_client/models';
 import type { DeadlockUpgradeItem, DeadlockAbilityItem, AbilityTier } from '../components/types';
+import { getHeroNameFromClassName } from '../components/utils';
 
 /**
  * Determine whether a raw Item from the Deadlock API is a shopable upgrade.
@@ -65,7 +67,10 @@ export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] 
 /**
  * Transform raw Deadlock API items into our normalized DeadlockAbilityItem shape.
  */
-export const transformDeadlockAbilities = (rawItems: Item[]): DeadlockAbilityItem[] => {
+export const transformDeadlockAbilities = (
+  rawItems: Item[],
+  heroMap?: Map<number, string>
+): DeadlockAbilityItem[] => {
   return rawItems
     .filter((item): item is Ability => 'type' in item && item.type === 'ability')
     .map(ability => {
@@ -104,6 +109,14 @@ export const transformDeadlockAbilities = (rawItems: Item[]): DeadlockAbilityIte
         }
       }
 
+      let heroName = '';
+      if (heroMap && ability.hero !== null && ability.hero !== undefined) {
+        heroName = heroMap.get(ability.hero) ?? '';
+      }
+      if (!heroName) {
+        heroName = getHeroNameFromClassName(ability.class_name);
+      }
+
       return {
         id: String(ability.id),
         name: ability.name,
@@ -113,6 +126,7 @@ export const transformDeadlockAbilities = (rawItems: Item[]): DeadlockAbilityIte
         weight: ability.ability_type === 'ultimate' ? 3000 : 400,
         kind: 'deadlock_ability' as const,
         className: ability.class_name,
+        heroName,
         isUltimate: ability.ability_type === 'ultimate',
         startTrained: ability.start_trained ?? false,
         properties,
@@ -135,8 +149,25 @@ export const fetchDeadlockItems = async (): Promise<DeadlockUpgradeItem[]> => {
  * Fetch all Deadlock abilities from the API.
  */
 export const fetchDeadlockAbilities = async (): Promise<DeadlockAbilityItem[]> => {
-  const api = new ItemsApi();
-  const response = await api.listItems({});
-  return transformDeadlockAbilities(response.data);
+  const itemsApi = new ItemsApi();
+  const heroesApi = new HeroesApi();
+
+  try {
+    const [itemsResponse, heroesResponse] = await Promise.all([
+      itemsApi.listItems({}),
+      heroesApi.listHeroes({}),
+    ]);
+
+    const heroMap = new Map<number, string>();
+    for (const h of heroesResponse.data) {
+      heroMap.set(h.id, h.name);
+    }
+
+    return transformDeadlockAbilities(itemsResponse.data, heroMap);
+  } catch (err) {
+    console.error("Failed to fetch with HeroesApi, falling back to items only:", err);
+    const response = await itemsApi.listItems({});
+    return transformDeadlockAbilities(response.data);
+  }
 };
 

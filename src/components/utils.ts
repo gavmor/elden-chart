@@ -350,39 +350,53 @@ export const getActiveCategories = (items: EquipmentItem[]): { kind: EquipmentKi
 
 export const getHeroNameFromClassName = (className: string): string => {
 	if (!className) return '';
+
+	const lower = className.toLowerCase();
+
+	if (lower.includes('storm') || lower.includes('gigawatt')) return 'Seven';
+	if (lower.includes('synth') || lower.includes('pocket')) return 'Pocket';
+	if (lower.includes('kelvin')) return 'Kelvin';
+	if (lower.includes('inferno') || lower.includes('infernus')) return 'Infernus';
+	if (lower.includes('ghost') || lower.includes('geist')) return 'Lady Geist';
+	if (lower.includes('atlas') || lower.includes('abrams')) return 'Abrams';
+	if (lower.includes('wraith')) return 'Wraith';
+	if (lower.includes('forge') || lower.includes('mcginnis')) return 'McGinnis';
+	if (lower.includes('chrono') || lower.includes('paradox')) return 'Paradox';
+	if (lower.includes('dynamo')) return 'Dynamo';
+	if (lower.includes('haze')) return 'Haze';
+	if (lower.includes('astro') || lower.includes('holliday')) return 'Holliday';
+	if (lower.includes('bebop')) return 'Bebop';
+	if (lower.includes('nano') || lower.includes('calico')) return 'Calico';
+	if (lower.includes('orion') || lower.includes('talon') || lower.includes('grey')) return 'Grey Talon';
+	if (lower.includes('krill') || lower.includes('mo')) return 'Mo & Krill';
+	if (lower.includes('shiv')) return 'Shiv';
+	if (lower.includes('tengu') || lower.includes('ivy')) return 'Ivy';
+	if (lower.includes('warden')) return 'Warden';
+	if (lower.includes('yamato')) return 'Yamato';
+	if (lower.includes('lash')) return 'Lash';
+	if (lower.includes('viscous')) return 'Viscous';
+	if (lower.includes('mirage')) return 'Mirage';
+	if (lower.includes('viper') || lower.includes('vyper')) return 'Vyper';
+	if (lower.includes('magician') || lower.includes('sinclair')) return 'Sinclair';
+	if (lower.includes('vampirebat') || lower.includes('mina')) return 'Mina';
+	if (lower.includes('drifter')) return 'Drifter';
+	if (lower.includes('priest') || lower.includes('venator')) return 'Venator';
+	if (lower.includes('frank') || lower.includes('victor')) return 'Victor';
+	if (lower.includes('bookworm') || lower.includes('paige')) return 'Paige';
+	if (lower.includes('doorman')) return 'The Doorman';
+	if (lower.includes('punkgoat') || lower.includes('billy')) return 'Billy';
+	if (lower.includes('necro') || lower.includes('graves')) return 'Graves';
+	if (lower.includes('fencer') || lower.includes('apollo')) return 'Apollo';
+	if (lower.includes('familiar') || lower.includes('rem')) return 'Rem';
+	if (lower.includes('werewolf') || lower.includes('silver')) return 'Silver';
+	if (lower.includes('unicorn') || lower.includes('celeste')) return 'Celeste';
+
+	// Default split logic as final fallback
 	const tokens = className.split('_');
-	if (tokens.length < 3) return '';
-
-	const rawHero = tokens[2];
-
-	switch (rawHero.toLowerCase()) {
-		case 'lash': return 'Lash';
-		case 'haze': return 'Haze';
-		case 'grey': return 'Grey Talon';
-		case 'paradox': return 'Paradox';
-		case 'kelvin': return 'Kelvin';
-		case 'abrams': return 'Abrams';
-		case 'bebop': return 'Bebop';
-		case 'dynamo': return 'Dynamo';
-		case 'ivy': return 'Ivy';
-		case 'mcginnis': return 'McGinnis';
-		case 'mirage': return 'Mirage';
-		case 'pocket': return 'Pocket';
-		case 'seven': return 'Seven';
-		case 'shiv': return 'Shiv';
-		case 'vindicta': return 'Vindicta';
-		case 'viscous': return 'Viscous';
-		case 'warden': return 'Warden';
-		case 'wraith': return 'Wraith';
-		case 'yamato': return 'Yamato';
-		case 'infernus': return 'Infernus';
-		case 'talon': return 'Grey Talon';
-		case 'krill': return 'Mo & Krill';
-		case 'mo': return 'Mo & Krill';
-		case 'lady': return 'Lady Geist';
-		case 'geist': return 'Lady Geist';
-		default:
-			return rawHero.charAt(0).toUpperCase() + rawHero.slice(1);
+	if (tokens.length >= 3) {
+		const rawHero = tokens[2];
+		return rawHero.charAt(0).toUpperCase() + rawHero.slice(1);
 	}
+	return '';
 };
 

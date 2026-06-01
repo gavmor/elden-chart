@@ -172,6 +172,7 @@ describe('transformDeadlockAbilities', () => {
     expect(item.kind).toBe('deadlock_ability');
     expect(item.category).toBe('ultimate');
     expect(item.weight).toBe(3000);
+    expect(item.heroName).toBe('Test');
     expect(item.isUltimate).toBe(true);
     expect(item.startTrained).toBe(false);
     expect(item.properties).toEqual([{ name: 'Cooldown', amount: 45 }]);
@@ -195,6 +196,23 @@ describe('transformDeadlockAbilities', () => {
       description: 'Tier 3 desc',
       modifiers: [{ name: 'Damage', amount: 150 }],
     });
+  });
+
+  it('maps hero names accurately using heroMap lookup and class name fallbacks', () => {
+    const heroMap = new Map<number, string>();
+    heroMap.set(2, 'Seven');
+    heroMap.set(50, 'Pocket');
+
+    const abilities = transformDeadlockAbilities([
+      makeAbility({ class_name: 'citadel_ability_storm_cloud', hero: 2, id: 104 }),
+      makeAbility({ class_name: 'synth_affliction', hero: 50, id: 105 }),
+      makeAbility({ class_name: 'citadel_ability_kelvin_blizzard', hero: 12, id: 106 }),
+    ], heroMap);
+
+    expect(abilities).toHaveLength(3);
+    expect(abilities[0].heroName).toBe('Seven');
+    expect(abilities[1].heroName).toBe('Pocket');
+    expect(abilities[2].heroName).toBe('Kelvin');
   });
 
   it('resolves isUltimate flag and signature classification correctly', () => {

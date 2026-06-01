@@ -63,6 +63,7 @@ export interface AbilityTier {
 export interface DeadlockAbilityItem extends EquipmentBase {
   kind: 'deadlock_ability';
   className: string;
+  heroName: string;
   isUltimate: boolean;
   startTrained: boolean;
   properties: ApiStat[]; // Baseline properties when unlocked

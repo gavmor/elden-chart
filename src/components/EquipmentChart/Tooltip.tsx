@@ -1,6 +1,6 @@
 import { Weight } from 'lucide-react';
 import type { EquipmentItem, ColorKey } from '../types';
-import { getCategoryIcon, getItemStat, getItemColor, getHeroNameFromClassName } from '../utils';
+import { getCategoryIcon, getItemStat, getItemColor } from '../utils';
 
 interface TooltipProps {
   item: EquipmentItem;
@@ -67,7 +67,7 @@ export default function EquipmentChartTooltip({
               </span>
               {item.kind === 'deadlock_ability' && (
                 <span className="text-xxs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-blue-950/40 text-blue-300 border border-blue-800/40 flex items-center gap-1 w-fit">
-                  Hero: {getHeroNameFromClassName(item.className)}
+                  Hero: {item.heroName}
                 </span>
               )}
             </div>
