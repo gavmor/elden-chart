@@ -8,7 +8,7 @@ export const queryParamsSchema = z.object({
   y: z.string().default('weight'),
   color: z.string().default('category').transform(val => val as ColorKey),
   q: z.string().default(''),
-  cats: z.string().nullable().transform(val => val ? val.split(',').filter(Boolean) : null).default(null),
+  cats: z.string().nullable().transform(val => val !== null ? val.split(',').filter(Boolean) : null).default(null),
   game: z.enum(['elden-ring', 'deadlock']).default('elden-ring'),
 });
 
@@ -24,7 +24,7 @@ export function useValidatedParams() {
       y: searchParams.get('y') ?? undefined,
       color: searchParams.get('color') ?? undefined,
       q: searchParams.get('q') ?? undefined,
-      cats: searchParams.get('cats') ?? null,
+      cats: searchParams.has('cats') ? (searchParams.get('cats') ?? '') : null,
       game: searchParams.get('game') ?? undefined,
     };
     return queryParamsSchema.parse(raw);
@@ -36,7 +36,7 @@ export function useValidatedParams() {
       const next = new URLSearchParams(prev);
       if (
         value === null ||
-        value === '' ||
+        (key !== 'cats' && value === '') ||
         (key === 'x' && value === 'weight') ||
         (key === 'y' && value === 'weight') ||
         (key === 'color' && value === 'category') ||

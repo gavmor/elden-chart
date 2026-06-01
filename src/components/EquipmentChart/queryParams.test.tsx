@@ -122,4 +122,18 @@ describe('EquipmentChart — URL query param restoration on refresh', () => {
       expect(ySelect.value).toBe('Poise');
     });
   });
+
+  it('restores empty cats parameter as empty selection instead of reverting to all', async () => {
+    // Simulate a page load with ?cats= in the URL.
+    window.history.replaceState({}, '', '/?cats=');
+    await renderChart();
+
+    await waitFor(() => {
+      const helmCheckbox = screen.getByLabelText('Helm') as HTMLInputElement;
+      const chestCheckbox = screen.getByLabelText('Chest Armor') as HTMLInputElement;
+
+      expect(helmCheckbox.checked).toBe(false);
+      expect(chestCheckbox.checked).toBe(false);
+    });
+  });
 });

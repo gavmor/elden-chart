@@ -195,7 +195,7 @@ export default function EquipmentChart() {
       const activeCatNames = Object.entries(next)
         .filter(([, v]) => v)
         .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
       return next;
     });
   };
@@ -212,7 +212,7 @@ export default function EquipmentChart() {
       const activeCatNames = Object.entries(next)
         .filter(([, v]) => v)
         .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
       return next;
     });
   };
@@ -228,7 +228,7 @@ export default function EquipmentChart() {
       const activeCatNames = Object.entries(next)
         .filter(([, v]) => v)
         .map(([k]) => k);
-      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : null);
+      setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
       return next;
     });
   };
