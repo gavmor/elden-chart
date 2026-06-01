@@ -1,6 +1,6 @@
 import { ItemsApi } from 'deadlock_api_client/apis/items-api';
 import type { Item } from 'deadlock_api_client/models';
-import type { ArmorItem } from '../components/types';
+import type { DeadlockUpgradeItem } from '../components/types';
 
 /**
  * Determine whether a raw Item from the Deadlock API is a shopable upgrade.
@@ -30,19 +30,18 @@ const parsePropertyValue = (val: string | null | undefined): number | null => {
  * Mapping strategy:
  *  - `cost` → `weight` (the "cost" dimension, analogous to equip load)
  *  - `item_slot_type` → `category` (weapon / spirit / vitality)
- *  - `properties` → `dmgNegation[]` (reuses the armor stat array for dynamic axes)
- *  - `kind` = 'armor' (so the existing chart's stat accessor paths work)
- *  - `resistance` = [] (unused, but required by ArmorItem interface)
+ *  - `properties` → `properties[]` (first-class deadlock properties array)
+ *  - `kind` = 'deadlock_upgrade'
  */
-export const transformDeadlockItems = (rawItems: Item[]): ArmorItem[] => {
+export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] => {
   return rawItems
     .filter(isShopableUpgrade)
     .map(item => {
       // Safe cast: isShopableUpgrade guarantees these fields exist
       const upgrade = item as import('deadlock_api_client/models').Upgrade;
 
-      const properties = upgrade.properties ?? {};
-      const dmgNegation = Object.entries(properties)
+      const propertiesRaw = upgrade.properties ?? {};
+      const properties = Object.entries(propertiesRaw)
         .map(([name, prop]) => {
           const amount = parsePropertyValue(prop.value);
           if (amount === null) return null;
@@ -57,9 +56,8 @@ export const transformDeadlockItems = (rawItems: Item[]): ArmorItem[] => {
         category: upgrade.item_slot_type,
         description: upgrade.description?.desc ?? '',
         weight: upgrade.cost ?? 0,
-        kind: 'armor' as const,
-        dmgNegation,
-        resistance: [],
+        kind: 'deadlock_upgrade' as const,
+        properties,
       };
     });
 };
@@ -68,7 +66,7 @@ export const transformDeadlockItems = (rawItems: Item[]): ArmorItem[] => {
  * Fetch all Deadlock items from the API.
  * Uses the ItemsApi class from the generated client.
  */
-export const fetchDeadlockItems = async (): Promise<ArmorItem[]> => {
+export const fetchDeadlockItems = async (): Promise<DeadlockUpgradeItem[]> => {
   const api = new ItemsApi();
   const response = await api.listItems({});
   return transformDeadlockItems(response.data);

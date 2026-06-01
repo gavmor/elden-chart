@@ -12,10 +12,13 @@ export default function CompareModalWeightRow({ customSet }: Props) {
   const values = customSet.map(item => item.weight);
   const bestValue = Math.min(...values);
   const delta = customSet.length === 2 ? values[1] - values[0] : null;
+  const isDeadlock = customSet.some(i => i.kind === 'deadlock_upgrade');
 
   return (
     <tr className="hover:bg-panel-active/40">
-      <td className="p-3 font-semibold text-body bg-panel/40 pl-4">Weight</td>
+      <td className="p-3 font-semibold text-body bg-panel/40 pl-4">
+        {isDeadlock ? 'Cost' : 'Weight'}
+      </td>
       {customSet.map((item) => (
         <CompareModalStatCell
           key={`weight-${item.id}`}
@@ -23,7 +26,7 @@ export default function CompareModalWeightRow({ customSet }: Props) {
           min={min}
           max={max}
           invert
-          formatValue={n => n.toFixed(1)}
+          formatValue={n => n.toFixed(isDeadlock ? 0 : 1)}
           isBest={item.weight === bestValue}
         />
       ))}
@@ -32,7 +35,7 @@ export default function CompareModalWeightRow({ customSet }: Props) {
           <span className={
             delta > 0 ? 'text-worse' : delta < 0 ? 'text-better' : 'text-muted'
           }>
-            {delta > 0 ? '+' : ''}{delta.toFixed(1)}
+            {delta > 0 ? '+' : ''}{delta.toFixed(isDeadlock ? 0 : 1)}
           </span>
         </td>
       )}

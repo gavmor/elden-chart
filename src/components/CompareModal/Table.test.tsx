@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import CompareModalTable from './Table';
 import { mockCustomSet, helmItem, chestItem } from './test-fixtures';
+import type { EquipmentItem } from '../types';
 
 describe('CompareModalTable', () => {
   it('renders section headings', () => {
@@ -74,5 +75,25 @@ describe('CompareModalTable', () => {
   it('does not show delta column header with 3+ items', () => {
     render(<CompareModalTable customSet={mockCustomSet} />);
     expect(screen.queryByText('Δ')).not.toBeInTheDocument();
+  });
+
+  it('renders Deadlock-specific headings and cost instead of damage negation and weight', () => {
+    const deadlockItem: EquipmentItem = {
+      id: 'dl-1',
+      name: 'Restorative Locket',
+      image: null,
+      category: 'vitality',
+      description: 'Restores health',
+      weight: 500,
+      kind: 'deadlock_upgrade',
+      properties: [
+        { name: 'BonusHealth', amount: 50 },
+      ],
+    };
+    render(<CompareModalTable customSet={[deadlockItem]} />);
+    expect(screen.getByText('Item Properties')).toBeInTheDocument();
+    expect(screen.queryByText('Damage Negation (%)')).not.toBeInTheDocument();
+    expect(screen.getByText('Cost')).toBeInTheDocument();
+    expect(screen.queryByText('Weight')).not.toBeInTheDocument();
   });
 });

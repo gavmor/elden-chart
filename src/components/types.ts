@@ -3,7 +3,7 @@ export interface ApiStat {
   amount: number;
 }
 
-export type EquipmentKind = 'armor' | 'weapon' | 'shield' | 'ammo';
+export type EquipmentKind = 'armor' | 'weapon' | 'shield' | 'ammo' | 'deadlock_upgrade';
 
 export interface EquipmentBase {
   id: string;
@@ -48,7 +48,12 @@ export interface AmmoItem extends EquipmentBase {
   passive: string;
 }
 
-export type EquipmentItem = ArmorItem | WeaponItem | ShieldItem | AmmoItem;
+export interface DeadlockUpgradeItem extends EquipmentBase {
+  kind: 'deadlock_upgrade';
+  properties: ApiStat[];
+}
+
+export type EquipmentItem = ArmorItem | WeaponItem | ShieldItem | AmmoItem | DeadlockUpgradeItem;
 
 export type ColorKey = string;
 

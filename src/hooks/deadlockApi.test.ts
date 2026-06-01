@@ -33,18 +33,17 @@ describe('transformDeadlockItems', () => {
     expect(item.name).toBe('Test Item');
     expect(item.image).toBe('https://example.com/test.png');
     expect(item.category).toBe('weapon');
-    expect(item.kind).toBe('armor'); // deadlock items map to 'armor' kind for chart compatibility
+    expect(item.kind).toBe('deadlock_upgrade');
     expect(item.weight).toBe(1250);  // cost maps to weight
   });
 
-  it('maps properties to dmgNegation array for chart compatibility', () => {
+  it('maps properties to first-class properties array', () => {
     const items = transformDeadlockItems([makeUpgrade()]);
     const item = items[0];
 
-    // Properties become dmgNegation entries for the chart system
-    expect(item.kind).toBe('armor');
-    if (item.kind === 'armor') {
-      expect(item.dmgNegation).toEqual(
+    expect(item.kind).toBe('deadlock_upgrade');
+    if (item.kind === 'deadlock_upgrade') {
+      expect(item.properties).toEqual(
         expect.arrayContaining([
           { name: 'BonusHealth', amount: 75 },
           { name: 'BulletDamage', amount: 14.5 },
@@ -83,8 +82,8 @@ describe('transformDeadlockItems', () => {
   it('handles items with no properties', () => {
     const items = transformDeadlockItems([makeUpgrade({ properties: undefined })]);
     expect(items).toHaveLength(1);
-    if (items[0].kind === 'armor') {
-      expect(items[0].dmgNegation).toEqual([]);
+    if (items[0].kind === 'deadlock_upgrade') {
+      expect(items[0].properties).toEqual([]);
     }
   });
 
@@ -101,9 +100,9 @@ describe('transformDeadlockItems', () => {
         NumericProp: { value: '42' },
       },
     })]);
-    if (items[0].kind === 'armor') {
+    if (items[0].kind === 'deadlock_upgrade') {
       // 'true' is NaN, so it should be excluded
-      expect(items[0].dmgNegation).toEqual([
+      expect(items[0].properties).toEqual([
         { name: 'NumericProp', amount: 42 },
       ]);
     }

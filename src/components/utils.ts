@@ -9,6 +9,11 @@ export const getCategoryIcon = (category: string, kind: EquipmentKind, props: Lu
 	if (kind === 'weapon') return createElement(Sword, props);
 	if (kind === 'shield') return createElement(Shield, props);
 	if (kind === 'ammo') return createElement(Target, props);
+	if (kind === 'deadlock_upgrade') {
+		if (category === 'weapon') return createElement(Sword, props);
+		if (category === 'spirit') return createElement(Circle, props);
+		return createElement(Shield, props); // vitality maps to Shield
+	}
 
 	// Armor categories
 	switch (category) {
@@ -24,6 +29,13 @@ export const getItemStat = (item: EquipmentItem, statName: string): number => {
 	if (statName === 'weight') return item.weight;
 
 	const getAmount = R.prop('amount');
+
+	if (item.kind === 'deadlock_upgrade') {
+		if (statName === 'total_negation') {
+			return R.sumBy(item.properties, getAmount);
+		}
+		return R.find(item.properties, s => s.name === statName)?.amount ?? 0;
+	}
 
 	switch (statName) {
 		case 'total_attack':
@@ -92,6 +104,12 @@ export const getItemColor = (
 	minMax: { min: number; max: number } | null
 ): string => {
 	if (colorVar === 'category') {
+		if (item.kind === 'deadlock_upgrade') {
+			const cat = item.category.toLowerCase();
+			if (cat === 'weapon') return 'var(--color-deadlock-weapon)';
+			if (cat === 'vitality') return 'var(--color-deadlock-vitality)';
+			if (cat === 'spirit') return 'var(--color-deadlock-spirit)';
+		}
 		// Derive consistent hue from category name for dynamic categories
 		const hue = hashHue(item.category);
 		return `hsl(${hue}, 65%, 55%)`;
@@ -138,6 +156,11 @@ export const getItemImageUrl = (item: EquipmentItem, color: string): string => {
 	if (item.kind === 'weapon') return iconToDataUri(Sword, color);
 	if (item.kind === 'shield') return iconToDataUri(Shield, color);
 	if (item.kind === 'ammo') return iconToDataUri(Target, color);
+	if (item.kind === 'deadlock_upgrade') {
+		if (item.category === 'weapon') return iconToDataUri(Sword, color);
+		if (item.category === 'spirit') return iconToDataUri(Circle, color);
+		return iconToDataUri(Shield, color); // vitality
+	}
 
 	switch (item.category) {
 		case 'Helm': return iconToDataUri(HardHat, color);
@@ -262,22 +285,21 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 
 	const hasArmor = items.some(i => i.kind === 'armor');
 	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo');
+	const hasDeadlockUpgrade = items.some(i => i.kind === 'deadlock_upgrade');
+
+	if (hasDeadlockUpgrade) {
+		const propertiesNames = collectStatNames(items, i => i.kind === 'deadlock_upgrade' ? i.properties : []);
+		return [
+			{ id: 'weight', label: 'Cost', group: 'General' },
+			...buildGroup(propertiesNames, 'total_negation', 'Total Stats', 'Item Properties')
+		];
+	}
 
 	if (hasArmor && hasWeaponLike) return [weightStat];
 
 	if (hasArmor) {
 		const negationNames = collectStatNames(items, i => i.kind === 'armor' ? i.dmgNegation : []);
 		const resistanceNames = collectStatNames(items, i => i.kind === 'armor' ? i.resistance : []);
-
-		// If it's a Deadlock item, it might have properties mapped inside dmgNegation.
-		// Let's create beautiful groups for those items!
-		const isDeadlock = items.some(i => i.id.startsWith('dl-'));
-		if (isDeadlock) {
-			return [
-				{ id: 'weight', label: 'Cost', group: 'General' },
-				...buildGroup(negationNames, 'total_negation', 'Total Stats', 'Item Properties')
-			];
-		}
 
 		return [
 			weightStat,
@@ -287,8 +309,8 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 	}
 
 	// hasWeaponLike is true
-	const attackNames = collectStatNames(items, i => i.kind !== 'armor' ? i.attack : []);
-	const defenceNames = collectStatNames(items, i => (i.kind !== 'armor' && i.kind !== 'ammo') ? i.defence : []);
+	const attackNames = collectStatNames(items, i => (i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo') ? i.attack : []);
+	const defenceNames = collectStatNames(items, i => (i.kind === 'weapon' || i.kind === 'shield') ? i.defence : []);
 
 	return R.pipe(
 		[

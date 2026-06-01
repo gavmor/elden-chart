@@ -57,6 +57,11 @@
   --color-better: #6B99C5;
   --color-worse: #C73D40;
 
+  /* Deadlock UI Palette — Semantic Tokens */
+  --color-deadlock-weapon: #c8761c;
+  --color-deadlock-vitality: #6f8724;
+  --color-deadlock-spirit: #ba5ca6;
+
   /* --- Centralized Sizing Scales --- */
   --spacing-sidebar: 20rem; /* w-80 */
   --spacing-tooltip: 16rem; /* w-64 */

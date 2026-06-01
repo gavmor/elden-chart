@@ -44,12 +44,14 @@ export default function CompareModalTable({ customSet }: Props) {
   const kinds = new Set(customSet.map(i => i.kind));
   const isAllArmor = kinds.size === 1 && kinds.has('armor');
   const isAllWeaponLike = Array.from(kinds).every(k => k === 'weapon' || k === 'shield' || k === 'ammo') && !kinds.has('armor');
+  const isAllDeadlockUpgrade = kinds.size === 1 && kinds.has('deadlock_upgrade');
   // Mixed sets show only weight
 
   const negationStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.dmgNegation : []) : [];
   const resistanceStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.resistance : []) : [];
-  const attackStats = isAllWeaponLike ? collectOrderedStats(customSet, i => i.kind !== 'armor' ? i.attack : []) : [];
-  const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind !== 'armor' && i.kind !== 'ammo') ? i.defence : []) : [];
+  const attackStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo') ? i.attack : []) : [];
+  const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield') ? i.defence : []) : [];
+  const deadlockStats = isAllDeadlockUpgrade ? collectOrderedStats(customSet, i => i.kind === 'deadlock_upgrade' ? i.properties : []) : [];
 
   return (
     <div className="overflow-x-auto">
@@ -71,6 +73,24 @@ export default function CompareModalTable({ customSet }: Props) {
         </thead>
         <tbody className="divide-y divide-accent/10">
           <CompareModalWeightRow customSet={customSet} />
+
+          {deadlockStats.length > 0 && (
+            <>
+              <tr className="bg-panel/60">
+                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
+                  Item Properties
+                </td>
+              </tr>
+              {deadlockStats.map(stat => (
+                <CompareModalStatRow
+                  key={stat}
+                  customSet={customSet}
+                  statName={stat}
+                  label={statLabel(stat)}
+                />
+              ))}
+            </>
+          )}
 
           {negationStats.length > 0 && (
             <>

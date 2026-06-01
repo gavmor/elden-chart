@@ -191,6 +191,24 @@ describe('getItemColor', () => {
 		expect(above).toMatch(/^hsl\(220, 85%, 60%\)$/);
 		expect(below).toMatch(/^hsl\(0, 85%, 60%\)$/);
 	});
+
+	it('returns exact hex colors for Deadlock categories', () => {
+		const makeDlItem = (category: string): import('./types').DeadlockUpgradeItem => ({
+			id: 'dl-1',
+			name: 'Test',
+			image: null,
+			category,
+			description: '',
+			weight: 0,
+			kind: 'deadlock_upgrade',
+			properties: []
+		});
+
+		expect(getItemColor(makeDlItem('weapon'), 'category', null)).toBe('var(--color-deadlock-weapon)');
+		expect(getItemColor(makeDlItem('vitality'), 'category', null)).toBe('var(--color-deadlock-vitality)');
+		expect(getItemColor(makeDlItem('spirit'), 'category', null)).toBe('var(--color-deadlock-spirit)');
+		expect(getItemColor(makeDlItem('Spirit'), 'category', null)).toBe('var(--color-deadlock-spirit)');
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -433,19 +451,18 @@ describe('getAvailableStats', () => {
 	});
 
 	it('returns dynamic properties grouped for Deadlock items', () => {
-		const dlItem: import('./types').ArmorItem = {
+		const dlItem: import('./types').DeadlockUpgradeItem = {
 			id: 'dl-1',
 			name: 'Restorative Locket',
 			image: null,
 			category: 'Vitality',
 			description: '',
 			weight: 500,
-			kind: 'armor',
-			dmgNegation: [
+			kind: 'deadlock_upgrade',
+			properties: [
 				{ name: 'BulletShieldMax', amount: 80 },
 				{ name: 'BaseSprintHealth', amount: 50 }
-			],
-			resistance: []
+			]
 		};
 		const stats = getAvailableStats([dlItem]);
 		const ids = stats.map(s => s.id);
