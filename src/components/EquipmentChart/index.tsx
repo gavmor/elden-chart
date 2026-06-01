@@ -6,7 +6,7 @@ import { ChartDimensions } from '../domain/ChartDimensions';
 import { CategoryFilter } from '../domain/CategoryFilter';
 import { BuildSet } from '../domain/BuildSet';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
-import { useDeadlockData } from '../../hooks/useDeadlockData';
+import { useDeadlockData, useDeadlockAbilitiesData } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
@@ -24,11 +24,20 @@ export default function EquipmentChart() {
   const activeGame = validatedParams.game;
   const { x: xVar, y: yVar, color: colorVar, q: search } = validatedParams;
 
-  const { data: deadlockEquipment = [], isLoading: isDeadlockLoading, error: deadlockError } = useDeadlockData();
+  const { data: deadlockUpgrades = [], isLoading: isUpgradesLoading, error: upgradesError } = useDeadlockData();
+  const { data: deadlockAbilities = [], isLoading: isAbilitiesLoading, error: abilitiesError } = useDeadlockAbilitiesData();
+
+  const deadlockEquipment = useMemo(() => {
+    return [...deadlockUpgrades, ...deadlockAbilities];
+  }, [deadlockUpgrades, deadlockAbilities]);
+
+  const isDeadlockLoading = isUpgradesLoading || isAbilitiesLoading;
+  const deadlockError = upgradesError || abilitiesError;
 
   const equipment = useMemo(() => {
     return activeGame === 'elden-ring' ? eldenEquipment : deadlockEquipment;
   }, [activeGame, eldenEquipment, deadlockEquipment]);
+
 
   const isLoading = activeGame === 'elden-ring' 
     ? (isEldenLoading && eldenEquipment.length === 0) 

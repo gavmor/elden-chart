@@ -23,6 +23,18 @@ interface SidebarProps {
   filteredData: EquipmentItem[];
 }
 
+const formatKindLabel = (kind: EquipmentKind): string => {
+  switch (kind) {
+    case 'armor': return 'Armor';
+    case 'weapon': return 'Weapons';
+    case 'shield': return 'Shields';
+    case 'ammo': return 'Ammunition';
+    case 'deadlock_upgrade': return 'Upgrades';
+    case 'deadlock_ability': return 'Abilities';
+    default: return String(kind);
+  }
+};
+
 export default function EquipmentChartSidebar({
   search,
   onSearchChange,
@@ -185,9 +197,10 @@ export default function EquipmentChartSidebar({
             <div key={group.kind}>
               <div className="flex items-center justify-between mb-1.5 px-1">
                 <span className="text-xxs uppercase tracking-wider font-semibold text-text-tertiary">
-                  {group.kind === 'armor' ? 'Armor' : group.kind === 'weapon' ? 'Weapons' : 'Shields'}
+                  {formatKindLabel(group.kind)}
                 </span>
                 <div className="flex gap-1">
+
                   <button
                     onClick={() => onCategoryFilterChange(categoryFilter.withGroupToggled(group.categories, true))}
                     className="text-tiny uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded bg-bg-sidebar text-text-tertiary hover:text-brand-hover hover:bg-slate-700 border border-border-subtle transition-colors cursor-pointer"
