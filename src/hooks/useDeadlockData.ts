@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchDeadlockItems } from './deadlockApi';
+import { fetchDeadlockItems, fetchDeadlockAbilities } from './deadlockApi';
 
 export function useDeadlockData() {
   return useQuery({
@@ -9,3 +9,13 @@ export function useDeadlockData() {
     },
   });
 }
+
+export function useDeadlockAbilitiesData() {
+  return useQuery({
+    queryKey: ['deadlockAbilities'],
+    queryFn: async () => {
+      return fetchDeadlockAbilities();
+    },
+  });
+}
+

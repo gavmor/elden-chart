@@ -3,7 +3,7 @@ export interface ApiStat {
   amount: number;
 }
 
-export type EquipmentKind = 'armor' | 'weapon' | 'shield' | 'ammo' | 'deadlock_upgrade';
+export type EquipmentKind = 'armor' | 'weapon' | 'shield' | 'ammo' | 'deadlock_upgrade' | 'deadlock_ability';
 
 export interface EquipmentBase {
   id: string;
@@ -53,7 +53,29 @@ export interface DeadlockUpgradeItem extends EquipmentBase {
   properties: ApiStat[];
 }
 
-export type EquipmentItem = ArmorItem | WeaponItem | ShieldItem | AmmoItem | DeadlockUpgradeItem;
+export interface AbilityTier {
+  tierIndex: number; // 1, 2, 3
+  apCost: number; // Tiers cost 1, 2, and 5 Ability Points respectively
+  description: string;
+  modifiers: ApiStat[];
+}
+
+export interface DeadlockAbilityItem extends EquipmentBase {
+  kind: 'deadlock_ability';
+  className: string;
+  isUltimate: boolean;
+  startTrained: boolean;
+  properties: ApiStat[]; // Baseline properties when unlocked
+  upgrades: [AbilityTier, AbilityTier, AbilityTier]; // Tier upgrades
+}
+
+export type EquipmentItem =
+  | ArmorItem
+  | WeaponItem
+  | ShieldItem
+  | AmmoItem
+  | DeadlockUpgradeItem
+  | DeadlockAbilityItem;
 
 export type ColorKey = string;
 
@@ -66,3 +88,4 @@ export interface StatOption {
 export interface ActiveCategories {
   [key: string]: boolean;
 }
+

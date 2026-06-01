@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { transformDeadlockItems, fetchDeadlockItems } from './deadlockApi';
-import type { Upgrade } from 'deadlock_api_client/models';
+import {
+  transformDeadlockItems,
+  fetchDeadlockItems,
+  transformDeadlockAbilities,
+  fetchDeadlockAbilities,
+} from './deadlockApi';
+import type { Upgrade, Ability } from 'deadlock_api_client/models';
 
 /** Minimal Upgrade fixture matching the Deadlock API shape. */
 const makeUpgrade = (overrides: Partial<Upgrade> = {}): Upgrade => ({
@@ -20,6 +25,43 @@ const makeUpgrade = (overrides: Partial<Upgrade> = {}): Upgrade => ({
     BulletDamage: { value: '14.5' },
     WeaponPower: { value: '6' },
   },
+  ...overrides,
+});
+
+/** Minimal Ability fixture matching the Deadlock API shape. */
+const makeAbility = (overrides: Partial<Ability> = {}): Ability => ({
+  class_name: 'hero_ability_test',
+  id: 101,
+  name: 'Test Ability',
+  type: 'ability',
+  description: {
+    desc: 'Test description',
+    t1_desc: 'Tier 1 desc',
+    t2_desc: 'Tier 2 desc',
+    t3_desc: 'Tier 3 desc',
+  },
+  ability_type: 'ultimate',
+  start_trained: false,
+  properties: {
+    Cooldown: { value: '45' },
+  },
+  upgrades: [
+    {
+      property_upgrades: [
+        { name: 'BonusCharges', bonus: '1' }
+      ]
+    },
+    {
+      property_upgrades: [
+        { name: 'Cooldown', bonus: '-15' }
+      ]
+    },
+    {
+      property_upgrades: [
+        { name: 'Damage', bonus: '150' }
+      ]
+    }
+  ],
   ...overrides,
 });
 
@@ -119,8 +161,77 @@ describe('transformDeadlockItems', () => {
   });
 });
 
+describe('transformDeadlockAbilities', () => {
+  it('transforms an Ability item into DeadlockAbilityItem', () => {
+    const items = transformDeadlockAbilities([makeAbility()]);
+    expect(items).toHaveLength(1);
+
+    const item = items[0];
+    expect(item.id).toBe('101');
+    expect(item.name).toBe('Test Ability');
+    expect(item.kind).toBe('deadlock_ability');
+    expect(item.category).toBe('ultimate');
+    expect(item.weight).toBe(0);
+    expect(item.isUltimate).toBe(true);
+    expect(item.startTrained).toBe(false);
+    expect(item.properties).toEqual([{ name: 'Cooldown', amount: 45 }]);
+
+    expect(item.upgrades).toHaveLength(3);
+    expect(item.upgrades[0]).toEqual({
+      tierIndex: 1,
+      apCost: 1,
+      description: 'Tier 1 desc',
+      modifiers: [{ name: 'BonusCharges', amount: 1 }],
+    });
+    expect(item.upgrades[1]).toEqual({
+      tierIndex: 2,
+      apCost: 2,
+      description: 'Tier 2 desc',
+      modifiers: [{ name: 'Cooldown', amount: -15 }],
+    });
+    expect(item.upgrades[2]).toEqual({
+      tierIndex: 3,
+      apCost: 5,
+      description: 'Tier 3 desc',
+      modifiers: [{ name: 'Damage', amount: 150 }],
+    });
+  });
+
+  it('resolves isUltimate flag and signature classification correctly', () => {
+    const abilities = transformDeadlockAbilities([
+      makeAbility({ ability_type: 'signature', id: 102 }),
+      makeAbility({ ability_type: 'ultimate', id: 103 }),
+    ]);
+
+    expect(abilities).toHaveLength(2);
+    expect(abilities[0].isUltimate).toBe(false);
+    expect(abilities[0].category).toBe('signature');
+    expect(abilities[1].isUltimate).toBe(true);
+    expect(abilities[1].category).toBe('ultimate');
+  });
+
+  it('handles empty properties and upgrades safely', () => {
+    const items = transformDeadlockAbilities([
+      makeAbility({ properties: undefined, upgrades: undefined, description: undefined }),
+    ]);
+    expect(items).toHaveLength(1);
+    const item = items[0];
+    expect(item.properties).toEqual([]);
+    expect(item.upgrades).toHaveLength(3);
+    expect(item.upgrades[0].description).toBe('');
+    expect(item.upgrades[0].modifiers).toEqual([]);
+  });
+});
+
 describe('fetchDeadlockItems', () => {
   it('is a function', () => {
     expect(typeof fetchDeadlockItems).toBe('function');
   });
 });
+
+describe('fetchDeadlockAbilities', () => {
+  it('is a function', () => {
+    expect(typeof fetchDeadlockAbilities).toBe('function');
+  });
+});
+

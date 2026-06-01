@@ -9,9 +9,9 @@ export const getCategoryIcon = (category: string, kind: EquipmentKind, props: Lu
 	if (kind === 'weapon') return createElement(Sword, props);
 	if (kind === 'shield') return createElement(Shield, props);
 	if (kind === 'ammo') return createElement(Target, props);
-	if (kind === 'deadlock_upgrade') {
-		if (category === 'weapon') return createElement(Sword, props);
-		if (category === 'spirit') return createElement(Circle, props);
+	if (kind === 'deadlock_upgrade' || kind === 'deadlock_ability') {
+		if (category === 'weapon' || category === 'signature') return createElement(Sword, props);
+		if (category === 'spirit' || category === 'ultimate') return createElement(Circle, props);
 		return createElement(Shield, props); // vitality maps to Shield
 	}
 
@@ -30,7 +30,7 @@ export const getItemStat = (item: EquipmentItem, statName: string): number => {
 
 	const getAmount = R.prop('amount');
 
-	if (item.kind === 'deadlock_upgrade') {
+	if (item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability') {
 		if (statName === 'total_negation') {
 			return R.sumBy(item.properties, getAmount);
 		}
@@ -110,6 +110,11 @@ export const getItemColor = (
 			if (cat === 'vitality') return 'var(--color-deadlock-vitality)';
 			if (cat === 'spirit') return 'var(--color-deadlock-spirit)';
 		}
+		if (item.kind === 'deadlock_ability') {
+			const cat = item.category.toLowerCase();
+			if (cat === 'signature') return 'var(--color-deadlock-weapon)';
+			if (cat === 'ultimate') return 'var(--color-deadlock-spirit)';
+		}
 		// Derive consistent hue from category name for dynamic categories
 		const hue = hashHue(item.category);
 		return `hsl(${hue}, 65%, 55%)`;
@@ -156,9 +161,9 @@ export const getItemImageUrl = (item: EquipmentItem, color: string): string => {
 	if (item.kind === 'weapon') return iconToDataUri(Sword, color);
 	if (item.kind === 'shield') return iconToDataUri(Shield, color);
 	if (item.kind === 'ammo') return iconToDataUri(Target, color);
-	if (item.kind === 'deadlock_upgrade') {
-		if (item.category === 'weapon') return iconToDataUri(Sword, color);
-		if (item.category === 'spirit') return iconToDataUri(Circle, color);
+	if (item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability') {
+		if (item.category === 'weapon' || item.category === 'signature') return iconToDataUri(Sword, color);
+		if (item.category === 'spirit' || item.category === 'ultimate') return iconToDataUri(Circle, color);
 		return iconToDataUri(Shield, color); // vitality
 	}
 
@@ -285,10 +290,10 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 
 	const hasArmor = items.some(i => i.kind === 'armor');
 	const hasWeaponLike = items.some(i => i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo');
-	const hasDeadlockUpgrade = items.some(i => i.kind === 'deadlock_upgrade');
+	const hasDeadlockUpgrade = items.some(i => i.kind === 'deadlock_upgrade' || i.kind === 'deadlock_ability');
 
 	if (hasDeadlockUpgrade) {
-		const propertiesNames = collectStatNames(items, i => i.kind === 'deadlock_upgrade' ? i.properties : []);
+		const propertiesNames = collectStatNames(items, i => (i.kind === 'deadlock_upgrade' || i.kind === 'deadlock_ability') ? i.properties : []);
 		return [
 			{ id: 'weight', label: 'Cost', group: 'General' },
 			...buildGroup(propertiesNames, 'total_negation', 'Total Stats', 'Item Properties')
