@@ -59,6 +59,7 @@ export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] 
         description: upgrade.description?.desc ?? '',
         weight: upgrade.cost ?? 0,
         kind: 'deadlock_upgrade' as const,
+        isActive: upgrade.is_active_item,
         properties,
       };
     });

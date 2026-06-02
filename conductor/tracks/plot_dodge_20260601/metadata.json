@@ -1,0 +1,8 @@
+{
+  "track_id": "plot_dodge_20260601",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-01T23:10:00Z",
+  "updated_at": "2026-06-01T23:10:00Z",
+  "description": "Resolve overlapping items making them hard to select by adding jitter or dodge layout."
+}

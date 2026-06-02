@@ -13,6 +13,7 @@ export interface EquipmentBase {
   description: string;
   weight: number;
   kind: EquipmentKind;
+  isActive?: boolean;
 }
 
 export interface ScalingStat {

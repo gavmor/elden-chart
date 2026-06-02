@@ -28,6 +28,27 @@ export const getCategoryIcon = (category: string, kind: EquipmentKind, props: Lu
 export const getItemStat = (item: EquipmentItem, statName: string): number => {
 	if (statName === 'weight') return item.weight;
 
+	if (statName === 'ehp') {
+		const bonusHealth = getItemStat(item, 'BonusHealth') || 0;
+		const baseHealth = 1000 + bonusHealth;
+		const resistPercent = getItemStat(item, 'BulletResist') || 0;
+		return calculateEffectiveHealth(baseHealth, resistPercent / 100);
+	}
+	if (statName === 'integrated_armor') {
+		const bulletResist = getItemStat(item, 'BulletResist') || 0;
+		const spiritResist = getItemStat(item, 'SpiritResist') || 0;
+		const bulletShred = getItemStat(item, 'BulletResistReduction') || 0;
+		const spiritShred = getItemStat(item, 'SpiritResistReduction') || 0;
+		
+		const buffs = [bulletResist / 100, spiritResist / 100].filter(v => v > 0);
+		const shreds = [Math.abs(bulletShred) / 100, Math.abs(spiritShred) / 100].filter(v => v > 0);
+		return calculateTotalIntegratedArmor(buffs, shreds);
+	}
+	if (statName === 'ehp_per_soul') {
+		const ehp = getItemStat(item, 'ehp');
+		return calculateValueMetric(ehp, item.weight);
+	}
+
 	const getAmount = R.prop('amount');
 
 	if (item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability') {
@@ -85,6 +106,19 @@ export const getHeatmapBg = (value: number, min: number, max: number, invert: bo
 export const getStatRange = (items: EquipmentItem[], statName: string): { min: number; max: number } => {
 	const vals = items.map(item => getItemStat(item, statName));
 	return { min: Math.min(...vals), max: Math.max(...vals) };
+};
+
+export const getStatRangeClamped = (items: EquipmentItem[], statName: string): { min: number; max: number } => {
+	const vals = items.map(item => getItemStat(item, statName)).filter(val => val !== Infinity && val !== -Infinity);
+	if (vals.length === 0) return { min: 0, max: 0 };
+	return { min: Math.min(...vals), max: Math.max(...vals) };
+};
+
+export const getClampedItemStat = (item: EquipmentItem, statName: string, maxBound: number): number => {
+	const val = getItemStat(item, statName);
+	if (val === Infinity) return maxBound * 1.05;
+	if (val === -Infinity) return maxBound * -1.05;
+	return val;
 };
 
 /**
@@ -296,6 +330,9 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 		const propertiesNames = collectStatNames(items, i => (i.kind === 'deadlock_upgrade' || i.kind === 'deadlock_ability') ? i.properties : []);
 		return [
 			{ id: 'weight', label: 'Cost', group: 'General' },
+			{ id: 'ehp', label: 'Effective HP', group: 'Calculated Metrics' },
+			{ id: 'integrated_armor', label: 'Total Integrated Armor', group: 'Calculated Metrics' },
+			{ id: 'ehp_per_soul', label: 'eHP / Soul', group: 'Calculated Metrics' },
 			...buildGroup(propertiesNames, 'total_negation', 'Total Stats', 'Item Properties')
 		];
 	}
@@ -400,3 +437,21 @@ export const getHeroNameFromClassName = (className: string): string => {
 	return '';
 };
 
+// --- Calculated Dimensions ---
+
+export function calculateTotalIntegratedArmor(positiveBuffs: number[], negativeShreds: number[]): number {
+	const B = 1 - positiveBuffs.reduce((acc, val) => acc * (1 - val), 1);
+	const N = 1 - negativeShreds.reduce((acc, val) => acc * (1 - val), 1);
+	return B - N;
+};
+
+export function calculateEffectiveHealth(baseHealth: number, activeResistance: number): number {
+	if (activeResistance >= 1.0) return Infinity;
+	return baseHealth / (1 - activeResistance);
+};
+
+export function calculateValueMetric(statValue: number, cost: number): number {
+	if (statValue === 0) return 0;
+	if (cost === 0) return Infinity;
+	return statValue / cost;
+};

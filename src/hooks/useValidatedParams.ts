@@ -10,6 +10,8 @@ export const queryParamsSchema = z.object({
   q: z.string().default(''),
   cats: z.string().nullable().transform(val => val !== null ? val.split(',').filter(Boolean) : null).default(null),
   game: z.enum(['elden-ring', 'deadlock']).default('elden-ring'),
+  xLog: z.string().optional().transform(val => val === 'true'),
+  yLog: z.string().optional().transform(val => val === 'true'),
 });
 
 export type ValidatedQueryParams = z.infer<typeof queryParamsSchema>;
@@ -26,6 +28,8 @@ export function useValidatedParams() {
       q: searchParams.get('q') ?? undefined,
       cats: searchParams.has('cats') ? (searchParams.get('cats') ?? '') : null,
       game: searchParams.get('game') ?? undefined,
+      xLog: searchParams.get('xLog') ?? undefined,
+      yLog: searchParams.get('yLog') ?? undefined,
     };
     return queryParamsSchema.parse(raw);
   }, [searchParams]);
@@ -40,7 +44,9 @@ export function useValidatedParams() {
         (key === 'x' && value === 'weight') ||
         (key === 'y' && value === 'weight') ||
         (key === 'color' && value === 'category') ||
-        (key === 'game' && value === 'elden-ring')
+        (key === 'game' && value === 'elden-ring') ||
+        (key === 'xLog' && value === 'false') ||
+        (key === 'yLog' && value === 'false')
       ) {
         next.delete(key);
       } else {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as Plot from '@observablehq/plot';
 import type { EquipmentItem, ColorKey } from '../types';
-import { getItemStat, getItemColor, getItemImageUrl, getParetoFrontier } from '../utils';
+import { getItemColor, getItemImageUrl, getParetoFrontier, getStatRangeClamped, getClampedItemStat } from '../utils';
 
 interface PlotProps {
   filteredData: EquipmentItem[];
@@ -9,6 +9,8 @@ interface PlotProps {
   yVar: string;
   xLabel: string;
   yLabel: string;
+  xLog: boolean;
+  yLog: boolean;
   chartProps: { xMin: number; xMax: number; yMin: number; yMax: number } | null;
   colorVar: ColorKey;
   colorMinMax: { min: number; max: number } | null;
@@ -26,6 +28,8 @@ export default function EquipmentChartPlot({
   yVar,
   xLabel,
   yLabel,
+  xLog,
+  yLog,
   chartProps,
   colorVar,
   colorMinMax,
@@ -84,6 +88,12 @@ export default function EquipmentChartPlot({
     // Clear previous children just in case
     containerRef.current.innerHTML = '';
 
+    // Compute clamped ranges to clamp any Infinity or extreme values visually to plot bounds
+    const xRange = getStatRangeClamped(filteredData, xVar);
+    const yRange = getStatRangeClamped(filteredData, yVar);
+    const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max);
+    const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max);
+
     // Recreate the wrappers for Y/X labels which were absolute positioned
     const yLabelEl = document.createElement('div');
     yLabelEl.className = "absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-label font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap";
@@ -96,6 +106,55 @@ export default function EquipmentChartPlot({
     containerRef.current.appendChild(yLabelEl);
     containerRef.current.appendChild(xLabelEl);
 
+    // Compute pixel jitter to resolve overlapping points
+    const positionCounts = new Map<string, number>();
+    const itemJitter = new Map<string, {dx: number, dy: number}>();
+
+    filteredData.forEach(d => {
+      const x = getX(d);
+      const y = getY(d);
+      const key = `${x},${y}`;
+      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
+    });
+
+    const positionCurrent = new Map<string, number>();
+    filteredData.forEach(d => {
+      const x = getX(d);
+      const y = getY(d);
+      const key = `${x},${y}`;
+      const total = positionCounts.get(key) || 1;
+      if (total > 1) {
+        const idx = positionCurrent.get(key) || 0;
+        positionCurrent.set(key, idx + 1);
+        
+        // Spread points in a circle around the center
+        const radius = 6 + Math.min(total, 10); // scale radius slightly with cluster size
+        const angle = (idx / total) * Math.PI * 2;
+        itemJitter.set(d.id, { dx: Math.cos(angle) * radius, dy: Math.sin(angle) * radius });
+      } else {
+        itemJitter.set(d.id, { dx: 0, dy: 0 });
+      }
+    });
+
+    const withJitter = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
+      return (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
+        const group = baseRender ? baseRender(index, scales, values, dimensions, context, next) : (next ? next(index, scales, values, dimensions, context) : null);
+        if (group) {
+          const elements = Array.from(group.childNodes) as SVGElement[];
+          index.forEach((dataIndex, i) => {
+            const d = dataArray[dataIndex];
+            const jitter = itemJitter.get(d?.id);
+            if (jitter && (jitter.dx !== 0 || jitter.dy !== 0) && elements[i]) {
+              const el = elements[i];
+              const existing = el.getAttribute('transform') || '';
+              el.setAttribute('transform', `${existing} translate(${jitter.dx}, ${jitter.dy})`.trim());
+            }
+          });
+        }
+        return group ?? null;
+      };
+    };
+
     // Build Plot marks list
     const marks: Plot.Markish[] = [];
 
@@ -103,8 +162,8 @@ export default function EquipmentChartPlot({
     if (showPareto && paretoItems.length > 1) {
       marks.push(
         Plot.line(paretoItems, {
-          x: d => getItemStat(d, xVar),
-          y: d => getItemStat(d, yVar),
+          x: getX,
+          y: getY,
           stroke: '#fbbf24',
           strokeWidth: 6,
           strokeLinecap: 'round',
@@ -123,8 +182,8 @@ export default function EquipmentChartPlot({
       // Layer 2: Pareto Path Core (Dashed line)
       marks.push(
         Plot.line(paretoItems, {
-          x: d => getItemStat(d, xVar),
-          y: d => getItemStat(d, yVar),
+          x: getX,
+          y: getY,
           stroke: '#fbbf24',
           strokeWidth: 2,
           strokeDasharray: '6 4',
@@ -138,14 +197,14 @@ export default function EquipmentChartPlot({
     if (showPareto && paretoItems.length > 0) {
       marks.push(
         Plot.dot(paretoItems, {
-          x: d => getItemStat(d, xVar),
-          y: d => getItemStat(d, yVar),
+          x: getX,
+          y: getY,
           r: 16,
           fill: 'rgba(251, 191, 36, 0.08)',
           stroke: '#fbbf24',
           strokeWidth: 1,
           opacity: 0.7,
-          render: (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
+          render: withJitter(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
             const group = next?.(index, scales, values, dimensions, context);
             if (group) {
               const circles = group.querySelectorAll('circle');
@@ -154,7 +213,7 @@ export default function EquipmentChartPlot({
               });
             }
             return group ?? null;
-          }
+          })
         })
       );
     }
@@ -164,13 +223,42 @@ export default function EquipmentChartPlot({
     if (setIndices.length > 0) {
       marks.push(
         Plot.dot(setIndices, {
-          x: d => getItemStat(d, xVar),
-          y: d => getItemStat(d, yVar),
+          x: getX,
+          y: getY,
           r: 20,
           fill: 'none',
           stroke: '#fbbf24',
           strokeWidth: 1.5,
-          strokeDasharray: '3 3'
+          strokeDasharray: '3 3',
+          render: withJitter(setIndices)
+        })
+      );
+    }
+
+    // Layer 4.5: Active Item Indicators (Golden rings around active items)
+    const activeItems = filteredData.filter(d => d.isActive);
+    if (activeItems.length > 0) {
+      marks.push(
+        Plot.dot(activeItems, {
+          x: getX,
+          y: getY,
+          r: 17,
+          fill: 'none',
+          stroke: '#facc15',
+          strokeWidth: 2,
+          render: withJitter(activeItems)
+        })
+      );
+      marks.push(
+        Plot.dot(activeItems, {
+          x: getX,
+          y: getY,
+          r: 22,
+          fill: 'none',
+          stroke: '#facc15',
+          strokeWidth: 6,
+          opacity: 0.25,
+          render: withJitter(activeItems)
         })
       );
     }
@@ -178,12 +266,13 @@ export default function EquipmentChartPlot({
     // Layer 5: Main Data Points (Centered image tags)
     marks.push(
       Plot.image(filteredData, {
-        x: d => getItemStat(d, xVar),
-        y: d => getItemStat(d, yVar),
+        x: getX,
+        y: getY,
         src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax)),
         width: 28,
         height: 28,
-        title: d => d.name
+        title: d => d.name,
+        render: withJitter(filteredData)
       })
     );
 
@@ -210,12 +299,14 @@ export default function EquipmentChartPlot({
       marginRight: 15,
       marginTop: 15,
       x: {
+        type: xLog ? 'symlog' : 'linear',
         domain: xDomain,
         grid: true,
         label: null,
         inset: 16
       },
       y: {
+        type: yLog ? 'symlog' : 'linear',
         domain: yDomain,
         grid: true,
         label: null,

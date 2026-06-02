@@ -21,6 +21,12 @@ const kindLabel: Record<string, string> = {
   deadlock_ability: 'Ability',
 };
 
+function formatStat(val: number): string {
+  if (val === Infinity) return '∞';
+  if (val === -Infinity) return '-∞';
+  return val.toFixed(1);
+}
+
 export default function EquipmentChartTooltip({
   item,
   tooltipPos,
@@ -83,11 +89,11 @@ export default function EquipmentChartTooltip({
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{xLabel}</span>
-            <span className="font-medium text-brand-hover">{getItemStat(item, xVar).toFixed(1)}</span>
+            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, xVar))}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{yLabel}</span>
-            <span className="font-medium text-brand-hover">{getItemStat(item, yVar).toFixed(1)}</span>
+            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, yVar))}</span>
           </div>
         </div>
       </div>

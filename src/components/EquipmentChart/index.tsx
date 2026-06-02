@@ -213,7 +213,7 @@ export default function EquipmentChart() {
     });
   };
 
-  const dimensions = new ChartDimensions(resolvedXVar, resolvedYVar, resolvedColorVar);
+  const dimensions = new ChartDimensions(resolvedXVar, resolvedYVar, resolvedColorVar, validatedParams.xLog, validatedParams.yLog);
   const categoryFilter = new CategoryFilter(activeCategories);
   const buildSet = new BuildSet(customSet);
 
@@ -235,6 +235,8 @@ export default function EquipmentChart() {
             setParam('x', newDim.x);
             setParam('y', newDim.y);
             setParam('color', newDim.color);
+            setParam('xLog', String(newDim.xLog));
+            setParam('yLog', String(newDim.yLog));
           }}
           statOptions={statOptions}
           categoryGroups={categoryGroups}
@@ -272,6 +274,8 @@ export default function EquipmentChart() {
               yVar={resolvedYVar}
               xLabel={xLabel}
               yLabel={yLabel}
+              xLog={dimensions.xLog}
+              yLog={dimensions.yLog}
               chartProps={chartProps}
               colorVar={resolvedColorVar}
               colorMinMax={colorMinMax}
