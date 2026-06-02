@@ -8,6 +8,9 @@ import { BuildSet } from '../domain/BuildSet';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
 import { useDeadlockData, useDeadlockAbilitiesData } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
+import { useDeadlockTargetState } from '../../hooks/useDeadlockTargetState';
+import { HERO_DICTIONARY, DEFAULT_HERO } from '../heroes';
+import { calculateBulletDPS, calculateSpiritDPS, calculateEffectiveResistance, calculateEffectiveDPS } from '../deadlock-dps';
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
@@ -83,6 +86,9 @@ export default function EquipmentChart() {
   const [customSet, setCustomSet] = useState<EquipmentItem[]>([]);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
+  // Deadlock Target Settings
+  const deadlockState = useDeadlockTargetState();
+
   // Interaction State
   const [hoveredItem, setHoveredItem] = useState<EquipmentItem | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -133,12 +139,70 @@ export default function EquipmentChart() {
   }, [categoryGroups, equipment, searchParams, validatedParams.cats, setParam, activeGame]);
 
   const filteredData = useMemo(() => {
-    return equipment.filter(item => {
+    const baseFiltered = equipment.filter(item => {
       if (!activeCategories[item.category]) return false;
       if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [equipment, activeCategories, search]);
+
+    if (activeGame === 'deadlock') {
+      const hero = deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO;
+      const targetConfig = deadlockState.targetConfig;
+      
+      return baseFiltered.map(item => {
+        if (item.kind !== 'deadlock_upgrade') return item;
+
+        // Build a temporary set that includes the custom set + the current item
+        // If the item is already in customSet, we don't duplicate it.
+        const isInSet = customSet.some(i => i.id === item.id);
+        const combinedItems = isInSet ? customSet : [...customSet, item];
+
+        let fireRateMod = 0;
+        let spiritPower = 0;
+        let spiritDamageMod = 0;
+        const bulletResistShreds: number[] = [];
+        const spiritResistShreds: number[] = [];
+
+        for (const it of combinedItems) {
+           fireRateMod += (getItemStat(it, 'FireRate') || getItemStat(it, 'BonusFireRate') || 0) / 100;
+           spiritPower += getItemStat(it, 'AbilityPower') || getItemStat(it, 'BonusSpiritPower') || getItemStat(it, 'SpiritPower') || 0;
+           spiritDamageMod += (getItemStat(it, 'BonusSpiritDamage') || getItemStat(it, 'SpiritDamage') || 0) / 100;
+           
+           // We'll collect all distinct shreds (API usually returns absolute negative or positive, assume positive for our formula)
+           // If an item provides flat shred, convert to decimal if needed, but game uses percentages usually.
+           const brs = getItemStat(it, 'BulletResistReduction') || getItemStat(it, 'BulletResistShred') || 0;
+           if (brs !== 0) bulletResistShreds.push(Math.abs(brs) / 100);
+
+           const srs = getItemStat(it, 'SpiritResistReduction') || getItemStat(it, 'SpiritResistShred') || 0;
+           if (srs !== 0) spiritResistShreds.push(Math.abs(srs) / 100);
+        }
+
+        // Base generic stats if hero lacks them
+        const baseBulletDps = 100;
+        const rawBulletDps = calculateBulletDPS(baseBulletDps, hero.shotTime, hero.pauseTime, fireRateMod);
+        
+        const finalBulletRes = calculateEffectiveResistance([targetConfig.targetBulletResistance], bulletResistShreds);
+        const finalBulletDps = calculateEffectiveDPS(rawBulletDps, finalBulletRes);
+
+        const baseSpiritDamage = 100;
+        const coefficient = 1.0;
+        const rawSpiritDps = calculateSpiritDPS('ranged', baseSpiritDamage, spiritDamageMod, spiritPower, coefficient);
+        
+        const finalSpiritRes = calculateEffectiveResistance([targetConfig.targetSpiritResistance], spiritResistShreds);
+        const finalSpiritDps = calculateEffectiveDPS(rawSpiritDps, finalSpiritRes);
+
+        const newProperties = [
+          ...(item.properties || []),
+          { name: 'Final Bullet DPS', amount: finalBulletDps },
+          { name: 'Final Spirit DPS', amount: finalSpiritDps }
+        ];
+
+        return { ...item, properties: newProperties };
+      });
+    }
+
+    return baseFiltered;
+  }, [equipment, activeCategories, search, activeGame, deadlockState.selectedHero, deadlockState.targetConfig, customSet]);
 
   // Dynamic stat options based on filtered data
   const statOptions = useMemo(() => {
@@ -213,9 +277,16 @@ export default function EquipmentChart() {
     });
   };
 
+  const syncedCustomSet = useMemo(() => {
+    return customSet.map(savedItem => {
+      const latest = filteredData.find(d => d.id === savedItem.id);
+      return latest || savedItem;
+    });
+  }, [customSet, filteredData]);
+
   const dimensions = new ChartDimensions(resolvedXVar, resolvedYVar, resolvedColorVar, validatedParams.xLog, validatedParams.yLog);
   const categoryFilter = new CategoryFilter(activeCategories);
-  const buildSet = new BuildSet(customSet);
+  const buildSet = new BuildSet(syncedCustomSet);
 
   return (
     <div className="flex flex-col h-full bg-bg-main text-text-primary font-sans overflow-hidden">
@@ -253,6 +324,12 @@ export default function EquipmentChart() {
           showPareto={showPareto}
           onShowParetoChange={setShowPareto}
           filteredData={filteredData}
+          activeGame={activeGame}
+          selectedHero={deadlockState.selectedHero}
+          onHeroChange={deadlockState.setSelectedHero}
+          targetConfig={deadlockState.targetConfig}
+          onTargetSpiritResistanceChange={deadlockState.setTargetSpiritResistance}
+          onTargetBulletResistanceChange={deadlockState.setTargetBulletResistance}
         />
 
         <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
@@ -308,7 +385,7 @@ export default function EquipmentChart() {
           <EquipmentCompareModal
             isOpen={isCompareOpen}
             onClose={() => setIsCompareOpen(false)}
-            customSet={customSet}
+            customSet={syncedCustomSet}
           />
         )}
       </Suspense>

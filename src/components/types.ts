@@ -91,3 +91,31 @@ export interface ActiveCategories {
   [key: string]: boolean;
 }
 
+export interface SpiritConversion {
+  stat: 'ammo' | 'fireRate' | string;
+  multiplier: number;
+}
+
+export interface AbilityCoefficient {
+  abilityName: string;
+  type: 'ranged' | 'healing' | 'duration' | 'other';
+  coefficient: number;
+}
+
+export interface Hero {
+  name: string;
+  shotTime: number;
+  pauseTime: number;
+  spiritConversions: SpiritConversion[];
+  abilityCoefficients: AbilityCoefficient[];
+}
+
+export interface TargetConfiguration {
+  targetSpiritResistance: number;
+  targetBulletResistance: number;
+}
+
+export const DEFAULT_TARGET_CONFIG: TargetConfiguration = {
+  targetSpiritResistance: 0,
+  targetBulletResistance: 0,
+};
