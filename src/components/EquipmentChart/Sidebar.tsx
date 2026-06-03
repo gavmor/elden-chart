@@ -32,6 +32,7 @@ interface SidebarProps {
   targetConfig: import('../types').TargetConfiguration;
   onTargetSpiritResistanceChange: (val: number) => void;
   onTargetBulletResistanceChange: (val: number) => void;
+  simulationContext?: import('../types').SimulationContext;
 }
 
 export default function EquipmentChartSidebar({
@@ -54,16 +55,17 @@ export default function EquipmentChartSidebar({
   onHeroChange,
   targetConfig,
   onTargetSpiritResistanceChange,
-  onTargetBulletResistanceChange
+  onTargetBulletResistanceChange,
+  simulationContext
 }: SidebarProps) {
   // Precompute trait counts for all available stats based on filtered items
   const traitCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const opt of statOptions) {
-      counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id) > 0).length;
+      counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id, simulationContext) > 0).length;
     }
     return counts;
-  }, [statOptions, filteredData]);
+  }, [statOptions, filteredData, simulationContext]);
 
   // Group stat options for color dropdown
   const statGroups = statOptions.reduce<Record<string, StatOption[]>>((acc, opt) => {

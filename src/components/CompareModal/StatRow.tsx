@@ -9,6 +9,7 @@ interface Props {
   labelClassName?: string;
   invert?: boolean;
   formatValue?: (n: number) => string;
+  simulationContext?: import('../types').SimulationContext;
 }
 
 export default function CompareModalStatRow({
@@ -18,10 +19,11 @@ export default function CompareModalStatRow({
   labelClassName = '',
   invert = false,
   formatValue,
+  simulationContext,
 }: Props) {
-  const { min, max } = getStatRange(customSet, statName);
+  const { min, max } = getStatRange(customSet, statName, simulationContext);
 
-  const values = customSet.map(item => getItemStat(item, statName));
+  const values = customSet.map(item => getItemStat(item, statName, simulationContext));
   const bestValue = invert ? Math.min(...values) : Math.max(...values);
   const delta = customSet.length === 2 ? values[1] - values[0] : null;
 
@@ -31,12 +33,12 @@ export default function CompareModalStatRow({
       {customSet.map((item) => (
         <CompareModalStatCell
           key={`${statName}-${item.id}`}
-          value={getItemStat(item, statName)}
+          value={getItemStat(item, statName, simulationContext)}
           min={min}
           max={max}
           invert={invert}
           formatValue={formatValue}
-          isBest={getItemStat(item, statName) === bestValue}
+          isBest={getItemStat(item, statName, simulationContext) === bestValue}
         />
       ))}
       {delta !== null && (

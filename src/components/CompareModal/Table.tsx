@@ -5,6 +5,7 @@ import CompareModalStatRow from './StatRow';
 
 interface Props {
   customSet: EquipmentItem[];
+  simulationContext?: import('../types').SimulationContext;
 }
 
 const statLabel = (stat: string): string => {
@@ -36,7 +37,7 @@ const collectOrderedStats = (items: EquipmentItem[], accessor: (item: EquipmentI
   return result;
 };
 
-export default function CompareModalTable({ customSet }: Props) {
+export default function CompareModalTable({ customSet, simulationContext }: Props) {
   const showDelta = customSet.length === 2;
   const colCount = customSet.length + 1 + (showDelta ? 1 : 0);
 
@@ -87,6 +88,7 @@ export default function CompareModalTable({ customSet }: Props) {
                   customSet={customSet}
                   statName={stat}
                   label={statLabel(stat)}
+                  simulationContext={simulationContext}
                 />
               ))}
             </>
@@ -105,6 +107,7 @@ export default function CompareModalTable({ customSet }: Props) {
                   customSet={customSet}
                   statName={stat}
                   label={statLabel(stat)}
+                  simulationContext={simulationContext}
                 />
               ))}
             </>
@@ -125,6 +128,7 @@ export default function CompareModalTable({ customSet }: Props) {
                   label={stat}
                   labelClassName="font-semibold"
                   formatValue={n => n.toFixed(0)}
+                  simulationContext={simulationContext}
                 />
               ))}
             </>
@@ -143,6 +147,7 @@ export default function CompareModalTable({ customSet }: Props) {
                   customSet={customSet}
                   statName={stat}
                   label={formatAttackLabel(stat)}
+                  simulationContext={simulationContext}
                 />
               ))}
             </>
@@ -161,6 +166,7 @@ export default function CompareModalTable({ customSet }: Props) {
                   customSet={customSet}
                   statName={stat}
                   label={formatDefenceLabel(stat)}
+                  simulationContext={simulationContext}
                 />
               ))}
             </>

@@ -20,6 +20,7 @@ interface PlotProps {
   customSet: EquipmentItem[];
   onClickItem: (item: EquipmentItem) => void;
   showPareto: boolean;
+  simulationContext?: import('../types').SimulationContext;
 }
 
 export default function EquipmentChartPlot({
@@ -37,7 +38,8 @@ export default function EquipmentChartPlot({
   onLeavePlot,
   customSet,
   onClickItem,
-  showPareto
+  showPareto,
+  simulationContext
 }: PlotProps) {
   const auraSize: number = 3;
   const auraStyle: 'glow' | 'outline' = 'glow';
@@ -73,8 +75,8 @@ export default function EquipmentChartPlot({
   // 2. Compute Pareto optimal items using useMemo
   const paretoItems = useMemo(() => {
     if (!showPareto) return [];
-    return getParetoFrontier(filteredData, xVar, yVar);
-  }, [filteredData, xVar, yVar, showPareto]);
+    return getParetoFrontier(filteredData, xVar, yVar, simulationContext);
+  }, [filteredData, xVar, yVar, showPareto, simulationContext]);
 
   // Create a Set of Pareto IDs for O(1) checks during element styling
   const paretoIds = useMemo(() => {
@@ -89,10 +91,10 @@ export default function EquipmentChartPlot({
     containerRef.current.innerHTML = '';
 
     // Compute clamped ranges to clamp any Infinity or extreme values visually to plot bounds
-    const xRange = getStatRangeClamped(filteredData, xVar);
-    const yRange = getStatRangeClamped(filteredData, yVar);
-    const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max);
-    const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max);
+    const xRange = getStatRangeClamped(filteredData, xVar, simulationContext);
+    const yRange = getStatRangeClamped(filteredData, yVar, simulationContext);
+    const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max, simulationContext);
+    const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max, simulationContext);
 
     // Recreate the wrappers for Y/X labels which were absolute positioned
     const yLabelEl = document.createElement('div');
@@ -268,7 +270,7 @@ export default function EquipmentChartPlot({
       Plot.image(filteredData, {
         x: getX,
         y: getY,
-        src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax)),
+        src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax, simulationContext)),
         width: 28,
         height: 28,
         title: d => d.name,
@@ -489,7 +491,7 @@ export default function EquipmentChartPlot({
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle]);
+  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, customSet, paretoIds, paretoItems, xLog, yLog]);
 
   if (filteredData.length === 0) {
     return (

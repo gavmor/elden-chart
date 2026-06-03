@@ -8,9 +8,10 @@ interface CompareModalProps {
   isOpen: boolean;
   onClose: () => void;
   customSet: EquipmentItem[];
+  simulationContext?: import('../types').SimulationContext;
 }
 
-export default function EquipmentCompareModal({ isOpen, onClose, customSet }: CompareModalProps) {
+export default function EquipmentCompareModal({ isOpen, onClose, customSet, simulationContext }: CompareModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -28,7 +29,7 @@ export default function EquipmentCompareModal({ isOpen, onClose, customSet }: Co
           {customSet.length === 0 ? (
             <CompareModalEmptyState />
           ) : (
-            <CompareModalTable customSet={customSet} />
+            <CompareModalTable customSet={customSet} simulationContext={simulationContext} />
           )}
         </div>
 
