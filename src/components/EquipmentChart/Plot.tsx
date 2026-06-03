@@ -108,48 +108,22 @@ export default function EquipmentChartPlot({
     containerRef.current.appendChild(yLabelEl);
     containerRef.current.appendChild(xLabelEl);
 
-    // Compute pixel jitter to resolve overlapping points
-    const positionCounts = new Map<string, number>();
-    const itemJitter = new Map<string, {dx: number, dy: number}>();
-
-    filteredData.forEach(d => {
-      const x = getX(d);
-      const y = getY(d);
-      const key = `${x},${y}`;
-      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
-    });
-
-    const positionCurrent = new Map<string, number>();
-    filteredData.forEach(d => {
-      const x = getX(d);
-      const y = getY(d);
-      const key = `${x},${y}`;
-      const total = positionCounts.get(key) || 1;
-      if (total > 1) {
-        const idx = positionCurrent.get(key) || 0;
-        positionCurrent.set(key, idx + 1);
-        
-        // Spread points in a circle around the center
-        const radius = 6 + Math.min(total, 10); // scale radius slightly with cluster size
-        const angle = (idx / total) * Math.PI * 2;
-        itemJitter.set(d.id, { dx: Math.cos(angle) * radius, dy: Math.sin(angle) * radius });
-      } else {
-        itemJitter.set(d.id, { dx: 0, dy: 0 });
-      }
-    });
-
-    const withJitter = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
+    // We apply data-id to all drawn shapes (images, dots) so that our high-performance
+    const withDataId = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
       return (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
-        const group = baseRender ? baseRender(index, scales, values, dimensions, context, next) : (next ? next(index, scales, values, dimensions, context) : null);
+        const renderFn = baseRender || next;
+        const group = renderFn ? renderFn(index, scales, values, dimensions, context, next) : null;
+        
         if (group) {
-          const elements = Array.from(group.childNodes) as SVGElement[];
+          const allNodes = Array.from(group.childNodes) as SVGElement[];
+          // Filter to only shapes that map 1-to-1 with data points.
+          // Plot.js often injects <title> siblings which would misalign the index mapping.
+          const elements = allNodes.filter(n => n.nodeName === 'image' || n.nodeName === 'circle');
+          
           index.forEach((dataIndex, i) => {
             const d = dataArray[dataIndex];
-            const jitter = itemJitter.get(d?.id);
-            if (jitter && (jitter.dx !== 0 || jitter.dy !== 0) && elements[i]) {
-              const el = elements[i];
-              const existing = el.getAttribute('transform') || '';
-              el.setAttribute('transform', `${existing} translate(${jitter.dx}, ${jitter.dy})`.trim());
+            if (elements[i] && d?.id) {
+              elements[i].setAttribute('data-id', d.id);
             }
           });
         }
@@ -206,7 +180,7 @@ export default function EquipmentChartPlot({
           stroke: '#fbbf24',
           strokeWidth: 1,
           opacity: 0.7,
-          render: withJitter(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
+          render: withDataId(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
             const group = next?.(index, scales, values, dimensions, context);
             if (group) {
               const circles = group.querySelectorAll('circle');
@@ -232,7 +206,7 @@ export default function EquipmentChartPlot({
           stroke: '#fbbf24',
           strokeWidth: 1.5,
           strokeDasharray: '3 3',
-          render: withJitter(setIndices)
+          render: withDataId(setIndices)
         })
       );
     }
@@ -248,7 +222,7 @@ export default function EquipmentChartPlot({
           fill: 'none',
           stroke: '#facc15',
           strokeWidth: 2,
-          render: withJitter(activeItems)
+          render: withDataId(activeItems)
         })
       );
       marks.push(
@@ -260,7 +234,7 @@ export default function EquipmentChartPlot({
           stroke: '#facc15',
           strokeWidth: 6,
           opacity: 0.25,
-          render: withJitter(activeItems)
+          render: withDataId(activeItems)
         })
       );
     }
@@ -274,7 +248,7 @@ export default function EquipmentChartPlot({
         width: 28,
         height: 28,
         title: d => d.name,
-        render: withJitter(filteredData)
+        render: withDataId(filteredData)
       })
     );
 
@@ -333,17 +307,16 @@ export default function EquipmentChartPlot({
 
     // 4. Attach high-performance DOM pointer listeners
     const images = plot.querySelectorAll('image');
-    images.forEach((img, i) => {
-      const item = filteredData[i];
-      if (!item) return;
+    images.forEach((img) => {
+      const itemId = img.getAttribute('data-id');
+      const item = filteredData.find(d => d.id === itemId);
+      if (!item || !itemId) return;
 
-      const itemId = item.id;
       const isInSet = customSet.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
 
       // Store attributes on DOM node
       img.setAttribute('data-id', itemId);
-      img.setAttribute('data-index', i.toString());
 
       const orgX = parseFloat(img.getAttribute('x') || '0');
       const orgY = parseFloat(img.getAttribute('y') || '0');

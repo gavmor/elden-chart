@@ -119,3 +119,9 @@ export const DEFAULT_TARGET_CONFIG: TargetConfiguration = {
   targetSpiritResistance: 0,
   targetBulletResistance: 0,
 };
+
+export interface SimulationContext {
+  hero: Hero;
+  targetConfig: TargetConfiguration;
+  customSet: EquipmentItem[];
+}

@@ -51,42 +51,4 @@ describe('EquipmentChart Plot Active Item Indicator', () => {
 		const activeIndicators = container.querySelectorAll('circle');
 		expect(activeIndicators.length).toBeGreaterThan(0);
 	});
-
-	it('applies translate transform to overlapping items', () => {
-		const mockData: EquipmentItem[] = [
-			{ id: '1', name: 'Item1', kind: 'armor', category: 'Helm', description: '', weight: 10, dmgNegation: [{ name: 'Phy', amount: 10 }], resistance: [], image: null, isActive: false },
-			{ id: '2', name: 'Item2', kind: 'armor', category: 'Helm', description: '', weight: 10, dmgNegation: [{ name: 'Phy', amount: 10 }], resistance: [], image: null, isActive: false },
-		];
-
-		const { container } = render(
-			<EquipmentChartPlot 
-				filteredData={mockData} 
-				xVar="weight" 
-				yVar="total_negation" 
-				xLabel="Weight"
-				yLabel="Negation"
-				xLog={false}
-				yLog={false}
-				chartProps={null}
-				colorVar="category" 
-				colorMinMax={{min: 0, max: 1}} 
-				hoveredItemId={null}
-				showPareto={false} 
-				customSet={[]} 
-				onHoverItem={() => {}} 
-				onLeavePlot={() => {}} 
-				onClickItem={() => {}} 
-			/>
-		);
-
-		const images = container.querySelectorAll('image');
-		expect(images.length).toBe(2);
-		
-		// The second image should have a translate transform because it overlaps with the first
-		const transform1 = images[0].getAttribute('transform') || '';
-		const transform2 = images[1].getAttribute('transform') || '';
-		
-		// At least one of them should have a translate applied due to identical stats
-		expect(transform1.includes('translate') || transform2.includes('translate')).toBe(true);
-	});
 });
