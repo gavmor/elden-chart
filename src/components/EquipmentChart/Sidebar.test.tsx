@@ -25,7 +25,13 @@ describe('Sidebar Axis Selectors', () => {
 		onCompareSet: vi.fn(),
 		showPareto: false,
 		onShowParetoChange: vi.fn(),
-		filteredData: []
+		filteredData: [],
+		activeGame: 'elden-ring' as const,
+		selectedHero: null,
+		onHeroChange: vi.fn(),
+		targetConfig: { targetSpiritResistance: 0, targetBulletResistance: 0 },
+		onTargetSpiritResistanceChange: vi.fn(),
+		onTargetBulletResistanceChange: vi.fn()
 	};
 
 	it('renders Calculated Metrics section in the axis selector dropdowns', () => {
