@@ -1,9 +1,9 @@
-## Phase 1: Resolve Git Conflicts
-- [ ] Task: Manually resolve conflicts in `src/components/EquipmentChart/Sidebar.tsx` (Merge "Calculated Dimensions" and "Deadlock DPS Configuration" UI blocks).
-- [ ] Task: Manually resolve conflicts in `src/components/EquipmentChart/index.tsx` (Merge log-scale `ChartDimensions` parameters and `syncedCustomSet` logic).
-- [ ] Task: Manually resolve conflicts in `conductor/tracks.md`.
-- [ ] Task: Run `git rebase --continue` to finalize the rebase state so the branch is clean before refactoring.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Resolve Git Conflicts' (Protocol in workflow.md)
+## Phase 1: Resolve Git Conflicts [checkpoint: e794170]
+- [x] Task: Manually resolve conflicts in `src/components/EquipmentChart/Sidebar.tsx` (Merge "Calculated Dimensions" and "Deadlock DPS Configuration" UI blocks).
+- [x] Task: Manually resolve conflicts in `src/components/EquipmentChart/index.tsx` (Merge log-scale `ChartDimensions` parameters and `syncedCustomSet` logic).
+- [x] Task: Manually resolve conflicts in `conductor/tracks.md`.
+- [x] Task: Run `git rebase --continue` to finalize the rebase state so the branch is clean before refactoring.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Resolve Git Conflicts' (Protocol in workflow.md)
 
 ## Phase 2: Harmonize Calculated Metrics Architecture
 - [ ] Task: Define the `SimulationContext` interface (containing Hero, TargetConfig, and BuildSet) in `src/components/types.ts`.
