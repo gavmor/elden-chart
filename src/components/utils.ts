@@ -26,7 +26,11 @@ export const getCategoryIcon = (category: string, kind: EquipmentKind, props: Lu
 	}
 };
 
-export const getItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
+const statCache = new Map<string, number>();
+
+export const clearStatCache = () => statCache.clear();
+
+const computeItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	if (statName === 'weight') return item.weight;
 
 	// Helper to get combined items (custom set + current item if not already in it)
@@ -36,79 +40,93 @@ export const getItemStat = (item: EquipmentItem, statName: string, context?: Sim
 		return isInSet ? context.customSet : [...context.customSet, item];
 	};
 
+	// Helper to get baseline items (custom set WITHOUT the current item, to compute Marginal Value)
+	const getBaselineItems = () => {
+		if (!context) return [];
+		const isInSet = context.customSet.some(i => i.id === item.id);
+		return isInSet ? context.customSet.filter(i => i.id !== item.id) : context.customSet;
+	};
+
 	if (statName === 'Final Bullet DPS') {
 		if (!context || item.kind !== 'deadlock_upgrade') return 0;
-		const combined = getCombinedItems();
-		
-		let fireRateMod = 0;
-		const bulletResistShreds: number[] = [];
-		for (const it of combined) {
-			fireRateMod += (getItemStat(it, 'FireRate') || getItemStat(it, 'BonusFireRate') || 0) / 100;
-			const brs = getItemStat(it, 'BulletResistReduction') || getItemStat(it, 'BulletResistShred') || 0;
-			if (brs !== 0) bulletResistShreds.push(Math.abs(brs) / 100);
-		}
 
-		const rawBulletDps = calculateBulletDPS(100, context.hero.shotTime, context.hero.pauseTime, fireRateMod);
-		const finalBulletRes = calculateEffectiveResistance([context.targetConfig.targetBulletResistance], bulletResistShreds);
-		return calculateEffectiveDPS(rawBulletDps, finalBulletRes);
+		const calcBulletDps = (itemsList: EquipmentItem[]) => {
+			let fireRateMod = 0;
+			const bulletResistShreds: number[] = [];
+			for (const it of itemsList) {
+				fireRateMod += (getItemStat(it, 'FireRate') || getItemStat(it, 'BonusFireRate') || 0) / 100;
+				const brs = getItemStat(it, 'BulletResistReduction') || getItemStat(it, 'BulletResistShred') || 0;
+				if (brs !== 0) bulletResistShreds.push(Math.abs(brs) / 100);
+			}
+			const rawBulletDps = calculateBulletDPS(100, context.hero.shotTime, context.hero.pauseTime, fireRateMod);
+			const finalBulletRes = calculateEffectiveResistance([0], bulletResistShreds);
+			return calculateEffectiveDPS(rawBulletDps, finalBulletRes);
+		};
+
+		return calcBulletDps(getCombinedItems()) - calcBulletDps(getBaselineItems());
 	}
 
 	if (statName === 'Final Spirit DPS') {
 		if (!context || item.kind !== 'deadlock_upgrade') return 0;
-		const combined = getCombinedItems();
+		
+		const calcSpiritDps = (itemsList: EquipmentItem[]) => {
+			let spiritPower = 0;
+			let spiritDamageMod = 0;
+			const spiritResistShreds: number[] = [];
+			for (const it of itemsList) {
+				spiritPower += getItemStat(it, 'AbilityPower') || getItemStat(it, 'BonusSpiritPower') || getItemStat(it, 'SpiritPower') || 0;
+				spiritDamageMod += (getItemStat(it, 'BonusSpiritDamage') || getItemStat(it, 'SpiritDamage') || 0) / 100;
+				const srs = getItemStat(it, 'SpiritResistReduction') || getItemStat(it, 'SpiritResistShred') || 0;
+				if (srs !== 0) spiritResistShreds.push(Math.abs(srs) / 100);
+			}
+			const rawSpiritDps = calculateSpiritDPS('ranged', 100, spiritDamageMod, spiritPower, 1.0);
+			const finalSpiritRes = calculateEffectiveResistance([0], spiritResistShreds);
+			return calculateEffectiveDPS(rawSpiritDps, finalSpiritRes);
+		};
 
-		let spiritPower = 0;
-		let spiritDamageMod = 0;
-		const spiritResistShreds: number[] = [];
-		for (const it of combined) {
-			spiritPower += getItemStat(it, 'AbilityPower') || getItemStat(it, 'BonusSpiritPower') || getItemStat(it, 'SpiritPower') || 0;
-			spiritDamageMod += (getItemStat(it, 'BonusSpiritDamage') || getItemStat(it, 'SpiritDamage') || 0) / 100;
-			const srs = getItemStat(it, 'SpiritResistReduction') || getItemStat(it, 'SpiritResistShred') || 0;
-			if (srs !== 0) spiritResistShreds.push(Math.abs(srs) / 100);
-		}
-
-		const rawSpiritDps = calculateSpiritDPS('ranged', 100, spiritDamageMod, spiritPower, 1.0);
-		const finalSpiritRes = calculateEffectiveResistance([context.targetConfig.targetSpiritResistance], spiritResistShreds);
-		return calculateEffectiveDPS(rawSpiritDps, finalSpiritRes);
+		return calcSpiritDps(getCombinedItems()) - calcSpiritDps(getBaselineItems());
 	}
 
 	if (statName === 'ehp') {
-		const combined = getCombinedItems();
-		const setBonusHealth = combined.reduce((acc, it) => acc + (getItemStat(it, 'BonusHealth') || 0), 0);
-		const baseHealth = 1000 + setBonusHealth;
-		
-		const setBulletResist = combined.reduce((acc, it) => acc + (getItemStat(it, 'BulletResist') || 0), 0);
-		return calculateEffectiveHealth(baseHealth, setBulletResist / 100);
+		const calcEhp = (itemsList: EquipmentItem[]) => {
+			const setBonusHealth = itemsList.reduce((acc, it) => acc + (getItemStat(it, 'BonusHealth') || 0), 0);
+			const baseHealth = 1000 + setBonusHealth;
+			const setBulletResist = itemsList.reduce((acc, it) => acc + (getItemStat(it, 'BulletResist') || 0), 0);
+			return calculateEffectiveHealth(baseHealth, setBulletResist / 100);
+		};
+		return calcEhp(getCombinedItems()) - calcEhp(getBaselineItems());
 	}
 	
 	if (statName === 'integrated_armor') {
-		const combined = getCombinedItems();
-		
-		const bulletResists: number[] = [];
-		const spiritResists: number[] = [];
-		const bulletShreds: number[] = [];
-		const spiritShreds: number[] = [];
-		
-		for (const it of combined) {
-			const br = getItemStat(it, 'BulletResist') || 0;
-			if (br > 0) bulletResists.push(br / 100);
-			const sr = getItemStat(it, 'SpiritResist') || 0;
-			if (sr > 0) spiritResists.push(sr / 100);
+		const calcIntegratedArmor = (itemsList: EquipmentItem[]) => {
+			const bulletResists: number[] = [];
+			const spiritResists: number[] = [];
+			const bulletShreds: number[] = [];
+			const spiritShreds: number[] = [];
 			
-			const bs = getItemStat(it, 'BulletResistReduction') || 0;
-			if (bs !== 0) bulletShreds.push(Math.abs(bs) / 100);
-			const ss = getItemStat(it, 'SpiritResistReduction') || 0;
-			if (ss !== 0) spiritShreds.push(Math.abs(ss) / 100);
-		}
-		
-		const buffs = [...bulletResists, ...spiritResists];
-		const shreds = [...bulletShreds, ...spiritShreds];
-		return calculateTotalIntegratedArmor(buffs, shreds);
+			for (const it of itemsList) {
+				const br = getItemStat(it, 'BulletResist') || 0;
+				if (br > 0) bulletResists.push(br / 100);
+				const sr = getItemStat(it, 'SpiritResist') || 0;
+				if (sr > 0) spiritResists.push(sr / 100);
+				
+				const bs = getItemStat(it, 'BulletResistReduction') || 0;
+				if (bs !== 0) bulletShreds.push(Math.abs(bs) / 100);
+				const ss = getItemStat(it, 'SpiritResistReduction') || 0;
+				if (ss !== 0) spiritShreds.push(Math.abs(ss) / 100);
+			}
+			
+			const buffs = [...bulletResists, ...spiritResists];
+			const shreds = [...bulletShreds, ...spiritShreds];
+			return calculateTotalIntegratedArmor(buffs, shreds);
+		};
+		return calcIntegratedArmor(getCombinedItems()) - calcIntegratedArmor(getBaselineItems());
 	}
 	
 	if (statName === 'ehp_per_soul') {
-		const ehp = getItemStat(item, 'ehp', context);
-		return calculateValueMetric(ehp, item.weight);
+		// ehp_per_soul is derived directly from the marginal ehp value
+		const marginalEhp = getItemStat(item, 'ehp', context);
+		return calculateValueMetric(marginalEhp, item.weight);
 	}
 
 	const getAmount = R.prop('amount');
@@ -135,18 +153,52 @@ export const getItemStat = (item: EquipmentItem, statName: string, context?: Sim
 			);
 	}
 
-	// Named stats — discriminated union requires separate lookups per kind
-	if (item.kind === 'armor') {
-		return R.find(item.dmgNegation, s => s.name === statName)?.amount
-			?? R.find(item.resistance, s => s.name === statName)?.amount
-			?? 0;
+	return getGenericStat(item, statName);
+};
+
+export const getItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
+	// Fast path: Only cache calculated metrics that use context
+	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul'].includes(statName)) {
+		return computeItemStat(item, statName, context);
 	}
-	if (item.kind === 'ammo') {
-		return R.find(item.attack, s => s.name === statName)?.amount ?? 0;
+
+	const customSetKey = context.customSet.length > 0 ? context.customSet.map(i => i.id).sort().join(',') : 'empty';
+	const cacheKey = `${item.id}:${statName}:${context.hero?.name || 'none'}:${customSetKey}`;
+	
+	if (statCache.has(cacheKey)) {
+		return statCache.get(cacheKey)!;
 	}
-	return R.find(item.attack, s => s.name === statName)?.amount
-		?? R.find(item.defence, s => s.name === statName)?.amount
-		?? 0;
+
+	const val = computeItemStat(item, statName, context);
+	
+	if (statCache.size > 5000) statCache.clear();
+	statCache.set(cacheKey, val);
+	
+	return val;
+};
+
+const getGenericStat = (item: EquipmentItem, statName: string): number => {
+	// Search in attack
+	if ('attack' in item && item.attack) {
+		const found = item.attack.find((s: { name: string, amount: number }) => s.name === statName);
+		if (found) return found.amount;
+	}
+	// Search in defence
+	if ('defence' in item && item.defence) {
+		const found = item.defence.find((s: { name: string, amount: number }) => s.name === statName);
+		if (found) return found.amount;
+	}
+	// Search in dmgNegation
+	if ('dmgNegation' in item && item.dmgNegation) {
+		const found = item.dmgNegation.find((s: { name: string, amount: number }) => s.name === statName);
+		if (found) return found.amount;
+	}
+	// Search in resistance
+	if ('resistance' in item && item.resistance) {
+		const found = item.resistance.find((s: { name: string, amount: number }) => s.name === statName);
+		if (found) return found.amount;
+	}
+	return 0;
 };
 
 /**
@@ -286,33 +338,48 @@ export const getParetoFrontier = (
 ): EquipmentItem[] => {
 	if (items.length === 0) return [];
 
-	const isBetter = (valA: number, valB: number, stat: string, strict = false) => {
-		const minimize = stat === 'weight';
-		if (minimize) return strict ? valA < valB : valA <= valB;
-		return strict ? valA > valB : valA >= valB;
-	};
+	const minX = xVar === 'weight';
+	const minY = yVar === 'weight';
 
-	const dominates = (a: EquipmentItem, b: EquipmentItem): boolean => {
-		const xA = getItemStat(a, xVar, context);
-		const xB = getItemStat(b, xVar, context);
-		const yA = getItemStat(a, yVar, context);
-		const yB = getItemStat(b, yVar, context);
+	const signX = minX ? 1 : -1;
+	const signY = minY ? 1 : -1;
 
-		return (
-			isBetter(xA, xB, xVar) &&
-			isBetter(yA, yB, yVar) &&
-			(isBetter(xA, xB, xVar, true) || isBetter(yA, yB, yVar, true))
-		);
-	};
+	// Pre-compute coordinates to avoid N^2 evaluate calls
+	const mapped = items.map(item => ({
+		item,
+		x: getItemStat(item, xVar, context),
+		y: getItemStat(item, yVar, context)
+	}));
 
-	return R.pipe(
-		items,
-		R.filter(item => !items.some(other => other.id !== item.id && dominates(other, item))),
-		R.sortBy(
-			item => getItemStat(item, xVar, context),
-			item => getItemStat(item, yVar, context)
-		)
-	);
+	mapped.sort((a, b) => {
+		if (a.x !== b.x) return (a.x - b.x) * signX;
+		return (a.y - b.y) * signY;
+	});
+
+	const frontier: typeof mapped = [];
+	let bestYSeen = minY ? Infinity : -Infinity;
+	let lastKept: typeof mapped[0] | null = null;
+
+	for (const p of mapped) {
+		const isStrictlyBetterY = minY ? p.y < bestYSeen : p.y > bestYSeen;
+		const isIdenticalToLast = lastKept !== null && p.x === lastKept.x && p.y === lastKept.y;
+
+		if (isStrictlyBetterY || isIdenticalToLast) {
+			frontier.push(p);
+			if (isStrictlyBetterY) {
+				bestYSeen = p.y;
+			}
+			lastKept = p;
+		}
+	}
+
+	// Plot.line requires items to be sorted consistently for drawing (e.g. by X ascending)
+	frontier.sort((a, b) => {
+		if (a.x !== b.x) return a.x - b.x;
+		return a.y - b.y;
+	});
+
+	return frontier.map(p => p.item);
 };
 
 /**

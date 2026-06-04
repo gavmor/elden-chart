@@ -294,5 +294,7 @@ export const useEquipmentData = () => {
       const all: EquipmentItem[] = [...armors, ...weapons, ...shields, ...ammos];
       return all;
     },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 };

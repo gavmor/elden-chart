@@ -17,7 +17,7 @@ import EquipmentChartTooltip from './Tooltip';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
-export default function EquipmentChart() {
+export default function EquipmentChart() { console.time("EquipmentChart render");
   // Fetch Elden Ring equipment data
   const { data: eldenEquipment = [], isLoading: isEldenLoading, error: eldenError } = useEquipmentData();
 
@@ -59,7 +59,7 @@ export default function EquipmentChart() {
 
   // Clean up debounce timer on component unmount
   useEffect(() => {
-    return () => {
+    console.timeEnd("EquipmentChart render"); return () => {
       if (searchDebounceTimer.current) {
         clearTimeout(searchDebounceTimer.current);
       }
@@ -139,14 +139,13 @@ export default function EquipmentChart() {
 
   const filteredData = useMemo(() => {
     const baseFiltered = equipment.filter(item => {
-      if (customSet.some(s => s.id === item.id)) return true;
       if (!activeCategories[item.category]) return false;
       if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
 
     return baseFiltered;
-  }, [equipment, activeCategories, search, customSet]);
+  }, [equipment, activeCategories, search]);
 
   const syncedCustomSet = useMemo(() => {
     return customSet.map(savedItem => {
@@ -158,10 +157,16 @@ export default function EquipmentChart() {
   const simulationContext = useMemo(() => {
     return {
       hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
-      targetConfig: deadlockState.targetConfig,
       customSet: syncedCustomSet
     };
-  }, [deadlockState.selectedHero, deadlockState.targetConfig, syncedCustomSet]);
+  }, [deadlockState.selectedHero, syncedCustomSet]);
+
+  const vacuumContext = useMemo(() => {
+    return {
+      hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
+      customSet: []
+    };
+  }, [deadlockState.selectedHero]);
 
   // Dynamic stat options based on filtered data
   const statOptions = useMemo(() => {
@@ -184,16 +189,16 @@ export default function EquipmentChart() {
 
   const colorMinMax = useMemo(() => {
     if (resolvedColorVar === 'category') return null;
-    const values = filteredData.map(d => getItemStat(d, resolvedColorVar, simulationContext));
+    const values = filteredData.map(d => getItemStat(d, resolvedColorVar, vacuumContext));
     if (values.length === 0) return null;
     return { min: Math.min(...values), max: Math.max(...values) };
-  }, [filteredData, resolvedColorVar, simulationContext]);
+  }, [filteredData, resolvedColorVar, vacuumContext]);
 
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar, simulationContext));
-    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar, simulationContext));
+    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar, vacuumContext));
+    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar, vacuumContext));
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -208,7 +213,7 @@ export default function EquipmentChart() {
     const yMax = yMaxRaw + yRange * 0.05;
 
     return { xMin, xMax, yMin, yMax };
-  }, [filteredData, resolvedXVar, resolvedYVar, simulationContext]);
+  }, [filteredData, resolvedXVar, resolvedYVar, vacuumContext]);
 
   const handleMouseMove = (e: MouseEvent, item: EquipmentItem) => {
     if (!chartRef.current) return;
@@ -242,7 +247,7 @@ export default function EquipmentChart() {
   const categoryFilter = new CategoryFilter(activeCategories);
   const buildSet = new BuildSet(syncedCustomSet);
 
-  return (
+  console.timeEnd("EquipmentChart render"); return (
     <div className="flex flex-col h-full bg-bg-main text-text-primary font-sans overflow-hidden">
       <EquipmentChartHeader
         loading={isLoading}
@@ -281,10 +286,7 @@ export default function EquipmentChart() {
           activeGame={activeGame}
           selectedHero={deadlockState.selectedHero}
           onHeroChange={deadlockState.setSelectedHero}
-          targetConfig={deadlockState.targetConfig}
-          onTargetSpiritResistanceChange={deadlockState.setTargetSpiritResistance}
-          onTargetBulletResistanceChange={deadlockState.setTargetBulletResistance}
-          simulationContext={simulationContext}
+          simulationContext={vacuumContext}
         />
 
         <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
@@ -317,7 +319,7 @@ export default function EquipmentChart() {
               customSet={customSet}
               onClickItem={handleToggleSet}
               showPareto={showPareto}
-              simulationContext={simulationContext}
+              simulationContext={vacuumContext}
             />
           )}
 

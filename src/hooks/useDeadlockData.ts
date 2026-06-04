@@ -7,6 +7,8 @@ export function useDeadlockData() {
     queryFn: async () => {
       return fetchDeadlockItems();
     },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -16,6 +18,8 @@ export function useDeadlockAbilitiesData() {
     queryFn: async () => {
       return fetchDeadlockAbilities();
     },
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
   });
 }
 

@@ -194,22 +194,7 @@ export default function EquipmentChartPlot({
       );
     }
 
-    // Layer 4: Active Set Indicators (Dashed rings behind set items)
-    const setIndices = filteredData.filter(d => customSet.some(s => s.id === d.id));
-    if (setIndices.length > 0) {
-      marks.push(
-        Plot.dot(setIndices, {
-          x: getX,
-          y: getY,
-          r: 20,
-          fill: 'none',
-          stroke: '#fbbf24',
-          strokeWidth: 1.5,
-          strokeDasharray: '3 3',
-          render: withDataId(setIndices)
-        })
-      );
-    }
+    // Layer 4 removed (handled via secondary glow effect)
 
     // Layer 4.5: Active Item Indicators (Golden rings around active items)
     const activeItems = filteredData.filter(d => d.isActive);
@@ -239,7 +224,24 @@ export default function EquipmentChartPlot({
       );
     }
 
-    // Layer 5: Main Data Points (Centered image tags)
+    // Layer 4.75: Category Hulls to prevent visual fog (Marker Design Optimization)
+    if (colorVar === 'category') {
+      marks.push(
+        Plot.hull(filteredData, {
+          x: getX,
+          y: getY,
+          fill: 'category',
+          fillOpacity: 0.08,
+          stroke: 'category',
+          strokeWidth: 1.5,
+          strokeOpacity: 0.4
+        })
+      );
+    }
+
+    // Layer 5: Main Data Points (Centered image tags) with Dynamic Opacity Scale
+    const markerOpacity = filteredData.length > 80 ? 0.6 : (filteredData.length > 30 ? 0.8 : 1.0);
+    
     marks.push(
       Plot.image(filteredData, {
         x: getX,
@@ -248,6 +250,7 @@ export default function EquipmentChartPlot({
         width: 28,
         height: 28,
         title: d => d.name,
+        opacity: markerOpacity,
         render: withDataId(filteredData)
       })
     );
@@ -312,7 +315,7 @@ export default function EquipmentChartPlot({
       const item = filteredData.find(d => d.id === itemId);
       if (!item || !itemId) return;
 
-      const isInSet = customSet.some(s => s.id === itemId);
+      const isInSet = customSetRef.current.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
 
       // Store attributes on DOM node
@@ -464,7 +467,67 @@ export default function EquipmentChartPlot({
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, customSet, paretoIds, paretoItems, xLog, yLog]);
+  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, paretoIds, paretoItems, xLog, yLog]);
+
+  // Secondary effect to sync customSet styling without rebuilding the plot
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const images = containerRef.current.querySelectorAll('image');
+    images.forEach((img) => {
+      const itemId = img.getAttribute('data-id');
+      const item = filteredData.find(d => d.id === itemId);
+      if (!item || !itemId) return;
+
+      const isInSet = customSet.some(s => s.id === itemId);
+      const isOptimal = paretoIds.has(itemId);
+
+      const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
+      
+      const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
+        if (auraSize === 0) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+
+        const isFocalItem = isOpt || inSet;
+        const color = isFocalItem ? '#fbbf24' : initialColor;
+
+        if (!isFocalItem && filteredData.length > 80) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+
+        if ((auraStyle as string) === 'outline') {
+          const t = auraSize <= 3 ? 1 : auraSize <= 7 ? 2 : 3;
+
+          if (isOpt) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
+            return `drop-shadow(0 0 3px #fbbf24) ${baseOutline}`;
+          }
+          if (inSet) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
+            return `drop-shadow(0 0 2px #fbbf24) ${baseOutline}`;
+          }
+          
+          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px ${color})`;
+        }
+
+        if (isOpt) {
+          return `drop-shadow(0 0 ${auraSize * 2.5}px #fbbf24) drop-shadow(0 0 ${auraSize}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+        }
+        if (inSet) {
+          return `drop-shadow(0 0 ${auraSize * 2}px #fbbf24) drop-shadow(0 0 ${auraSize * 0.7}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+        }
+
+        return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+      };
+
+      img.style.filter = getGlowFilter(isOptimal, isInSet);
+      if (isOptimal || isInSet) {
+        img.style.opacity = '1';
+      } else {
+        img.style.opacity = '0.85';
+      }
+    });
+  }, [customSet, paretoIds, colorVar, colorMinMax, simulationContext, auraSize, auraStyle, filteredData]);
 
   if (filteredData.length === 0) {
     return (

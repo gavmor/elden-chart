@@ -29,9 +29,6 @@ interface SidebarProps {
   activeGame: 'elden-ring' | 'deadlock';
   selectedHero: string | null;
   onHeroChange: (hero: string | null) => void;
-  targetConfig: import('../types').TargetConfiguration;
-  onTargetSpiritResistanceChange: (val: number) => void;
-  onTargetBulletResistanceChange: (val: number) => void;
   simulationContext?: import('../types').SimulationContext;
 }
 
@@ -53,18 +50,15 @@ export default function EquipmentChartSidebar({
   activeGame,
   selectedHero,
   onHeroChange,
-  targetConfig,
-  onTargetSpiritResistanceChange,
-  onTargetBulletResistanceChange,
   simulationContext
 }: SidebarProps) {
   // Precompute trait counts for all available stats based on filtered items
-  const traitCounts = useMemo(() => {
+  console.time("traitCounts"); const traitCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const opt of statOptions) {
       counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id, simulationContext) > 0).length;
     }
-    return counts;
+    console.timeEnd("traitCounts"); return counts;
   }, [statOptions, filteredData, simulationContext]);
 
   // Group stat options for color dropdown
@@ -119,30 +113,6 @@ export default function EquipmentChartSidebar({
               <option value="Seven">Seven</option>
               <option value="Haze">Haze</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Target Spirit Res: {(targetConfig.targetSpiritResistance * 100).toFixed(0)}%</label>
-            <input
-              type="range"
-              min="-0.5"
-              max="1"
-              step="0.01"
-              value={targetConfig.targetSpiritResistance}
-              onChange={(e) => onTargetSpiritResistanceChange(parseFloat(e.target.value))}
-              className="w-full accent-brand-accent"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Target Bullet Res: {(targetConfig.targetBulletResistance * 100).toFixed(0)}%</label>
-            <input
-              type="range"
-              min="-0.5"
-              max="1"
-              step="0.01"
-              value={targetConfig.targetBulletResistance}
-              onChange={(e) => onTargetBulletResistanceChange(parseFloat(e.target.value))}
-              className="w-full accent-brand-accent"
-            />
           </div>
         </div>
       )}
