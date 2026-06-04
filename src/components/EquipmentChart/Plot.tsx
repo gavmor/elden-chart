@@ -433,8 +433,9 @@ export default function EquipmentChartPlot({
         img.setAttribute('y', orgY.toString());
 
         // Restore original visual states
-        img.style.filter = getGlowFilter(isOptimal, isInSet);
-        if (isOptimal || isInSet) {
+        const currentlyInSet = customSetRef.current.some(s => s.id === itemId);
+        img.style.filter = getGlowFilter(isOptimal, currentlyInSet);
+        if (isOptimal || currentlyInSet) {
           img.style.opacity = '1';
         } else {
           img.style.opacity = '0.85';
@@ -473,10 +474,16 @@ export default function EquipmentChartPlot({
   useEffect(() => {
     if (!containerRef.current) return;
     const images = containerRef.current.querySelectorAll('image');
+    const hoveredImg = containerRef.current.querySelector('image:hover');
+
     images.forEach((img) => {
       const itemId = img.getAttribute('data-id');
       const item = filteredData.find(d => d.id === itemId);
       if (!item || !itemId) return;
+
+      // Do not overwrite the currently hovered item's styling, as that causes the highlight to "lag"
+      // or vanish on click! The handleMouseLeave listener will cleanly restore the fresh state later.
+      if (img === hoveredImg) return;
 
       const isInSet = customSet.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
@@ -521,10 +528,11 @@ export default function EquipmentChartPlot({
       };
 
       img.style.filter = getGlowFilter(isOptimal, isInSet);
-      if (isOptimal || isInSet) {
-        img.style.opacity = '1';
+      
+      if (hoveredImg) {
+        img.style.opacity = (isOptimal || isInSet) ? '0.7' : '0.15';
       } else {
-        img.style.opacity = '0.85';
+        img.style.opacity = (isOptimal || isInSet) ? '1' : '0.85';
       }
     });
   }, [customSet, paretoIds, colorVar, colorMinMax, simulationContext, auraSize, auraStyle, filteredData]);
