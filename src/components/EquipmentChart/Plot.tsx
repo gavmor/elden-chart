@@ -386,6 +386,7 @@ export default function EquipmentChartPlot({
 
       // Mouse Hover Interaction Handlers
       const handleMouseEnter = (e: MouseEvent) => {
+        containerRef.current?.setAttribute('data-hovered-id', itemId);
         const hoverW = 46;
         const hoverH = 46;
         const deltaW = hoverW - orgW;
@@ -427,6 +428,7 @@ export default function EquipmentChartPlot({
       };
 
       const handleMouseLeave = () => {
+        containerRef.current?.removeAttribute('data-hovered-id');
         img.setAttribute('width', orgW.toString());
         img.setAttribute('height', orgH.toString());
         img.setAttribute('x', orgX.toString());
@@ -474,7 +476,9 @@ export default function EquipmentChartPlot({
   useEffect(() => {
     if (!containerRef.current) return;
     const images = containerRef.current.querySelectorAll('image');
-    const hoveredImg = containerRef.current.querySelector('image:hover');
+    
+    // Read the globally tracked hovered item ID
+    const hoveredId = containerRef.current.getAttribute('data-hovered-id');
 
     images.forEach((img) => {
       const itemId = img.getAttribute('data-id');
@@ -483,7 +487,7 @@ export default function EquipmentChartPlot({
 
       // Do not overwrite the currently hovered item's styling, as that causes the highlight to "lag"
       // or vanish on click! The handleMouseLeave listener will cleanly restore the fresh state later.
-      if (img === hoveredImg) return;
+      if (itemId === hoveredId) return;
 
       const isInSet = customSet.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
@@ -529,7 +533,7 @@ export default function EquipmentChartPlot({
 
       img.style.filter = getGlowFilter(isOptimal, isInSet);
       
-      if (hoveredImg) {
+      if (hoveredId) {
         img.style.opacity = (isOptimal || isInSet) ? '0.7' : '0.15';
       } else {
         img.style.opacity = (isOptimal || isInSet) ? '1' : '0.85';
