@@ -404,7 +404,9 @@ export default function EquipmentChartPlot({
         }
 
         // Apply powerful drop shadow glow
-        img.style.filter = `drop-shadow(0 0 12px ${initialColor}) drop-shadow(0 0 4px ${initialColor})`;
+        const currentlyInSet = customSetRef.current.some(s => s.id === itemId);
+        const hoverColor = (isOptimal || currentlyInSet) ? '#fbbf24' : initialColor;
+        img.style.filter = `drop-shadow(0 0 12px ${hoverColor}) drop-shadow(0 0 4px ${hoverColor})`;
         img.style.opacity = '1';
 
         // Dim other images (read customSet from ref for latest value)
@@ -485,14 +487,17 @@ export default function EquipmentChartPlot({
       const item = filteredData.find(d => d.id === itemId);
       if (!item || !itemId) return;
 
-      // Do not overwrite the currently hovered item's styling, as that causes the highlight to "lag"
-      // or vanish on click! The handleMouseLeave listener will cleanly restore the fresh state later.
-      if (itemId === hoveredId) return;
-
       const isInSet = customSet.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
 
       const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
+
+      // If this is the currently hovered item, update its hover glow color immediately but do NOT touch anything else
+      if (itemId === hoveredId) {
+        const hoverColor = (isOptimal || isInSet) ? '#fbbf24' : initialColor;
+        img.style.filter = `drop-shadow(0 0 12px ${hoverColor}) drop-shadow(0 0 4px ${hoverColor})`;
+        return;
+      }
       
       const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
         if (auraSize === 0) {
