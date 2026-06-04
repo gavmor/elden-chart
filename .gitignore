@@ -29,4 +29,7 @@ ruvector.db
 
 # Developer scratch files
 scratch*.js
+scratch*.ts
+scratch*.cjs
+scratch/
 
