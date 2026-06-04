@@ -54,7 +54,7 @@ export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] 
       return {
         id: String(upgrade.id),
         name: upgrade.name,
-        image: upgrade.image ?? null,
+        image: upgrade.image ?? (upgrade as unknown as { shop_image?: string }).shop_image ?? null,
         category: upgrade.item_slot_type,
         description: upgrade.description?.desc ?? '',
         weight: upgrade.cost ?? 0,
@@ -121,7 +121,7 @@ export const transformDeadlockAbilities = (
       return {
         id: String(ability.id),
         name: ability.name,
-        image: ability.image ?? null,
+        image: ability.image ?? (ability as unknown as { shop_image?: string }).shop_image ?? null,
         category: ability.ability_type ?? 'signature',
         description: ability.description?.desc ?? '',
         weight: ability.ability_type === 'ultimate' ? 3000 : 400,
