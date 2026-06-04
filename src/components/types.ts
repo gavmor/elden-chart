@@ -91,3 +91,26 @@ export interface ActiveCategories {
   [key: string]: boolean;
 }
 
+export interface SpiritConversion {
+  stat: 'ammo' | 'fireRate' | string;
+  multiplier: number;
+}
+
+export interface AbilityCoefficient {
+  abilityName: string;
+  type: 'ranged' | 'healing' | 'duration' | 'other';
+  coefficient: number;
+}
+
+export interface Hero {
+  name: string;
+  shotTime: number;
+  pauseTime: number;
+  spiritConversions: SpiritConversion[];
+  abilityCoefficients: AbilityCoefficient[];
+}
+
+export interface SimulationContext {
+  hero: Hero;
+  customSet: EquipmentItem[];
+}

@@ -11,6 +11,7 @@ interface TooltipProps {
   yVar: string;
   colorVar: ColorKey;
   colorMinMax: { min: number; max: number } | null;
+  simulationContext?: import('../types').SimulationContext;
 }
 
 const kindLabel: Record<string, string> = {
@@ -35,9 +36,10 @@ export default function EquipmentChartTooltip({
   xVar,
   yVar,
   colorVar,
-  colorMinMax
+  colorMinMax,
+  simulationContext
 }: TooltipProps) {
-  const color = getItemColor(item, colorVar, colorMinMax);
+  const color = getItemColor(item, colorVar, colorMinMax, simulationContext);
 
   const isDeadlock = item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability';
 
@@ -89,11 +91,11 @@ export default function EquipmentChartTooltip({
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{xLabel}</span>
-            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, xVar))}</span>
+            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, xVar, simulationContext))}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{yLabel}</span>
-            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, yVar))}</span>
+            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, yVar, simulationContext))}</span>
           </div>
         </div>
       </div>

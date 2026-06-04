@@ -8,6 +8,8 @@ import { BuildSet } from '../domain/BuildSet';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
 import { useDeadlockData, useDeadlockAbilitiesData } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
+import { useDeadlockTargetState } from '../../hooks/useDeadlockTargetState';
+import { HERO_DICTIONARY, DEFAULT_HERO } from '../heroes';
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
@@ -15,7 +17,7 @@ import EquipmentChartTooltip from './Tooltip';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
-export default function EquipmentChart() {
+export default function EquipmentChart() { console.time("EquipmentChart render");
   // Fetch Elden Ring equipment data
   const { data: eldenEquipment = [], isLoading: isEldenLoading, error: eldenError } = useEquipmentData();
 
@@ -57,7 +59,7 @@ export default function EquipmentChart() {
 
   // Clean up debounce timer on component unmount
   useEffect(() => {
-    return () => {
+    console.timeEnd("EquipmentChart render"); return () => {
       if (searchDebounceTimer.current) {
         clearTimeout(searchDebounceTimer.current);
       }
@@ -82,6 +84,9 @@ export default function EquipmentChart() {
   // Set Planner State
   const [customSet, setCustomSet] = useState<EquipmentItem[]>([]);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+
+  // Deadlock Target Settings
+  const deadlockState = useDeadlockTargetState();
 
   // Interaction State
   const [hoveredItem, setHoveredItem] = useState<EquipmentItem | null>(null);
@@ -133,12 +138,35 @@ export default function EquipmentChart() {
   }, [categoryGroups, equipment, searchParams, validatedParams.cats, setParam, activeGame]);
 
   const filteredData = useMemo(() => {
-    return equipment.filter(item => {
+    const baseFiltered = equipment.filter(item => {
       if (!activeCategories[item.category]) return false;
       if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
+
+    return baseFiltered;
   }, [equipment, activeCategories, search]);
+
+  const syncedCustomSet = useMemo(() => {
+    return customSet.map(savedItem => {
+      const latest = filteredData.find(d => d.id === savedItem.id);
+      return latest || savedItem;
+    });
+  }, [customSet, filteredData]);
+
+  const simulationContext = useMemo(() => {
+    return {
+      hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
+      customSet: syncedCustomSet
+    };
+  }, [deadlockState.selectedHero, syncedCustomSet]);
+
+  const vacuumContext = useMemo(() => {
+    return {
+      hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
+      customSet: []
+    };
+  }, [deadlockState.selectedHero]);
 
   // Dynamic stat options based on filtered data
   const statOptions = useMemo(() => {
@@ -161,16 +189,16 @@ export default function EquipmentChart() {
 
   const colorMinMax = useMemo(() => {
     if (resolvedColorVar === 'category') return null;
-    const values = filteredData.map(d => getItemStat(d, resolvedColorVar));
+    const values = filteredData.map(d => getItemStat(d, resolvedColorVar, vacuumContext));
     if (values.length === 0) return null;
     return { min: Math.min(...values), max: Math.max(...values) };
-  }, [filteredData, resolvedColorVar]);
+  }, [filteredData, resolvedColorVar, vacuumContext]);
 
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar));
-    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar));
+    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar, vacuumContext));
+    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar, vacuumContext));
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -185,7 +213,7 @@ export default function EquipmentChart() {
     const yMax = yMaxRaw + yRange * 0.05;
 
     return { xMin, xMax, yMin, yMax };
-  }, [filteredData, resolvedXVar, resolvedYVar]);
+  }, [filteredData, resolvedXVar, resolvedYVar, vacuumContext]);
 
   const handleMouseMove = (e: MouseEvent, item: EquipmentItem) => {
     if (!chartRef.current) return;
@@ -213,11 +241,13 @@ export default function EquipmentChart() {
     });
   };
 
+
+
   const dimensions = new ChartDimensions(resolvedXVar, resolvedYVar, resolvedColorVar, validatedParams.xLog, validatedParams.yLog);
   const categoryFilter = new CategoryFilter(activeCategories);
-  const buildSet = new BuildSet(customSet);
+  const buildSet = new BuildSet(syncedCustomSet);
 
-  return (
+  console.timeEnd("EquipmentChart render"); return (
     <div className="flex flex-col h-full bg-bg-main text-text-primary font-sans overflow-hidden">
       <EquipmentChartHeader
         loading={isLoading}
@@ -253,6 +283,10 @@ export default function EquipmentChart() {
           showPareto={showPareto}
           onShowParetoChange={setShowPareto}
           filteredData={filteredData}
+          activeGame={activeGame}
+          selectedHero={deadlockState.selectedHero}
+          onHeroChange={deadlockState.setSelectedHero}
+          simulationContext={vacuumContext}
         />
 
         <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
@@ -285,6 +319,7 @@ export default function EquipmentChart() {
               customSet={customSet}
               onClickItem={handleToggleSet}
               showPareto={showPareto}
+              simulationContext={vacuumContext}
             />
           )}
 
@@ -298,6 +333,7 @@ export default function EquipmentChart() {
               yVar={resolvedYVar}
               colorVar={resolvedColorVar}
               colorMinMax={colorMinMax}
+              simulationContext={simulationContext}
             />
           )}
         </main>
@@ -308,7 +344,8 @@ export default function EquipmentChart() {
           <EquipmentCompareModal
             isOpen={isCompareOpen}
             onClose={() => setIsCompareOpen(false)}
-            customSet={customSet}
+            customSet={syncedCustomSet}
+            simulationContext={simulationContext}
           />
         )}
       </Suspense>

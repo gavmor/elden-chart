@@ -20,6 +20,7 @@ interface PlotProps {
   customSet: EquipmentItem[];
   onClickItem: (item: EquipmentItem) => void;
   showPareto: boolean;
+  simulationContext?: import('../types').SimulationContext;
 }
 
 export default function EquipmentChartPlot({
@@ -37,7 +38,8 @@ export default function EquipmentChartPlot({
   onLeavePlot,
   customSet,
   onClickItem,
-  showPareto
+  showPareto,
+  simulationContext
 }: PlotProps) {
   const auraSize: number = 3;
   const auraStyle: 'glow' | 'outline' = 'glow';
@@ -73,8 +75,8 @@ export default function EquipmentChartPlot({
   // 2. Compute Pareto optimal items using useMemo
   const paretoItems = useMemo(() => {
     if (!showPareto) return [];
-    return getParetoFrontier(filteredData, xVar, yVar);
-  }, [filteredData, xVar, yVar, showPareto]);
+    return getParetoFrontier(filteredData, xVar, yVar, simulationContext);
+  }, [filteredData, xVar, yVar, showPareto, simulationContext]);
 
   // Create a Set of Pareto IDs for O(1) checks during element styling
   const paretoIds = useMemo(() => {
@@ -89,10 +91,10 @@ export default function EquipmentChartPlot({
     containerRef.current.innerHTML = '';
 
     // Compute clamped ranges to clamp any Infinity or extreme values visually to plot bounds
-    const xRange = getStatRangeClamped(filteredData, xVar);
-    const yRange = getStatRangeClamped(filteredData, yVar);
-    const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max);
-    const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max);
+    const xRange = getStatRangeClamped(filteredData, xVar, simulationContext);
+    const yRange = getStatRangeClamped(filteredData, yVar, simulationContext);
+    const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max, simulationContext);
+    const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max, simulationContext);
 
     // Recreate the wrappers for Y/X labels which were absolute positioned
     const yLabelEl = document.createElement('div');
@@ -106,48 +108,22 @@ export default function EquipmentChartPlot({
     containerRef.current.appendChild(yLabelEl);
     containerRef.current.appendChild(xLabelEl);
 
-    // Compute pixel jitter to resolve overlapping points
-    const positionCounts = new Map<string, number>();
-    const itemJitter = new Map<string, {dx: number, dy: number}>();
-
-    filteredData.forEach(d => {
-      const x = getX(d);
-      const y = getY(d);
-      const key = `${x},${y}`;
-      positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
-    });
-
-    const positionCurrent = new Map<string, number>();
-    filteredData.forEach(d => {
-      const x = getX(d);
-      const y = getY(d);
-      const key = `${x},${y}`;
-      const total = positionCounts.get(key) || 1;
-      if (total > 1) {
-        const idx = positionCurrent.get(key) || 0;
-        positionCurrent.set(key, idx + 1);
-        
-        // Spread points in a circle around the center
-        const radius = 6 + Math.min(total, 10); // scale radius slightly with cluster size
-        const angle = (idx / total) * Math.PI * 2;
-        itemJitter.set(d.id, { dx: Math.cos(angle) * radius, dy: Math.sin(angle) * radius });
-      } else {
-        itemJitter.set(d.id, { dx: 0, dy: 0 });
-      }
-    });
-
-    const withJitter = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
+    // We apply data-id to all drawn shapes (images, dots) so that our high-performance
+    const withDataId = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
       return (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
-        const group = baseRender ? baseRender(index, scales, values, dimensions, context, next) : (next ? next(index, scales, values, dimensions, context) : null);
+        const renderFn = baseRender || next;
+        const group = renderFn ? renderFn(index, scales, values, dimensions, context, next) : null;
+        
         if (group) {
-          const elements = Array.from(group.childNodes) as SVGElement[];
+          const allNodes = Array.from(group.childNodes) as SVGElement[];
+          // Filter to only shapes that map 1-to-1 with data points.
+          // Plot.js often injects <title> siblings which would misalign the index mapping.
+          const elements = allNodes.filter(n => n.nodeName === 'image' || n.nodeName === 'circle');
+          
           index.forEach((dataIndex, i) => {
             const d = dataArray[dataIndex];
-            const jitter = itemJitter.get(d?.id);
-            if (jitter && (jitter.dx !== 0 || jitter.dy !== 0) && elements[i]) {
-              const el = elements[i];
-              const existing = el.getAttribute('transform') || '';
-              el.setAttribute('transform', `${existing} translate(${jitter.dx}, ${jitter.dy})`.trim());
+            if (elements[i] && d?.id) {
+              elements[i].setAttribute('data-id', d.id);
             }
           });
         }
@@ -204,7 +180,7 @@ export default function EquipmentChartPlot({
           stroke: '#fbbf24',
           strokeWidth: 1,
           opacity: 0.7,
-          render: withJitter(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
+          render: withDataId(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
             const group = next?.(index, scales, values, dimensions, context);
             if (group) {
               const circles = group.querySelectorAll('circle');
@@ -218,22 +194,7 @@ export default function EquipmentChartPlot({
       );
     }
 
-    // Layer 4: Active Set Indicators (Dashed rings behind set items)
-    const setIndices = filteredData.filter(d => customSet.some(s => s.id === d.id));
-    if (setIndices.length > 0) {
-      marks.push(
-        Plot.dot(setIndices, {
-          x: getX,
-          y: getY,
-          r: 20,
-          fill: 'none',
-          stroke: '#fbbf24',
-          strokeWidth: 1.5,
-          strokeDasharray: '3 3',
-          render: withJitter(setIndices)
-        })
-      );
-    }
+    // Layer 4 removed (handled via secondary glow effect)
 
     // Layer 4.5: Active Item Indicators (Golden rings around active items)
     const activeItems = filteredData.filter(d => d.isActive);
@@ -246,7 +207,7 @@ export default function EquipmentChartPlot({
           fill: 'none',
           stroke: '#facc15',
           strokeWidth: 2,
-          render: withJitter(activeItems)
+          render: withDataId(activeItems)
         })
       );
       marks.push(
@@ -258,21 +219,39 @@ export default function EquipmentChartPlot({
           stroke: '#facc15',
           strokeWidth: 6,
           opacity: 0.25,
-          render: withJitter(activeItems)
+          render: withDataId(activeItems)
         })
       );
     }
 
-    // Layer 5: Main Data Points (Centered image tags)
+    // Layer 4.75: Category Hulls to prevent visual fog (Marker Design Optimization)
+    if (colorVar === 'category') {
+      marks.push(
+        Plot.hull(filteredData, {
+          x: getX,
+          y: getY,
+          fill: 'category',
+          fillOpacity: 0.08,
+          stroke: 'category',
+          strokeWidth: 1.5,
+          strokeOpacity: 0.4
+        })
+      );
+    }
+
+    // Layer 5: Main Data Points (Centered image tags) with Dynamic Opacity Scale
+    const markerOpacity = filteredData.length > 80 ? 0.6 : (filteredData.length > 30 ? 0.8 : 1.0);
+    
     marks.push(
       Plot.image(filteredData, {
         x: getX,
         y: getY,
-        src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax)),
+        src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax, simulationContext)),
         width: 28,
         height: 28,
         title: d => d.name,
-        render: withJitter(filteredData)
+        opacity: markerOpacity,
+        render: withDataId(filteredData)
       })
     );
 
@@ -331,17 +310,16 @@ export default function EquipmentChartPlot({
 
     // 4. Attach high-performance DOM pointer listeners
     const images = plot.querySelectorAll('image');
-    images.forEach((img, i) => {
-      const item = filteredData[i];
-      if (!item) return;
+    images.forEach((img) => {
+      const itemId = img.getAttribute('data-id');
+      const item = filteredData.find(d => d.id === itemId);
+      if (!item || !itemId) return;
 
-      const itemId = item.id;
-      const isInSet = customSet.some(s => s.id === itemId);
+      const isInSet = customSetRef.current.some(s => s.id === itemId);
       const isOptimal = paretoIds.has(itemId);
 
       // Store attributes on DOM node
       img.setAttribute('data-id', itemId);
-      img.setAttribute('data-index', i.toString());
 
       const orgX = parseFloat(img.getAttribute('x') || '0');
       const orgY = parseFloat(img.getAttribute('y') || '0');
@@ -489,7 +467,67 @@ export default function EquipmentChartPlot({
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, customSet, paretoIds, paretoItems, xLog, yLog]);
+  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, paretoIds, paretoItems, xLog, yLog]);
+
+  // Secondary effect to sync customSet styling without rebuilding the plot
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const images = containerRef.current.querySelectorAll('image');
+    images.forEach((img) => {
+      const itemId = img.getAttribute('data-id');
+      const item = filteredData.find(d => d.id === itemId);
+      if (!item || !itemId) return;
+
+      const isInSet = customSet.some(s => s.id === itemId);
+      const isOptimal = paretoIds.has(itemId);
+
+      const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
+      
+      const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
+        if (auraSize === 0) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+
+        const isFocalItem = isOpt || inSet;
+        const color = isFocalItem ? '#fbbf24' : initialColor;
+
+        if (!isFocalItem && filteredData.length > 80) {
+          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
+        }
+
+        if ((auraStyle as string) === 'outline') {
+          const t = auraSize <= 3 ? 1 : auraSize <= 7 ? 2 : 3;
+
+          if (isOpt) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
+            return `drop-shadow(0 0 3px #fbbf24) ${baseOutline}`;
+          }
+          if (inSet) {
+            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
+            return `drop-shadow(0 0 2px #fbbf24) ${baseOutline}`;
+          }
+          
+          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px ${color})`;
+        }
+
+        if (isOpt) {
+          return `drop-shadow(0 0 ${auraSize * 2.5}px #fbbf24) drop-shadow(0 0 ${auraSize}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+        }
+        if (inSet) {
+          return `drop-shadow(0 0 ${auraSize * 2}px #fbbf24) drop-shadow(0 0 ${auraSize * 0.7}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+        }
+
+        return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
+      };
+
+      img.style.filter = getGlowFilter(isOptimal, isInSet);
+      if (isOptimal || isInSet) {
+        img.style.opacity = '1';
+      } else {
+        img.style.opacity = '0.85';
+      }
+    });
+  }, [customSet, paretoIds, colorVar, colorMinMax, simulationContext, auraSize, auraStyle, filteredData]);
 
   if (filteredData.length === 0) {
     return (
