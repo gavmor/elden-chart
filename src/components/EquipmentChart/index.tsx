@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import type { EquipmentItem, ActiveCategories } from '../types';
-import { getItemStat, getAvailableStats, getActiveCategories } from '../utils';
+import { getItemStat, getAvailableStats, getActiveCategories } from '../domain/math';
 import { ChartDimensions } from '../domain/ChartDimensions';
 import { CategoryFilter } from '../domain/CategoryFilter';
 import { BuildSet } from '../domain/BuildSet';

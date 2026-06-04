@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getItemStat } from './utils';
+import { getItemStat } from './domain/math';
 import type { EquipmentItem, SimulationContext } from './types';
 import { DEFAULT_HERO } from './heroes';
 

@@ -62,11 +62,7 @@
   --color-deadlock-vitality: #6f8724;
   --color-deadlock-spirit: #ba5ca6;
 
-  /* --- Centralized Sizing Scales --- */
-  --spacing-sidebar: 20rem; /* w-80 */
-  --spacing-tooltip: 16rem; /* w-64 */
-  --spacing-item-sm: 2.5rem; /* w-10/h-10 */
-  --spacing-item-md: 3rem; /* w-12/h-12 */
+
 
   /* --- Typography Sizes --- */
   --text-xxs: 0.625rem; /* 10px */

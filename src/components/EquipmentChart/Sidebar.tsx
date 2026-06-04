@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Info } from 'lucide-react';
 import type { EquipmentItem, StatOption, EquipmentKind } from '../types';
-import { getItemStat } from '../utils';
+import { getItemStat } from '../domain/math';
 import type { ChartDimensions } from '../domain/ChartDimensions';
 import type { CategoryFilter } from '../domain/CategoryFilter';
 import type { BuildSet } from '../domain/BuildSet';
@@ -69,7 +69,7 @@ export default function EquipmentChartSidebar({
   }, {});
 
   return (
-    <aside className="w-sidebar bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
+    <aside className="w-80 bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
       <SidebarSearch search={search} onSearchChange={onSearchChange} />
       
       <SidebarAxes 

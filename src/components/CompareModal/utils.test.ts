@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getHeatmapBg, getStatRange } from '../utils';
+import { getHeatmapBg } from '../display/styling';
+import { getStatRange } from '../domain/math';
 import { helmItem, chestItem, gauntletsItem } from './test-fixtures';
 
 describe('getHeatmapBg', () => {

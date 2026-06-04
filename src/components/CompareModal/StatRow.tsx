@@ -1,5 +1,5 @@
 import type { EquipmentItem } from '../types';
-import { getItemStat, getStatRange } from '../utils';
+import { getItemStat, getStatRange } from '../domain/math';
 import CompareModalStatCell from './StatCell';
 
 interface Props {

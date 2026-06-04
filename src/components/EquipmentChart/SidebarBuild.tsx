@@ -1,5 +1,5 @@
 import { Scale, X } from 'lucide-react';
-import { getCategoryIcon } from '../utils';
+import { getCategoryIcon } from '../display/logic';
 import type { BuildSet } from '../domain/BuildSet';
 
 interface SidebarBuildProps {
@@ -22,7 +22,7 @@ export function SidebarBuild({ buildSet, onBuildSetChange, onCompareSet }: Sideb
             {buildSet.items.map(item => (
               <div
                 key={`set-${item.id}`}
-                className="relative w-item-sm h-item-sm rounded-btn bg-bg-card-dark border border-border-main hover:border-brand-danger cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
+                className="relative w-10 h-10 rounded-btn bg-bg-card-dark border border-border-main hover:border-brand-danger cursor-pointer flex items-center justify-center transition-all overflow-hidden group/set-item"
                 onClick={() => onBuildSetChange(buildSet.withRemoved(item))}
                 title={`${item.name} (Click to remove)`}
               >

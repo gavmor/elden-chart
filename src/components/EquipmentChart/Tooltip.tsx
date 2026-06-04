@@ -1,6 +1,8 @@
 import { Weight } from 'lucide-react';
 import type { EquipmentItem, ColorKey } from '../types';
-import { getCategoryIcon, getItemStat, getItemColor } from '../utils';
+import { getItemStat } from '../domain/math';
+import { getItemColor } from '../display/styling';
+import { getCategoryIcon } from '../display/logic';
 
 interface TooltipProps {
   item: EquipmentItem;
@@ -45,7 +47,7 @@ export default function EquipmentChartTooltip({
 
   return (
     <div
-      className="absolute z-30 w-tooltip bg-bg-card border border-border-main shadow-2xl rounded-card overflow-hidden pointer-events-none transition-transform duration-75 ease-out"
+      className="absolute z-30 w-64 bg-bg-card border border-border-main shadow-2xl rounded-card overflow-hidden pointer-events-none transition-transform duration-75 ease-out"
       style={{
         transform: `translate(${tooltipPos.x}px, ${tooltipPos.y}px)`,
       }}
@@ -56,7 +58,7 @@ export default function EquipmentChartTooltip({
       />
       <div className="p-4">
         <div className="flex items-start gap-4 mb-3">
-          <div className="w-item-md h-item-md rounded-btn bg-bg-sidebar flex-shrink-0 flex items-center justify-center border border-border-main overflow-hidden">
+          <div className="w-12 h-12 rounded-btn bg-bg-sidebar flex-shrink-0 flex items-center justify-center border border-border-main overflow-hidden">
             {item.image ? (
               <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
             ) : (

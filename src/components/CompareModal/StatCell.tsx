@@ -1,4 +1,4 @@
-import { getHeatmapBg } from '../utils';
+import { getHeatmapBg } from '../display/styling';
 
 interface Props {
   value: number;

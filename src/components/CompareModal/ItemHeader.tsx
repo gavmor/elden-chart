@@ -1,5 +1,5 @@
 import type { EquipmentItem } from '../types';
-import { getCategoryIcon } from '../utils';
+import { getCategoryIcon } from '../display/logic';
 
 interface Props {
   item: EquipmentItem;

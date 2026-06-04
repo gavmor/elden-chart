@@ -1,7 +1,13 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as Plot from '@observablehq/plot';
 import type { EquipmentItem, ColorKey } from '../types';
-import { getItemColor, getItemImageUrl, getParetoFrontier, getStatRangeClamped, getClampedItemStat } from '../utils';
+import { getParetoFrontier, getStatRangeClamped, getClampedItemStat } from '../domain/math';
+
+// Refactored hooks and helpers
+import { useContainerSize } from './useContainerSize';
+import { usePlotStableRefs } from './usePlotStableRefs';
+import { buildPlotMarks } from './plotMarks';
+import { setupPlotInteractions, syncCustomSetStyles } from './plotInteractions';
 
 interface PlotProps {
   filteredData: EquipmentItem[];
@@ -44,59 +50,36 @@ export default function EquipmentChartPlot({
   const auraSize: number = 3;
   const auraStyle: 'glow' | 'outline' = 'glow';
   const containerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState({ width: 600, height: 400 });
-
-  // Stable refs for callbacks — updated synchronously before the effect reads them
-  const onHoverItemRef = useRef(onHoverItem);
-  const onLeavePlotRef = useRef(onLeavePlot);
-  const onClickItemRef = useRef(onClickItem);
-  const customSetRef = useRef(customSet);
-  // useLayoutEffect keeps updates synchronous (before paint) without triggering a re-render
-  React.useLayoutEffect(() => {
-    onHoverItemRef.current = onHoverItem;
-    onLeavePlotRef.current = onLeavePlot;
-    onClickItemRef.current = onClickItem;
-    customSetRef.current = customSet;
+  
+  const hasData = filteredData.length > 0;
+  const size = useContainerSize(containerRef, hasData);
+  
+  const refs = usePlotStableRefs({
+    onHoverItem,
+    onLeavePlot,
+    onClickItem,
+    customSet
   });
 
-  // 1. Hook ResizeObserver to measure the container size in real-time
-  const hasData = filteredData.length > 0;
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      if (!entries || entries.length === 0) return;
-      const { width, height } = entries[0].contentRect;
-      setSize({ width: Math.max(width, 100), height: Math.max(height, 100) });
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, [hasData]);
-
-  // 2. Compute Pareto optimal items using useMemo
   const paretoItems = useMemo(() => {
     if (!showPareto) return [];
     return getParetoFrontier(filteredData, xVar, yVar, simulationContext);
   }, [filteredData, xVar, yVar, showPareto, simulationContext]);
 
-  // Create a Set of Pareto IDs for O(1) checks during element styling
   const paretoIds = useMemo(() => {
     return new Set(paretoItems.map(item => item.id));
   }, [paretoItems]);
 
-  // 3. Render the Plot inside useEffect
   useEffect(() => {
     if (!containerRef.current || filteredData.length === 0) return;
 
-    // Clear previous children just in case
     containerRef.current.innerHTML = '';
 
-    // Compute clamped ranges to clamp any Infinity or extreme values visually to plot bounds
     const xRange = getStatRangeClamped(filteredData, xVar, simulationContext);
     const yRange = getStatRangeClamped(filteredData, yVar, simulationContext);
     const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max, simulationContext);
     const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max, simulationContext);
 
-    // Recreate the wrappers for Y/X labels which were absolute positioned
     const yLabelEl = document.createElement('div');
     yLabelEl.className = "absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-label font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap";
     yLabelEl.innerText = yLabel;
@@ -108,164 +91,26 @@ export default function EquipmentChartPlot({
     containerRef.current.appendChild(yLabelEl);
     containerRef.current.appendChild(xLabelEl);
 
-    // We apply data-id to all drawn shapes (images, dots) so that our high-performance
-    const withDataId = (dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction) => {
-      return (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
-        const renderFn = baseRender || next;
-        const group = renderFn ? renderFn(index, scales, values, dimensions, context, next) : null;
-        
-        if (group) {
-          const allNodes = Array.from(group.childNodes) as SVGElement[];
-          // Filter to only shapes that map 1-to-1 with data points.
-          // Plot.js often injects <title> siblings which would misalign the index mapping.
-          const elements = allNodes.filter(n => n.nodeName === 'image' || n.nodeName === 'circle');
-          
-          index.forEach((dataIndex, i) => {
-            const d = dataArray[dataIndex];
-            if (elements[i] && d?.id) {
-              elements[i].setAttribute('data-id', d.id);
-            }
-          });
-        }
-        return group ?? null;
-      };
-    };
+    const marks = buildPlotMarks({
+      filteredData,
+      paretoItems,
+      showPareto,
+      colorVar,
+      colorMinMax,
+      simulationContext,
+      getX,
+      getY
+    });
 
-    // Build Plot marks list
-    const marks: Plot.Markish[] = [];
-
-    // Layer 1: Pareto Path Glow (Thick blurred line)
-    if (showPareto && paretoItems.length > 1) {
-      marks.push(
-        Plot.line(paretoItems, {
-          x: getX,
-          y: getY,
-          stroke: '#fbbf24',
-          strokeWidth: 6,
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round',
-          opacity: 0.15,
-          render: (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
-            const path = next?.(index, scales, values, dimensions, context);
-            if (path) {
-              path.setAttribute('style', 'filter: blur(4px);');
-            }
-            return path ?? null;
-          }
-        })
-      );
-
-      // Layer 2: Pareto Path Core (Dashed line)
-      marks.push(
-        Plot.line(paretoItems, {
-          x: getX,
-          y: getY,
-          stroke: '#fbbf24',
-          strokeWidth: 2,
-          strokeDasharray: '6 4',
-          strokeLinecap: 'round',
-          strokeLinejoin: 'round'
-        })
-      );
-    }
-
-    // Layer 3: Pareto Halos (Glowing backgrounds behind optimal dots)
-    if (showPareto && paretoItems.length > 0) {
-      marks.push(
-        Plot.dot(paretoItems, {
-          x: getX,
-          y: getY,
-          r: 16,
-          fill: 'rgba(251, 191, 36, 0.08)',
-          stroke: '#fbbf24',
-          strokeWidth: 1,
-          opacity: 0.7,
-          render: withDataId(paretoItems, (index: number[], scales: Plot.ScaleFunctions, values: Plot.ChannelValues, dimensions: Plot.Dimensions, context: Plot.Context, next?: Plot.RenderFunction) => {
-            const group = next?.(index, scales, values, dimensions, context);
-            if (group) {
-              const circles = group.querySelectorAll('circle');
-              circles.forEach((circle: SVGCircleElement) => {
-                circle.setAttribute('class', 'animate-pulse');
-              });
-            }
-            return group ?? null;
-          })
-        })
-      );
-    }
-
-    // Layer 4 removed (handled via secondary glow effect)
-
-    // Layer 4.5: Active Item Indicators (Golden rings around active items)
-    const activeItems = filteredData.filter(d => d.isActive);
-    if (activeItems.length > 0) {
-      marks.push(
-        Plot.dot(activeItems, {
-          x: getX,
-          y: getY,
-          r: 17,
-          fill: 'none',
-          stroke: '#facc15',
-          strokeWidth: 2,
-          render: withDataId(activeItems)
-        })
-      );
-      marks.push(
-        Plot.dot(activeItems, {
-          x: getX,
-          y: getY,
-          r: 22,
-          fill: 'none',
-          stroke: '#facc15',
-          strokeWidth: 6,
-          opacity: 0.25,
-          render: withDataId(activeItems)
-        })
-      );
-    }
-
-    // Layer 4.75: Category Hulls to prevent visual fog (Marker Design Optimization)
-    if (colorVar === 'category') {
-      marks.push(
-        Plot.hull(filteredData, {
-          x: getX,
-          y: getY,
-          fill: 'category',
-          fillOpacity: 0.08,
-          stroke: 'category',
-          strokeWidth: 1.5,
-          strokeOpacity: 0.4
-        })
-      );
-    }
-
-    // Layer 5: Main Data Points (Centered image tags) with Dynamic Opacity Scale
-    const markerOpacity = filteredData.length > 80 ? 0.6 : (filteredData.length > 30 ? 0.8 : 1.0);
-    
-    marks.push(
-      Plot.image(filteredData, {
-        x: getX,
-        y: getY,
-        src: d => getItemImageUrl(d, getItemColor(d, colorVar, colorMinMax, simulationContext)),
-        width: 28,
-        height: 28,
-        title: d => d.name,
-        opacity: markerOpacity,
-        render: withDataId(filteredData)
-      })
-    );
-
-    // Calculate domain bounds
     const xDomain = chartProps ? [chartProps.xMin, chartProps.xMax] : undefined;
     const yDomain = chartProps ? [chartProps.yMin, chartProps.yMax] : undefined;
 
-    // Create plot element
     const plot = Plot.plot({
       width: size.width,
       height: size.height,
       style: {
         background: 'transparent',
-        color: 'var(--color-text-tertiary)', // slate-500 ticks and texts
+        color: 'var(--color-text-tertiary)',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         position: 'absolute',
         top: '0',
@@ -294,255 +139,57 @@ export default function EquipmentChartPlot({
       marks: marks
     });
 
-    // Append to container
     containerRef.current.appendChild(plot);
 
-    // Grid lines styling overrides
     const gridLines = plot.querySelectorAll('line[stroke]');
     gridLines.forEach(line => {
       const stroke = line.getAttribute('stroke');
-      // If it's a grid line (usually light gray/default), set it to our slate-700 grid style!
       if (stroke && stroke !== '#fbbf24') {
         line.setAttribute('stroke', 'var(--color-border-main)');
         line.setAttribute('stroke-dasharray', '4 4');
       }
     });
 
-    // 4. Attach high-performance DOM pointer listeners
-    const images = plot.querySelectorAll('image');
-    images.forEach((img) => {
-      const itemId = img.getAttribute('data-id');
-      const item = filteredData.find(d => d.id === itemId);
-      if (!item || !itemId) return;
-
-      const isInSet = customSetRef.current.some(s => s.id === itemId);
-      const isOptimal = paretoIds.has(itemId);
-
-      // Store attributes on DOM node
-      img.setAttribute('data-id', itemId);
-
-      const orgX = parseFloat(img.getAttribute('x') || '0');
-      const orgY = parseFloat(img.getAttribute('y') || '0');
-      const orgW = 28;
-      const orgH = 28;
-      img.setAttribute('data-org-x', orgX.toString());
-      img.setAttribute('data-org-y', orgY.toString());
-
-      // Initial opacity based on set membership
-      img.style.opacity = isInSet ? '1' : '0.85';
-      img.style.cursor = 'pointer';
-
-      // Initial dropshadow glow if optimal or in set!
-      const initialColor = getItemColor(item, colorVar, colorMinMax);
-      const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
-        if (auraSize === 0) {
-          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
-        }
-
-        const isFocalItem = isOpt || inSet;
-        const color = isFocalItem ? '#fbbf24' : initialColor;
-
-        // Adaptive performance bypass: if dataset is large, disable complex colored drop-shadow filters on non-focal items
-        if (!isFocalItem && filteredData.length > 80) {
-          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
-        }
-
-        if ((auraStyle as string) === 'outline') {
-          // Crisp outline thickness (1px for size 1-3, 2px for size 4-7, 3px for size 8+)
-          const t = auraSize <= 3 ? 1 : auraSize <= 7 ? 2 : 3;
-
-          if (isOpt) {
-            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
-            return `drop-shadow(0 0 3px #fbbf24) ${baseOutline}`;
-          }
-          if (inSet) {
-            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
-            return `drop-shadow(0 0 2px #fbbf24) ${baseOutline}`;
-          }
-          
-          // Regular background items in a small dataset: simplify from 4 chained drop shadows to a lighter dual drop shadow
-          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px ${color})`;
-        }
-
-        // Otherwise, 'glow' style
-        if (isOpt) {
-          return `drop-shadow(0 0 ${auraSize * 2.5}px #fbbf24) drop-shadow(0 0 ${auraSize}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-        }
-        if (inSet) {
-          return `drop-shadow(0 0 ${auraSize * 2}px #fbbf24) drop-shadow(0 0 ${auraSize * 0.7}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-        }
-
-        // Regular background items in a small dataset: single-pass drop-shadow is extremely lightweight
-        return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-      };
-
-      img.style.filter = getGlowFilter(isOptimal, isInSet);
-      if (isOptimal || isInSet) {
-        img.style.opacity = '1';
-      }
-
-      // Transition styles for ultra smooth scaling - only transition dimensions to prevent massive layout/compositing performance storm on filter and opacity transitions
-      img.style.transition = 'width 0.15s ease-out, height 0.15s ease-out, x 0.15s ease-out, y 0.15s ease-out';
-
-      // Mouse Hover Interaction Handlers
-      const handleMouseEnter = (e: MouseEvent) => {
-        containerRef.current?.setAttribute('data-hovered-id', itemId);
-        const hoverW = 46;
-        const hoverH = 46;
-        const deltaW = hoverW - orgW;
-        const deltaH = hoverH - orgH;
-
-        img.setAttribute('width', hoverW.toString());
-        img.setAttribute('height', hoverH.toString());
-        img.setAttribute('x', (orgX - deltaW / 2).toString());
-        img.setAttribute('y', (orgY - deltaH / 2).toString());
-
-        // Bring hovered element to front by appending it as the last child of its parent SVG group!
-        const parent = img.parentNode;
-        if (parent) {
-          parent.appendChild(img);
-        }
-
-        // Apply powerful drop shadow glow
-        const currentlyInSet = customSetRef.current.some(s => s.id === itemId);
-        const hoverColor = (isOptimal || currentlyInSet) ? '#fbbf24' : initialColor;
-        img.style.filter = `drop-shadow(0 0 12px ${hoverColor}) drop-shadow(0 0 4px ${hoverColor})`;
-        img.style.opacity = '1';
-
-        // Dim other images (read customSet from ref for latest value)
-        const curSet = customSetRef.current;
-        const curSetIds = new Set(curSet.map(s => s.id));
-        images.forEach(other => {
-          if (other !== img) {
-            const otherId = other.getAttribute('data-id') || '';
-            const otherInSet = curSetIds.has(otherId);
-            const otherOptimal = paretoIds.has(otherId);
-            other.style.opacity = otherInSet || otherOptimal ? '0.7' : '0.15';
-          }
-        });
-
-        // Trigger React tooltip via stable ref
-        onHoverItemRef.current(e, item);
-      };
-
-      const handleMouseMove = (e: MouseEvent) => {
-        onHoverItemRef.current(e, item);
-      };
-
-      const handleMouseLeave = () => {
-        containerRef.current?.removeAttribute('data-hovered-id');
-        img.setAttribute('width', orgW.toString());
-        img.setAttribute('height', orgH.toString());
-        img.setAttribute('x', orgX.toString());
-        img.setAttribute('y', orgY.toString());
-
-        // Restore original visual states
-        const currentlyInSet = customSetRef.current.some(s => s.id === itemId);
-        img.style.filter = getGlowFilter(isOptimal, currentlyInSet);
-        if (isOptimal || currentlyInSet) {
-          img.style.opacity = '1';
-        } else {
-          img.style.opacity = '0.85';
-        }
-
-        // Restore all other image opacities (read customSet from ref)
-        const curSet = customSetRef.current;
-        const curSetIds = new Set(curSet.map(s => s.id));
-        images.forEach(other => {
-          const otherId = other.getAttribute('data-id') || '';
-          const otherInSet = curSetIds.has(otherId);
-          const otherOptimal = paretoIds.has(otherId);
-          other.style.opacity = otherInSet || otherOptimal ? '1' : '0.85';
-        });
-
-        onLeavePlotRef.current();
-      };
-
-      const handleMouseClick = () => {
-        onClickItemRef.current(item);
-      };
-
-      img.addEventListener('mouseenter', handleMouseEnter);
-      img.addEventListener('mousemove', handleMouseMove);
-      img.addEventListener('mouseleave', handleMouseLeave);
-      img.addEventListener('click', handleMouseClick);
+    setupPlotInteractions({
+      plot,
+      container: containerRef.current,
+      filteredData,
+      customSetRef: refs.customSetRef,
+      paretoIds,
+      colorVar,
+      colorMinMax,
+      simulationContext,
+      auraSize,
+      auraStyle,
+      onHoverItemRef: refs.onHoverItemRef,
+      onLeavePlotRef: refs.onLeavePlotRef,
+      onClickItemRef: refs.onClickItemRef
     });
 
-    // Cleanup
     return () => {
       plot.remove();
     };
-  }, [filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, paretoIds, paretoItems, xLog, yLog]);
+  }, [
+    filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, 
+    xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, 
+    paretoIds, paretoItems, xLog, yLog,
+    // Add refs to dependency array to satisfy exhaustive-deps, though they are stable
+    refs.customSetRef, refs.onClickItemRef, refs.onHoverItemRef, refs.onLeavePlotRef
+  ]);
 
-  // Secondary effect to sync customSet styling without rebuilding the plot
   useEffect(() => {
     if (!containerRef.current) return;
-    const images = containerRef.current.querySelectorAll('image');
     
-    // Read the globally tracked hovered item ID
-    const hoveredId = containerRef.current.getAttribute('data-hovered-id');
-
-    images.forEach((img) => {
-      const itemId = img.getAttribute('data-id');
-      const item = filteredData.find(d => d.id === itemId);
-      if (!item || !itemId) return;
-
-      const isInSet = customSet.some(s => s.id === itemId);
-      const isOptimal = paretoIds.has(itemId);
-
-      const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
-
-      // If this is the currently hovered item, update its hover glow color immediately but do NOT touch anything else
-      if (itemId === hoveredId) {
-        const hoverColor = (isOptimal || isInSet) ? '#fbbf24' : initialColor;
-        img.style.filter = `drop-shadow(0 0 12px ${hoverColor}) drop-shadow(0 0 4px ${hoverColor})`;
-        return;
-      }
-      
-      const getGlowFilter = (isOpt: boolean, inSet: boolean) => {
-        if (auraSize === 0) {
-          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
-        }
-
-        const isFocalItem = isOpt || inSet;
-        const color = isFocalItem ? '#fbbf24' : initialColor;
-
-        if (!isFocalItem && filteredData.length > 80) {
-          return 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))';
-        }
-
-        if ((auraStyle as string) === 'outline') {
-          const t = auraSize <= 3 ? 1 : auraSize <= 7 ? 2 : 3;
-
-          if (isOpt) {
-            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
-            return `drop-shadow(0 0 3px #fbbf24) ${baseOutline}`;
-          }
-          if (inSet) {
-            const baseOutline = `drop-shadow(${t}px 0 0 ${color}) drop-shadow(-${t}px 0 0 ${color}) drop-shadow(0 ${t}px 0 ${color}) drop-shadow(0 -${t}px 0 ${color})`;
-            return `drop-shadow(0 0 2px #fbbf24) ${baseOutline}`;
-          }
-          
-          return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 1px ${color})`;
-        }
-
-        if (isOpt) {
-          return `drop-shadow(0 0 ${auraSize * 2.5}px #fbbf24) drop-shadow(0 0 ${auraSize}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-        }
-        if (inSet) {
-          return `drop-shadow(0 0 ${auraSize * 2}px #fbbf24) drop-shadow(0 0 ${auraSize * 0.7}px #d97706) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-        }
-
-        return `drop-shadow(0 1px 2px rgba(0,0,0,0.6)) drop-shadow(0 0 ${auraSize}px ${initialColor})`;
-      };
-
-      img.style.filter = getGlowFilter(isOptimal, isInSet);
-      
-      if (hoveredId) {
-        img.style.opacity = (isOptimal || isInSet) ? '0.7' : '0.15';
-      } else {
-        img.style.opacity = (isOptimal || isInSet) ? '1' : '0.85';
-      }
+    syncCustomSetStyles({
+      container: containerRef.current,
+      filteredData,
+      customSet,
+      paretoIds,
+      colorVar,
+      colorMinMax,
+      simulationContext,
+      auraSize,
+      auraStyle
     });
   }, [customSet, paretoIds, colorVar, colorMinMax, simulationContext, auraSize, auraStyle, filteredData]);
 

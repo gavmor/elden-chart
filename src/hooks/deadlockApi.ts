@@ -2,7 +2,7 @@ import { ItemsApi } from 'deadlock_api_client/apis/items-api';
 import { HeroesApi } from 'deadlock_api_client/apis/heroes-api';
 import type { Item, Ability } from 'deadlock_api_client/models';
 import type { DeadlockUpgradeItem, DeadlockAbilityItem, AbilityTier } from '../components/types';
-import { getHeroNameFromClassName } from '../components/utils';
+import { getHeroNameFromClassName } from '../components/domain/math';
 
 /**
  * Determine whether a raw Item from the Deadlock API is a shopable upgrade.

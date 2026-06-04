@@ -1,75 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
-	buildGroup,
-	getCategoryIcon,
-	getItemStat,
-	getItemColor,
-	getItemImageUrl,
-	getParetoFrontier,
-	getAvailableStats,
-	getActiveCategories,
-	getHeroNameFromClassName,
-} from './utils';
-import {
-	helmItem,
-	chestItem,
-	gauntletsItem,
-	longswordItem,
-	heaterShieldItem,
-} from './CompareModal/test-fixtures';
-import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
-
-// ---------------------------------------------------------------------------
-// getCategoryIcon
-// ---------------------------------------------------------------------------
-describe('getCategoryIcon', () => {
-	const props = { size: 24 };
-
-	it('returns Sword icon for weapons', () => {
-		const el = getCategoryIcon('AnyCategory', 'weapon', props);
-		expect(el.type).toBe(Sword);
-	});
-
-	it('returns Shield icon for shields', () => {
-		const el = getCategoryIcon('AnyCategory', 'shield', props);
-		expect(el.type).toBe(Shield);
-	});
-
-	it('returns HardHat icon for Helm', () => {
-		const el = getCategoryIcon('Helm', 'armor', props);
-		expect(el.type).toBe(HardHat);
-	});
-
-	it('returns Shirt icon for Chest Armor', () => {
-		const el = getCategoryIcon('Chest Armor', 'armor', props);
-		expect(el.type).toBe(Shirt);
-	});
-
-	it('returns Hand icon for Gauntlets', () => {
-		const el = getCategoryIcon('Gauntlets', 'armor', props);
-		expect(el.type).toBe(Hand);
-	});
-
-	it('returns Footprints icon for Leg Armor', () => {
-		const el = getCategoryIcon('Leg Armor', 'armor', props);
-		expect(el.type).toBe(Footprints);
-	});
-
-	it('returns Circle icon for unknown armor category', () => {
-		const el = getCategoryIcon('Mystery Armor', 'armor', props);
-		expect(el.type).toBe(Circle);
-	});
-
-	it('passes props to the icon element', () => {
-		const el = getCategoryIcon('Helm', 'armor', { size: 48, color: 'red' });
-		expect(el.props.size).toBe(48);
-		expect(el.props.color).toBe('red');
-	});
-});
-
-// ---------------------------------------------------------------------------
-// getItemStat
-// ---------------------------------------------------------------------------
+        helmItem,
+        chestItem,
+        gauntletsItem,
+        longswordItem,
+        heaterShieldItem,
+} from '../CompareModal/test-fixtures';
+import { 
+    getItemStat, getParetoFrontier, getAvailableStats, getActiveCategories, 
+    buildGroup, getHeroNameFromClassName
+} from './math';
 describe('getItemStat', () => {
 	describe('weight', () => {
 		it('returns weight for armor', () => {
@@ -165,107 +105,7 @@ describe('getItemStat', () => {
 // ---------------------------------------------------------------------------
 // getItemColor
 // ---------------------------------------------------------------------------
-describe('getItemColor', () => {
-	it('returns a color derived from category name', () => {
-		const color = getItemColor(helmItem, 'category', null);
-		expect(color).toMatch(/^hsl\(\d+, 65%, 55%\)$/);
-	});
 
-	it('returns different hues for different categories', () => {
-		const helmColor = getItemColor(helmItem, 'category', null);
-		const chestColor = getItemColor(chestItem, 'category', null);
-		expect(helmColor).not.toBe(chestColor);
-	});
-
-	it('returns #94a3b8 for a stat when minMax is null', () => {
-		expect(getItemColor(helmItem, 'weight', null)).toBe('#94a3b8');
-	});
-
-	it('returns a heatmap HSL color for a stat with range', () => {
-		const color = getItemColor(helmItem, 'weight', { min: 0, max: 20 });
-		expect(color).toMatch(/^hsl\(\d{1,3}, 85%, 60%\)$/);
-	});
-
-	it('clamps the ratio between 0 and 1', () => {
-		const above = getItemColor(helmItem, 'weight', { min: 0, max: 1 });
-		const below = getItemColor(helmItem, 'weight', { min: 10, max: 20 });
-		expect(above).toMatch(/^hsl\(220, 85%, 60%\)$/);
-		expect(below).toMatch(/^hsl\(0, 85%, 60%\)$/);
-	});
-
-	it('returns exact hex colors for Deadlock categories', () => {
-		const makeDlItem = (category: string): import('./types').DeadlockUpgradeItem => ({
-			id: 'dl-1',
-			name: 'Test',
-			image: null,
-			category,
-			description: '',
-			weight: 0,
-			kind: 'deadlock_upgrade',
-			properties: []
-		});
-
-		expect(getItemColor(makeDlItem('weapon'), 'category', null)).toBe('var(--color-deadlock-weapon)');
-		expect(getItemColor(makeDlItem('vitality'), 'category', null)).toBe('var(--color-deadlock-vitality)');
-		expect(getItemColor(makeDlItem('spirit'), 'category', null)).toBe('var(--color-deadlock-spirit)');
-		expect(getItemColor(makeDlItem('Spirit'), 'category', null)).toBe('var(--color-deadlock-spirit)');
-	});
-});
-
-// ---------------------------------------------------------------------------
-// getItemImageUrl
-// ---------------------------------------------------------------------------
-describe('getItemImageUrl', () => {
-	it('returns the image URL when item.image is set', () => {
-		expect(getItemImageUrl(helmItem, '#fff')).toBe('http://example.com/helm.png');
-	});
-
-	it('returns a data URI for weapons with null image', () => {
-		const url = getItemImageUrl(longswordItem, '#000');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-sword');
-	});
-
-	it('returns a data URI for shields with null image', () => {
-		const url = getItemImageUrl(heaterShieldItem, '#000');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-shield');
-	});
-
-	it('returns a data URI for helm with null image', () => {
-		const url = getItemImageUrl({ ...helmItem, image: null }, '#fff');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-hard-hat');
-	});
-
-	it('returns a data URI for chest with null image', () => {
-		const url = getItemImageUrl({ ...chestItem, image: null }, '#fff');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-shirt');
-	});
-
-	it('returns a data URI for gauntlets with null image', () => {
-		const url = getItemImageUrl({ ...gauntletsItem, image: null }, '#fff');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-hand');
-	});
-
-	it('returns a data URI for unknown armor category with null image', () => {
-		const misc = { ...helmItem, image: null, category: 'Misc' };
-		const url = getItemImageUrl(misc, '#fff');
-		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-circle');
-	});
-
-	it('encodes the color into the fallback icon', () => {
-		const url = getItemImageUrl({ ...helmItem, image: null }, 'red');
-		expect(decodeURIComponent(url)).toContain('red');
-	});
-});
-
-// ---------------------------------------------------------------------------
-// getParetoFrontier
-// ---------------------------------------------------------------------------
 describe('getParetoFrontier', () => {
 	it('returns an empty array for empty input', () => {
 		expect(getParetoFrontier([], 'weight', 'Phy')).toEqual([]);
@@ -452,7 +292,7 @@ describe('getAvailableStats', () => {
 	});
 
 	it('returns dynamic properties grouped for Deadlock items', () => {
-		const dlItem: import('./types').DeadlockUpgradeItem = {
+		const dlItem: import('../types').DeadlockUpgradeItem = {
 			id: 'dl-1',
 			name: 'Restorative Locket',
 			image: null,

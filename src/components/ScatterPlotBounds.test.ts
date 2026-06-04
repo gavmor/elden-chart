@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getStatRangeClamped, getClampedItemStat } from './utils';
+import { getStatRangeClamped, getClampedItemStat } from './domain/math';
 import type { EquipmentItem } from './types';
 
 describe('Scatter Plot Outlier Clamping', () => {

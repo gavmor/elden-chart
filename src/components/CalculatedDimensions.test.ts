@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-	calculateTotalIntegratedArmor,
-	calculateEffectiveHealth,
-	calculateValueMetric
-} from './utils';
+import { calculateTotalIntegratedArmor, calculateEffectiveHealth, calculateValueMetric } from './domain/math';
 
 describe('Calculated Dimensions', () => {
 	describe('calculateTotalIntegratedArmor', () => {
