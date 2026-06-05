@@ -30,15 +30,15 @@ export default function CompareModalStatRow({
   return (
     <tr className="hover:bg-panel-active/40">
       <td className={`p-3 text-muted pl-6 bg-panel/40 ${labelClassName}`}>{label}</td>
-      {customSet.map((item) => (
+      {customSet.map((item, i) => (
         <CompareModalStatCell
           key={`${statName}-${item.id}`}
-          value={getItemStat(item, statName, simulationContext)}
+          value={values[i]}
           min={min}
           max={max}
           invert={invert}
           formatValue={formatValue}
-          isBest={getItemStat(item, statName, simulationContext) === bestValue}
+          isBest={values[i] === bestValue}
         />
       ))}
       {delta !== null && (

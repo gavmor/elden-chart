@@ -1,4 +1,4 @@
-import type { EquipmentItem, ApiStat } from '../types';
+import type { EquipmentItem } from '../types';
 import CompareModalItemHeader from './ItemHeader';
 import CompareModalWeightRow from './WeightRow';
 import CompareModalStatGroup from './StatGroup';
@@ -8,70 +8,20 @@ interface Props {
   simulationContext?: import('../types').SimulationContext;
 }
 
-const statLabel = (stat: string): string => {
-  switch (stat) {
-    case 'Ligt': return 'Lightning';
-    case 'Phy': return 'Physical';
-    case 'Mag': return 'Magic';
-    default: return stat;
-  }
-};
-
-const formatAttackLabel = (name: string): string => statLabel(name);
-const formatDefenceLabel = (name: string): string => statLabel(name);
-
-/**
- * Collect stat names from items for a given accessor, maintaining API order.
- */
-const collectOrderedStats = (items: EquipmentItem[], accessor: (item: EquipmentItem) => ApiStat[]): string[] => {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const item of items) {
-    for (const s of accessor(item)) {
-      if (!seen.has(s.name)) {
-        seen.add(s.name);
-        result.push(s.name);
-      }
-    }
-  }
-  return result;
-};
+import { useCompareTableState } from './useCompareTableState';
+import { statLabel, formatAttackLabel, formatDefenceLabel, renderCalculatedLabel } from './formatLabels';
 
 export default function CompareModalTable({ customSet, simulationContext }: Props) {
-  const showDelta = customSet.length === 2;
-  const colCount = customSet.length + 1 + (showDelta ? 1 : 0);
-
-  // Determine what kinds are present
-  const kinds = new Set(customSet.map(i => i.kind));
-  const isAllArmor = kinds.size === 1 && kinds.has('armor');
-  const isAllWeaponLike = Array.from(kinds).every(k => k === 'weapon' || k === 'shield' || k === 'ammo') && !kinds.has('armor');
-  const isAllDeadlockUpgrade = kinds.size === 1 && kinds.has('deadlock_upgrade');
-  // Mixed sets show only weight
-
-  const negationStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.dmgNegation : []) : [];
-  const resistanceStats = isAllArmor ? collectOrderedStats(customSet, i => i.kind === 'armor' ? i.resistance : []) : [];
-  const attackStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo') ? i.attack : []) : [];
-  const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield') ? i.defence : []) : [];
-  const deadlockStats = isAllDeadlockUpgrade ? collectOrderedStats(customSet, i => i.kind === 'deadlock_upgrade' ? i.properties : []) : [];
-
-  const calculatedStats = isAllDeadlockUpgrade ? ['ehp', 'integrated_armor', 'ehp_per_soul', 'Final Bullet DPS', 'Final Spirit DPS'] : [];
-
-  const renderCalculatedLabel = (stat: string) => {
-    const labels: Record<string, { name: string; formula: string }> = {
-      'ehp': { name: 'Effective HP', formula: 'BaseHealth / (1 - BulletResist)' },
-      'integrated_armor': { name: 'Total Integrated Armor', formula: '(1 - Π(1-Buff)) - (1 - Π(1-Shred))' },
-      'ehp_per_soul': { name: 'eHP / Soul', formula: 'Marginal eHP / Cost' },
-      'Final Bullet DPS': { name: 'Final Bullet DPS', formula: '(BaseDPS * FireRateMod) * (1 - EffectiveResist)' },
-      'Final Spirit DPS': { name: 'Final Spirit DPS', formula: '(BaseDPS + SpiritPower * Coeff) * (1 - EffectiveResist)' }
-    };
-    const data = labels[stat] || { name: stat, formula: '' };
-    return (
-      <div className="flex flex-col">
-        <span>{data.name}</span>
-        {data.formula && <span className="text-[9px] text-muted-foreground/70 font-mono mt-0.5">{data.formula}</span>}
-      </div>
-    );
-  };
+  const { 
+    showDelta, 
+    colCount, 
+    negationStats, 
+    resistanceStats, 
+    attackStats, 
+    defenceStats, 
+    deadlockStats, 
+    calculatedStats 
+  } = useCompareTableState(customSet);
 
   return (
     <div className="overflow-x-auto">
