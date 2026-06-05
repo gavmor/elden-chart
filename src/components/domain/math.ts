@@ -25,17 +25,19 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 	};
 
 	if (statName === 'Final Bullet DPS') {
-		if (!context || item.kind !== 'deadlock_upgrade') return 0;
+		if (!context) return 0;
 
 		const calcBulletDps = (itemsList: EquipmentItem[]) => {
 			let fireRateMod = 0;
+			let weaponPowerMod = 0;
 			const bulletResistShreds: number[] = [];
 			for (const it of itemsList) {
-				fireRateMod += (getItemStat(it, 'FireRate') || getItemStat(it, 'BonusFireRate') || 0) / 100;
-				const brs = getItemStat(it, 'BulletResistReduction') || getItemStat(it, 'BulletResistShred') || 0;
+				fireRateMod += (getItemStat(it, 'BonusFireRate') || getItemStat(it, 'FireRateBonus') || 0) / 100;
+				weaponPowerMod += (getItemStat(it, 'WeaponPower') || getItemStat(it, 'BaseAttackDamagePercent') || getItemStat(it, 'BonusDamagePercent') || 0) / 100;
+				const brs = getItemStat(it, 'BulletResistReduction') || 0;
 				if (brs !== 0) bulletResistShreds.push(Math.abs(brs) / 100);
 			}
-			const rawBulletDps = calculateBulletDPS(100, context.hero.shotTime, context.hero.pauseTime, fireRateMod);
+			const rawBulletDps = calculateBulletDPS(100 * (1 + weaponPowerMod), context.hero.shotTime, context.hero.pauseTime, fireRateMod);
 			const finalBulletRes = calculateEffectiveResistance([0], bulletResistShreds);
 			return calculateEffectiveDPS(rawBulletDps, finalBulletRes);
 		};
@@ -44,22 +46,48 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 	}
 
 	if (statName === 'Final Spirit DPS') {
-		if (!context || item.kind !== 'deadlock_upgrade') return 0;
+		if (!context) return 0;
 		
-		const calcSpiritDps = (itemsList: EquipmentItem[]) => {
+		const calcSpiritDps = (itemsList: EquipmentItem[], targetAbility?: EquipmentItem) => {
 			let spiritPower = 0;
 			let spiritDamageMod = 0;
 			const spiritResistShreds: number[] = [];
 			for (const it of itemsList) {
-				spiritPower += getItemStat(it, 'AbilityPower') || getItemStat(it, 'BonusSpiritPower') || getItemStat(it, 'SpiritPower') || 0;
-				spiritDamageMod += (getItemStat(it, 'BonusSpiritDamage') || getItemStat(it, 'SpiritDamage') || 0) / 100;
-				const srs = getItemStat(it, 'SpiritResistReduction') || getItemStat(it, 'SpiritResistShred') || 0;
+				spiritPower += getItemStat(it, 'TechPower') || getItemStat(it, 'SpiritPower') || 0;
+				spiritDamageMod += (getItemStat(it, 'TechDamagePercent') || getItemStat(it, 'BonusSpiritDamage') || 0) / 100;
+				const srs = getItemStat(it, 'TechResistReduction') || getItemStat(it, 'SpiritResistReduction') || 0;
 				if (srs !== 0) spiritResistShreds.push(Math.abs(srs) / 100);
 			}
-			const rawSpiritDps = calculateSpiritDPS('ranged', 100, spiritDamageMod, spiritPower, 1.0);
+
+			let baseDps = 100;
+			const coeff = 1.0;
+
+			if (targetAbility && targetAbility.kind === 'deadlock_ability') {
+				const pulseProp = targetAbility.properties.find(p => p.name === 'PulseDPS');
+				const damageProp = targetAbility.properties.find(p => ['Damage', 'FullChargeDamage'].includes(p.name));
+				
+				if (pulseProp) {
+					baseDps = pulseProp.amount;
+				} else if (damageProp) {
+					const cd = getItemStat(targetAbility, 'AbilityCooldown') || 1;
+					const castDelay = getItemStat(targetAbility, 'AbilityCastDelay') || 0;
+					baseDps = damageProp.amount / (cd + castDelay);
+				} else {
+					baseDps = 0;
+				}
+
+				// Most abilities have a specific TechPower scaling factor, often found as a duplicate property or hardcoded.
+				// For the scope of this baseline, we'll assume a standard 1.0 coefficient if no explicit modifier is found.
+			}
+
+			const rawSpiritDps = calculateSpiritDPS('ranged', baseDps, spiritDamageMod, spiritPower, coeff);
 			const finalSpiritRes = calculateEffectiveResistance([0], spiritResistShreds);
 			return calculateEffectiveDPS(rawSpiritDps, finalSpiritRes);
 		};
+
+		if (item.kind === 'deadlock_ability') {
+			return calcSpiritDps(getCombinedItems(), item);
+		}
 
 		return calcSpiritDps(getCombinedItems()) - calcSpiritDps(getBaselineItems());
 	}
@@ -68,8 +96,13 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 		const calcEhp = (itemsList: EquipmentItem[]) => {
 			const setBonusHealth = itemsList.reduce((acc, it) => acc + (getItemStat(it, 'BonusHealth') || 0), 0);
 			const baseHealth = 1000 + setBonusHealth;
-			const setBulletResist = itemsList.reduce((acc, it) => acc + (getItemStat(it, 'BulletResist') || 0), 0);
-			return calculateEffectiveHealth(baseHealth, setBulletResist / 100);
+			const bulletResists: number[] = [];
+			for (const it of itemsList) {
+				const br = getItemStat(it, 'BulletResist') || 0;
+				if (br > 0) bulletResists.push(br / 100);
+			}
+			const finalResist = calculateEffectiveResistance(bulletResists, []);
+			return calculateEffectiveHealth(baseHealth, finalResist);
 		};
 		return calcEhp(getCombinedItems()) - calcEhp(getBaselineItems());
 	}
@@ -84,12 +117,12 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 			for (const it of itemsList) {
 				const br = getItemStat(it, 'BulletResist') || 0;
 				if (br > 0) bulletResists.push(br / 100);
-				const sr = getItemStat(it, 'SpiritResist') || 0;
+				const sr = getItemStat(it, 'TechResist') || getItemStat(it, 'SpiritResist') || 0;
 				if (sr > 0) spiritResists.push(sr / 100);
 				
 				const bs = getItemStat(it, 'BulletResistReduction') || 0;
 				if (bs !== 0) bulletShreds.push(Math.abs(bs) / 100);
-				const ss = getItemStat(it, 'SpiritResistReduction') || 0;
+				const ss = getItemStat(it, 'TechResistReduction') || getItemStat(it, 'SpiritResistReduction') || 0;
 				if (ss !== 0) spiritShreds.push(Math.abs(ss) / 100);
 			}
 			
