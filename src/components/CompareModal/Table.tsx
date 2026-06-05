@@ -1,7 +1,7 @@
 import type { EquipmentItem, ApiStat } from '../types';
 import CompareModalItemHeader from './ItemHeader';
 import CompareModalWeightRow from './WeightRow';
-import CompareModalStatRow from './StatRow';
+import CompareModalStatGroup from './StatGroup';
 
 interface Props {
   customSet: EquipmentItem[];
@@ -54,6 +54,25 @@ export default function CompareModalTable({ customSet, simulationContext }: Prop
   const defenceStats = isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield') ? i.defence : []) : [];
   const deadlockStats = isAllDeadlockUpgrade ? collectOrderedStats(customSet, i => i.kind === 'deadlock_upgrade' ? i.properties : []) : [];
 
+  const calculatedStats = isAllDeadlockUpgrade ? ['ehp', 'integrated_armor', 'ehp_per_soul', 'Final Bullet DPS', 'Final Spirit DPS'] : [];
+
+  const renderCalculatedLabel = (stat: string) => {
+    const labels: Record<string, { name: string; formula: string }> = {
+      'ehp': { name: 'Effective HP', formula: 'BaseHealth / (1 - BulletResist)' },
+      'integrated_armor': { name: 'Total Integrated Armor', formula: '(1 - Π(1-Buff)) - (1 - Π(1-Shred))' },
+      'ehp_per_soul': { name: 'eHP / Soul', formula: 'Marginal eHP / Cost' },
+      'Final Bullet DPS': { name: 'Final Bullet DPS', formula: '(BaseDPS * FireRateMod) * (1 - EffectiveResist)' },
+      'Final Spirit DPS': { name: 'Final Spirit DPS', formula: '(BaseDPS + SpiritPower * Coeff) * (1 - EffectiveResist)' }
+    };
+    const data = labels[stat] || { name: stat, formula: '' };
+    return (
+      <div className="flex flex-col">
+        <span>{data.name}</span>
+        {data.formula && <span className="text-[9px] text-muted-foreground/70 font-mono mt-0.5">{data.formula}</span>}
+      </div>
+    );
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-sm text-left">
@@ -75,102 +94,61 @@ export default function CompareModalTable({ customSet, simulationContext }: Prop
         <tbody className="divide-y divide-accent/10">
           <CompareModalWeightRow customSet={customSet} />
 
-          {deadlockStats.length > 0 && (
-            <>
-              <tr className="bg-panel/60">
-                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
-                  Item Properties
-                </td>
-              </tr>
-              {deadlockStats.map(stat => (
-                <CompareModalStatRow
-                  key={stat}
-                  customSet={customSet}
-                  statName={stat}
-                  label={statLabel(stat)}
-                  simulationContext={simulationContext}
-                />
-              ))}
-            </>
-          )}
+          <CompareModalStatGroup
+            title="Calculated Metrics"
+            stats={calculatedStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelFormatter={renderCalculatedLabel}
+            simulationContext={simulationContext}
+            formatValue={n => n.toFixed(2)}
+          />
 
-          {negationStats.length > 0 && (
-            <>
-              <tr className="bg-panel/60">
-                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
-                  Damage Negation (%)
-                </td>
-              </tr>
-              {negationStats.map(stat => (
-                <CompareModalStatRow
-                  key={stat}
-                  customSet={customSet}
-                  statName={stat}
-                  label={statLabel(stat)}
-                  simulationContext={simulationContext}
-                />
-              ))}
-            </>
-          )}
+          <CompareModalStatGroup
+            title="Item Properties"
+            stats={deadlockStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelFormatter={statLabel}
+            simulationContext={simulationContext}
+          />
 
-          {resistanceStats.length > 0 && (
-            <>
-              <tr className="bg-panel/60">
-                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
-                  Resistances & Poise
-                </td>
-              </tr>
-              {resistanceStats.map(stat => (
-                <CompareModalStatRow
-                  key={stat}
-                  customSet={customSet}
-                  statName={stat}
-                  label={stat}
-                  labelClassName="font-semibold"
-                  formatValue={n => n.toFixed(0)}
-                  simulationContext={simulationContext}
-                />
-              ))}
-            </>
-          )}
+          <CompareModalStatGroup
+            title="Damage Negation (%)"
+            stats={negationStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelFormatter={statLabel}
+            simulationContext={simulationContext}
+          />
 
-          {attackStats.length > 0 && (
-            <>
-              <tr className="bg-panel/60">
-                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
-                  Attack
-                </td>
-              </tr>
-              {attackStats.map(stat => (
-                <CompareModalStatRow
-                  key={`atk-${stat}`}
-                  customSet={customSet}
-                  statName={stat}
-                  label={formatAttackLabel(stat)}
-                  simulationContext={simulationContext}
-                />
-              ))}
-            </>
-          )}
+          <CompareModalStatGroup
+            title="Resistances & Poise"
+            stats={resistanceStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelClassName="font-semibold"
+            formatValue={n => n.toFixed(0)}
+            simulationContext={simulationContext}
+          />
 
-          {defenceStats.length > 0 && (
-            <>
-              <tr className="bg-panel/60">
-                <td colSpan={colCount} className="p-2 px-3 text-[10px] uppercase font-bold text-accent/80 tracking-wider pl-4">
-                  Defence
-                </td>
-              </tr>
-              {defenceStats.map(stat => (
-                <CompareModalStatRow
-                  key={`def-${stat}`}
-                  customSet={customSet}
-                  statName={stat}
-                  label={formatDefenceLabel(stat)}
-                  simulationContext={simulationContext}
-                />
-              ))}
-            </>
-          )}
+          <CompareModalStatGroup
+            title="Attack"
+            stats={attackStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelFormatter={formatAttackLabel}
+            simulationContext={simulationContext}
+          />
+
+          <CompareModalStatGroup
+            title="Defence"
+            stats={defenceStats}
+            customSet={customSet}
+            colCount={colCount}
+            labelFormatter={formatDefenceLabel}
+            simulationContext={simulationContext}
+          />
         </tbody>
       </table>
     </div>

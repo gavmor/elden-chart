@@ -5,7 +5,7 @@ import CompareModalStatCell from './StatCell';
 interface Props {
   customSet: EquipmentItem[];
   statName: string;
-  label: string;
+  label: React.ReactNode;
   labelClassName?: string;
   invert?: boolean;
   formatValue?: (n: number) => string;
