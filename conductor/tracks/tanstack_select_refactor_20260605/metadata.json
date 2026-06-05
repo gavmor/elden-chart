@@ -1,8 +1,0 @@
-{
-  "track_id": "tanstack_select_refactor_20260605",
-  "type": "refactor",
-  "status": "new",
-  "created_at": "2026-06-05T17:30:00Z",
-  "updated_at": "2026-06-05T17:30:00Z",
-  "description": "refactor our datafetching hooks to move our translation layer into the tanstack-query select option."
-}
