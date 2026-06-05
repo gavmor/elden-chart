@@ -9,11 +9,11 @@
     - [x] Update `src/hooks/deadlockApi.test.ts` to assert that `queryFn` returns raw data and `select` transforms it correctly.
 - [x] Task: Conductor - User Manual Verification 'Refactor Deadlock Data Fetching Hooks' (Protocol in workflow.md)
 
-## Phase 2: Refactor Elden Ring Data Fetching Hooks
-- [ ] Task: Update `src/hooks/useEquipmentData.ts`
-    - [ ] Refactor the internal sequential fetcher (`fetchPages`) to return an array of raw API pages.
-    - [ ] Extract the deduplication, parsing, and normalization logic into a stable, pure transformation function outside the hook.
-    - [ ] Update the `useQuery` configuration to apply the pure transformation function via the `select` option.
-- [ ] Task: Update Elden Ring tests
-    - [ ] Update `src/hooks/useEquipmentData.test.ts` to align with the new fetching and transformation separation.
-- [ ] Task: Conductor - User Manual Verification 'Refactor Elden Ring Data Fetching Hooks' (Protocol in workflow.md)
+## Phase 2: Refactor Elden Ring Data Fetching Hooks [checkpoint: c648fcb]
+- [x] Task: Update `src/hooks/useEquipmentData.ts`
+    - [x] Refactor the internal sequential fetcher (`fetchPages`) to return an array of raw API pages.
+    - [x] Extract the deduplication, parsing, and normalization logic into a stable, pure transformation function outside the hook.
+    - [x] Update the `useQuery` configuration to apply the pure transformation function via the `select` option.
+- [x] Task: Update Elden Ring tests
+    - [x] Update `src/hooks/useEquipmentData.test.ts` to align with the new fetching and transformation separation.
+- [x] Task: Conductor - User Manual Verification 'Refactor Elden Ring Data Fetching Hooks' (Protocol in workflow.md)
