@@ -22,5 +22,5 @@
 
 ---
 
-- [ ] **Track: refactor our datafetching hooks to move our translation layer into the tanstack-query select option.**
+- [x] **Track: refactor our datafetching hooks to move our translation layer into the tanstack-query select option.**
 *Link: [./tracks/tanstack_select_refactor_20260605/](./tracks/tanstack_select_refactor_20260605/)*
