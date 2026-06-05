@@ -51,11 +51,12 @@ export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] 
         })
         .filter((entry): entry is { name: string; amount: number } => entry !== null);
 
+      const isStreetBrawl = upgrade.cost === 9999;
       return {
         id: String(upgrade.id),
         name: upgrade.name,
         image: upgrade.image ?? (upgrade as unknown as { shop_image?: string }).shop_image ?? null,
-        category: upgrade.item_slot_type,
+        category: isStreetBrawl ? 'Street Brawl' : upgrade.item_slot_type,
         description: upgrade.description?.desc ?? '',
         weight: upgrade.cost ?? 0,
         kind: 'deadlock_upgrade' as const,
@@ -74,6 +75,8 @@ export const transformDeadlockAbilities = (
 ): DeadlockAbilityItem[] => {
   return rawItems
     .filter((item): item is Ability => 'type' in item && item.type === 'ability')
+    .filter(ability => ability.name !== ability.class_name)
+    .filter(ability => ability.upgrades && ability.upgrades.length === 3)
     .map(ability => {
       const propertiesRaw = ability.properties ?? {};
       const properties = Object.entries(propertiesRaw)
@@ -140,16 +143,16 @@ export const transformDeadlockAbilities = (
  * Fetch all Deadlock items from the API.
  * Uses the ItemsApi class from the generated client.
  */
-export const fetchDeadlockItems = async (): Promise<DeadlockUpgradeItem[]> => {
+export const fetchDeadlockItemsRaw = async (): Promise<Item[]> => {
   const api = new ItemsApi();
   const response = await api.listItems({});
-  return transformDeadlockItems(response.data);
+  return response.data;
 };
 
 /**
  * Fetch all Deadlock abilities from the API.
  */
-export const fetchDeadlockAbilities = async (): Promise<DeadlockAbilityItem[]> => {
+export const fetchDeadlockAbilitiesRaw = async (): Promise<{ abilities: Item[], heroMap?: Map<number, string> }> => {
   const itemsApi = new ItemsApi();
   const heroesApi = new HeroesApi();
 
@@ -164,11 +167,11 @@ export const fetchDeadlockAbilities = async (): Promise<DeadlockAbilityItem[]> =
       heroMap.set(h.id, h.name);
     }
 
-    return transformDeadlockAbilities(itemsResponse.data, heroMap);
+    return { abilities: itemsResponse.data, heroMap };
   } catch (err) {
     console.error("Failed to fetch with HeroesApi, falling back to items only:", err);
     const response = await itemsApi.listItems({});
-    return transformDeadlockAbilities(response.data);
+    return { abilities: response.data };
   }
 };
 

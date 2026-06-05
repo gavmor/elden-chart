@@ -1,13 +1,13 @@
 # Implementation Plan
 
 ## Phase 1: Refactor Deadlock Data Fetching Hooks
-- [ ] Task: Update `src/hooks/deadlockApi.ts`
-    - [ ] Modify `fetchDeadlockItems` and `fetchDeadlockAbilities` to return raw API responses instead of transforming them internally.
-    - [ ] Ensure `transformDeadlockItems` and `transformDeadlockAbilities` are stable, exported functions outside the component.
-    - [ ] Update `useDeadlockData` hook to pass the stable transformation functions into the `select` option.
-- [ ] Task: Update Deadlock tests
-    - [ ] Update `src/hooks/deadlockApi.test.ts` to assert that `queryFn` returns raw data and `select` transforms it correctly.
-- [ ] Task: Conductor - User Manual Verification 'Refactor Deadlock Data Fetching Hooks' (Protocol in workflow.md)
+- [x] Task: Update `src/hooks/deadlockApi.ts`
+    - [x] Modify `fetchDeadlockItems` and `fetchDeadlockAbilities` to return raw API responses instead of transforming them internally.
+    - [x] Ensure `transformDeadlockItems` and `transformDeadlockAbilities` are stable, exported functions outside the component.
+    - [x] Update `useDeadlockData` hook to pass the stable transformation functions into the `select` option.
+- [x] Task: Update Deadlock tests
+    - [x] Update `src/hooks/deadlockApi.test.ts` to assert that `queryFn` returns raw data and `select` transforms it correctly.
+- [~] Task: Conductor - User Manual Verification 'Refactor Deadlock Data Fetching Hooks' (Protocol in workflow.md)
 
 ## Phase 2: Refactor Elden Ring Data Fetching Hooks
 - [ ] Task: Update `src/hooks/useEquipmentData.ts`

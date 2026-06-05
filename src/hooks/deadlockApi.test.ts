@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   transformDeadlockItems,
-  fetchDeadlockItems,
+  fetchDeadlockItemsRaw,
   transformDeadlockAbilities,
-  fetchDeadlockAbilities,
+  fetchDeadlockAbilitiesRaw,
 } from './deadlockApi';
 import type { Upgrade, Ability } from 'deadlock_api_client/models';
 
@@ -228,28 +228,40 @@ describe('transformDeadlockAbilities', () => {
     expect(abilities[1].category).toBe('ultimate');
   });
 
-  it('handles empty properties and upgrades safely', () => {
+  it('handles empty properties safely', () => {
     const items = transformDeadlockAbilities([
-      makeAbility({ properties: undefined, upgrades: undefined, description: undefined }),
+      makeAbility({ properties: undefined, description: undefined }),
     ]);
     expect(items).toHaveLength(1);
     const item = items[0];
     expect(item.properties).toEqual([]);
     expect(item.upgrades).toHaveLength(3);
     expect(item.upgrades[0].description).toBe('');
-    expect(item.upgrades[0].modifiers).toEqual([]);
+    expect(item.upgrades[0].modifiers).toEqual([ { name: 'BonusCharges', amount: 1 } ]);
+  });
+
+  it('filters out internal triggers and items without 3 upgrades', () => {
+    const items = transformDeadlockAbilities([
+      // Same name and class_name means internal trigger
+      makeAbility({ name: 'internal_trigger', class_name: 'internal_trigger' }),
+      // Missing upgrades
+      makeAbility({ upgrades: undefined }),
+      // Less than 3 upgrades
+      makeAbility({ upgrades: [ { property_upgrades: [] } ] }),
+    ]);
+    expect(items).toHaveLength(0);
   });
 });
 
-describe('fetchDeadlockItems', () => {
+describe('fetchDeadlockItemsRaw', () => {
   it('is a function', () => {
-    expect(typeof fetchDeadlockItems).toBe('function');
+    expect(typeof fetchDeadlockItemsRaw).toBe('function');
   });
 });
 
-describe('fetchDeadlockAbilities', () => {
+describe('fetchDeadlockAbilitiesRaw', () => {
   it('is a function', () => {
-    expect(typeof fetchDeadlockAbilities).toBe('function');
+    expect(typeof fetchDeadlockAbilitiesRaw).toBe('function');
   });
 });
 
