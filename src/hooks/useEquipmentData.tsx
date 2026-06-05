@@ -220,80 +220,88 @@ const deduplicate = <T extends { name: string }>(items: T[]): T[] => {
   return Array.from(new Map(items.map(item => [item.name, item])).values());
 };
 
+export type RawEquipmentData = [RawItem[], RawItem[], RawItem[], RawItem[]];
+
+export const fetchEquipmentDataRaw = async (): Promise<RawEquipmentData> => {
+  return Promise.all([
+    fetchAllPages(GET_ARMOR_PAGE, 'armor', 5),
+    fetchAllPages(GET_WEAPON_PAGE, 'weapon', 4),
+    fetchAllPages(GET_SHIELD_PAGE, 'shield', 1),
+    fetchAllPages(GET_AMMO_PAGE, 'ammo', 1),
+  ]);
+};
+
+export const transformEquipmentData = (data: RawEquipmentData): EquipmentItem[] => {
+  const [rawArmors, rawWeapons, rawShields, rawAmmos] = data;
+
+  const armors: ArmorItem[] = deduplicate(
+    rawArmors.map((item: RawItem) => ({
+      id: safeStr(item.id),
+      name: safeStr(item.name),
+      image: safeStrOrNull(item.image),
+      category: getCleanCategory(item.name, item.category),
+      description: safeStr(item.description),
+      weight: safeFloat(item.weight),
+      kind: 'armor' as const,
+      dmgNegation: (item.dmgNegation || []).map(mapStat),
+      resistance: (item.resistance || []).map(mapStat),
+    }))
+  );
+
+  const weapons: WeaponItem[] = deduplicate(
+    rawWeapons.map((item: RawItem) => ({
+      id: safeStr(item.id),
+      name: safeStr(item.name),
+      image: safeStrOrNull(item.image),
+      category: getCleanCategory(item.name, item.category),
+      description: safeStr(item.description),
+      weight: safeFloat(item.weight),
+      kind: 'weapon' as const,
+      attack: (item.attack || []).map(mapStat),
+      defence: (item.defence || []).map(mapStat),
+      scalesWith: (item.scalesWith || []).map(mapScaling),
+      requiredAttributes: (item.requiredAttributes || []).map(mapStat),
+    }))
+  );
+
+  const shields: ShieldItem[] = deduplicate(
+    rawShields.map((item: RawItem) => ({
+      id: safeStr(item.id),
+      name: safeStr(item.name),
+      image: safeStrOrNull(item.image),
+      category: getCleanCategory(item.name, item.category),
+      description: safeStr(item.description),
+      weight: safeFloat(item.weight),
+      kind: 'shield' as const,
+      attack: (item.attack || []).map(mapStat),
+      defence: (item.defence || []).map(mapStat),
+      scalesWith: (item.scalesWith || []).map(mapScaling),
+      requiredAttributes: (item.requiredAttributes || []).map(mapStat),
+    }))
+  );
+
+  const ammos: AmmoItem[] = deduplicate(
+    rawAmmos.map((item: RawItem) => ({
+      id: safeStr(item.id),
+      name: safeStr(item.name),
+      image: safeStrOrNull(item.image),
+      category: getAmmoCategory(item.name),
+      description: safeStr(item.description),
+      weight: 0,
+      kind: 'ammo' as const,
+      attack: (item.attackPower || []).map(mapStat),
+      passive: safeStr(item.passive),
+    }))
+  );
+
+  return [...armors, ...weapons, ...shields, ...ammos];
+};
+
 export const useEquipmentData = () => {
   return useQuery({
     queryKey: ['equipment'],
-    queryFn: async () => {
-      const [rawArmors, rawWeapons, rawShields, rawAmmos] = await Promise.all([
-        fetchAllPages(GET_ARMOR_PAGE, 'armor', 5),
-        fetchAllPages(GET_WEAPON_PAGE, 'weapon', 4),
-        fetchAllPages(GET_SHIELD_PAGE, 'shield', 1),
-        fetchAllPages(GET_AMMO_PAGE, 'ammo', 1),
-      ]);
-
-      const armors: ArmorItem[] = deduplicate(
-        rawArmors.map((item: RawItem) => ({
-          id: safeStr(item.id),
-          name: safeStr(item.name),
-          image: safeStrOrNull(item.image),
-          category: getCleanCategory(item.name, item.category),
-          description: safeStr(item.description),
-          weight: safeFloat(item.weight),
-          kind: 'armor' as const,
-          dmgNegation: (item.dmgNegation || []).map(mapStat),
-          resistance: (item.resistance || []).map(mapStat),
-        }))
-      );
-
-      const weapons: WeaponItem[] = deduplicate(
-        rawWeapons.map((item: RawItem) => ({
-          id: safeStr(item.id),
-          name: safeStr(item.name),
-          image: safeStrOrNull(item.image),
-          category: getCleanCategory(item.name, item.category),
-          description: safeStr(item.description),
-          weight: safeFloat(item.weight),
-          kind: 'weapon' as const,
-          attack: (item.attack || []).map(mapStat),
-          defence: (item.defence || []).map(mapStat),
-          scalesWith: (item.scalesWith || []).map(mapScaling),
-          requiredAttributes: (item.requiredAttributes || []).map(mapStat),
-        }))
-      );
-
-      const shields: ShieldItem[] = deduplicate(
-        rawShields.map((item: RawItem) => ({
-          id: safeStr(item.id),
-          name: safeStr(item.name),
-          image: safeStrOrNull(item.image),
-          category: getCleanCategory(item.name, item.category),
-          description: safeStr(item.description),
-          weight: safeFloat(item.weight),
-          kind: 'shield' as const,
-          attack: (item.attack || []).map(mapStat),
-          defence: (item.defence || []).map(mapStat),
-          scalesWith: (item.scalesWith || []).map(mapScaling),
-          requiredAttributes: (item.requiredAttributes || []).map(mapStat),
-        }))
-      );
-
-      const ammos: AmmoItem[] = deduplicate(
-        rawAmmos.map((item: RawItem) => ({
-          id: safeStr(item.id),
-          name: safeStr(item.name),
-          image: safeStrOrNull(item.image),
-          category: getAmmoCategory(item.name),
-          description: safeStr(item.description),
-          weight: 0,
-          kind: 'ammo' as const,
-          attack: (item.attackPower || []).map(mapStat),
-          passive: safeStr(item.passive),
-        }))
-      );
-
-      const all: EquipmentItem[] = [...armors, ...weapons, ...shields, ...ammos];
-      return all;
-    },
+    queryFn: fetchEquipmentDataRaw,
+    select: transformEquipmentData,
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

@@ -3,7 +3,9 @@ import {
   getCleanCategory,
   CATEGORY_CLEANUP_MAP,
   getCleanStatName,
-  STAT_NAME_CLEANUP_MAP
+  STAT_NAME_CLEANUP_MAP,
+  transformEquipmentData,
+  fetchEquipmentDataRaw
 } from './useEquipmentData';
 
 describe('getCleanCategory', () => {
@@ -74,5 +76,33 @@ describe('getCleanStatName', () => {
     expect(STAT_NAME_CLEANUP_MAP['Mag63']).toBe('Mag');
     expect(STAT_NAME_CLEANUP_MAP['Phy120']).toBe('Phy');
     expect(STAT_NAME_CLEANUP_MAP['Light']).toBe('Ligt');
+  });
+});
+
+describe('fetchEquipmentDataRaw', () => {
+  it('is a function', () => {
+    expect(typeof fetchEquipmentDataRaw).toBe('function');
+  });
+});
+
+describe('transformEquipmentData', () => {
+  it('is a function', () => {
+    expect(typeof transformEquipmentData).toBe('function');
+  });
+
+  it('correctly maps raw items to EquipmentItem array', () => {
+    const rawData = [
+      [{ id: "1", name: "Armor 1", weight: 5 }],
+      [{ id: "2", name: "Weapon 1", weight: 10 }],
+      [{ id: "3", name: "Shield 1", weight: 4 }],
+      [{ id: "4", name: "Ammo 1", weight: 0 }],
+    ];
+    // @ts-expect-error - testing mock
+    const result = transformEquipmentData(rawData);
+    expect(result).toHaveLength(4);
+    expect(result[0].kind).toBe('armor');
+    expect(result[1].kind).toBe('weapon');
+    expect(result[2].kind).toBe('shield');
+    expect(result[3].kind).toBe('ammo');
   });
 });
