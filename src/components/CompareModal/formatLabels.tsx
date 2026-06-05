@@ -12,11 +12,11 @@ export const formatDefenceLabel = (name: string): string => statLabel(name);
 
 export const renderCalculatedLabel = (stat: string) => {
   const labels: Record<string, { name: string; formula: string }> = {
-    'ehp': { name: 'Effective HP', formula: 'BaseHealth / (1 - BulletResist)' },
+    'ehp': { name: 'Effective HP', formula: 'BaseHealth / (1 - EffectiveResist)' },
     'integrated_armor': { name: 'Total Integrated Armor', formula: '(1 - Π(1-Buff)) - (1 - Π(1-Shred))' },
-    'ehp_per_soul': { name: 'eHP / Soul', formula: 'Marginal eHP / Cost' },
-    'Final Bullet DPS': { name: 'Final Bullet DPS', formula: '(BaseDPS * FireRateMod) * (1 - EffectiveResist)' },
-    'Final Spirit DPS': { name: 'Final Spirit DPS', formula: '(BaseDPS + SpiritPower * Coeff) * (1 - EffectiveResist)' }
+    'ehp_per_soul': { name: 'eHP / Soul', formula: 'Marginal eHP / Soul Cost' },
+    'Final Bullet DPS': { name: 'Final Bullet DPS', formula: 'BaseDPS * (1+WepPower) * FireRateMult * (1-EffectiveResist)' },
+    'Final Spirit DPS': { name: 'Final Spirit DPS', formula: '(BaseDPS * (1+SpiritDmg) + TechPower * Coeff) * (1-EffectiveResist)' }
   };
   const data = labels[stat] || { name: stat, formula: '' };
   return (

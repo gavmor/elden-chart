@@ -34,6 +34,7 @@ export const getItemColor = (
 			if (cat === 'weapon') return 'var(--color-deadlock-weapon)';
 			if (cat === 'vitality') return 'var(--color-deadlock-vitality)';
 			if (cat === 'spirit') return 'var(--color-deadlock-spirit)';
+			if (cat === 'street brawl') return 'var(--color-deadlock-brawl)';
 		}
 		if (item.kind === 'deadlock_ability') {
 			const cat = item.category.toLowerCase();
