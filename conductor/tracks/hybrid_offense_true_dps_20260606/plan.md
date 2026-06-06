@@ -11,7 +11,7 @@
 - [x] Task: Conductor - User Manual Verification 'Burst-Fire `cycleTime` & Ammunition Mechanics' (Protocol in workflow.md) 5bda7c0
 
 ## Phase 2: Combined Hybrid DPS Metric (TDD)
-- [ ] Task: Implement Combined Hybrid DPS splitting (TDD)
+- [x] Task: Implement Combined Hybrid DPS splitting (TDD) 2f1f19d
     - [ ] Write failing tests validating Infernus, Wraith, Haze, Warden on-hit spirit damage correctly bifurcates from physical bullet damage
     - [ ] Write failing tests ensuring split spirit damage targets Spirit Resistance and bypasses physical immunities (Metal Skin)
     - [ ] Implement `Combined Hybrid DPS / Soul` metric calculation
