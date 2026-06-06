@@ -5,7 +5,7 @@
     - [x] Write failing tests verifying marginal health, damage, and spirit calculations (taking current spent souls and milestones into account)
     - [x] Write failing tests verifying EHP calculations with 1-damage floor constraint and parameterized incoming damage
     - [x] Implement marginal calculators and EHP math in `src/components/domain/math.ts`
-- [ ] Task: Conductor - User Manual Verification 'Domain Calculations' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Domain Calculations' (Protocol in workflow.md)
 
 ## Phase 2: Attacker Data & UI Selectors (TDD)
 - [ ] Task: Expose base bullet damage and implement Enemy Attacker selection (TDD)
