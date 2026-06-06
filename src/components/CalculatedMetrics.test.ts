@@ -219,3 +219,41 @@ describe('Calculated Metrics - Enemy Attacker EHP Scaling', () => {
     expect(getItemStat(defender, 'ehp', contextHaze)).toBeCloseTo(5000);
   });
 });
+
+describe('Calculated Metrics - Active EHP and Debuff Mitigation', () => {
+  it('calculates Juggernaut active EHP scaling via debuff mitigation', () => {
+    const juggernaut: EquipmentItem = {
+      id: 'j1',
+      name: 'Juggernaut',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 3000,
+      properties: [{ name: 'FireRateSlow', amount: 40 }],
+      image: null,
+    };
+    
+    const context: SimulationContext = { hero: DEFAULT_HERO, customSet: [] };
+    
+    expect(getItemStat(juggernaut, 'debuff_mitigation', context)).toBeCloseTo(0.40);
+    expect(getItemStat(juggernaut, 'active_ehp', context)).toBeCloseTo(666.66, 1);
+  });
+
+  it('calculates Plated Armor debuff mitigation calculations', () => {
+    const platedArmor: EquipmentItem = {
+      id: 'p1',
+      name: 'Plated Armor',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 3000,
+      properties: [{ name: 'DeflectionPercent', amount: 30 }, { name: 'BonusHealth', amount: 130 }],
+      image: null,
+    };
+    
+    const context: SimulationContext = { hero: DEFAULT_HERO, customSet: [] };
+    
+    expect(getItemStat(platedArmor, 'debuff_mitigation', context)).toBeCloseTo(0.30);
+    expect(getItemStat(platedArmor, 'active_ehp', context)).toBeCloseTo(614.28, 1);
+  });
+});

@@ -2,6 +2,7 @@ import * as Plot from '@observablehq/plot';
 import type { EquipmentItem, ColorKey, SimulationContext } from '../types';
 import { getItemColor } from '../display/styling';
 import { getItemImageUrl } from '../display/logic';
+import { getItemStat } from '../domain/math';
 import { FOCAL_COLOR } from './plotStyles';
 
 // Helper to apply data-id to rendered SVG elements
@@ -132,6 +133,34 @@ export function buildPlotMarks({
         strokeWidth: 6,
         opacity: 0.25,
         render: withDataId(activeItems)
+      })
+    );
+  }
+
+  // Layer 4.6: Active Defensive Indicators (Debuff Mitigation)
+  const defensiveItems = filteredData.filter(d => getItemStat(d, 'debuff_mitigation', simulationContext) > 0);
+  if (defensiveItems.length > 0) {
+    marks.push(
+      Plot.text(defensiveItems, {
+        x: getX,
+        y: getY,
+        text: () => '🛡️',
+        dy: -14,
+        dx: 14,
+        fontSize: 16,
+        render: withDataId(defensiveItems)
+      })
+    );
+    marks.push(
+      Plot.dot(defensiveItems, {
+        x: getX,
+        y: getY,
+        r: 18,
+        fill: 'none',
+        stroke: '#34d399', // emerald-400
+        strokeWidth: 2,
+        strokeDasharray: '3 3',
+        render: withDataId(defensiveItems)
       })
     );
   }

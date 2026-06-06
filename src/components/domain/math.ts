@@ -151,6 +151,56 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 		return calcEhp(getCombinedItems()) - calcEhp(getBaselineItems());
 	}
 	
+	if (statName === 'debuff_mitigation') {
+		const calcDebuffMitigation = (itemsList: EquipmentItem[]) => {
+			let remainingDpsMultiplier = 1.0;
+			for (const it of itemsList) {
+				const fireRateSlow = getItemStat(it, 'FireRateSlow') || 0;
+				if (fireRateSlow > 0) {
+					remainingDpsMultiplier *= (1 - fireRateSlow / 100);
+				}
+				const deflection = getItemStat(it, 'DeflectionPercent') || 0;
+				if (deflection > 0) {
+					remainingDpsMultiplier *= (1 - deflection / 100);
+				}
+			}
+			return 1 - remainingDpsMultiplier;
+		};
+		// Marginal debuff mitigation
+		// To show the true marginal addition, it's (combined_mitigation) - (baseline_mitigation)
+		return calcDebuffMitigation(getCombinedItems()) - calcDebuffMitigation(getBaselineItems());
+	}
+
+	if (statName === 'active_ehp') {
+		const calcActiveEhp = (itemsList: EquipmentItem[]) => {
+			const setBonusHealth = itemsList.reduce((acc, it) => acc + (getItemStat(it, 'BonusHealth') || 0), 0);
+			const baseHealth = 1000 + setBonusHealth;
+			const bulletResists: number[] = [];
+			
+			let remainingDpsMultiplier = 1.0;
+			
+			for (const it of itemsList) {
+				const br = getItemStat(it, 'BulletResist') || 0;
+				if (br > 0) bulletResists.push(br / 100);
+				
+				const fireRateSlow = getItemStat(it, 'FireRateSlow') || 0;
+				if (fireRateSlow > 0) remainingDpsMultiplier *= (1 - fireRateSlow / 100);
+				
+				const deflection = getItemStat(it, 'DeflectionPercent') || 0;
+				if (deflection > 0) remainingDpsMultiplier *= (1 - deflection / 100);
+			}
+			
+			const finalResist = calculateEffectiveResistance(bulletResists, []);
+			const baseEhp = calculateEffectiveHealth(baseHealth, finalResist, context?.incomingDamage);
+			
+			// Apply debuff mitigation mathematically to the base EHP
+			// Since debuffs reduce incoming DPS by remainingDpsMultiplier, TTK is increased by 1/remainingDpsMultiplier
+			// So Active EHP = baseEhp / remainingDpsMultiplier
+			return remainingDpsMultiplier > 0 ? baseEhp / remainingDpsMultiplier : baseEhp;
+		};
+		return calcActiveEhp(getCombinedItems()) - calcActiveEhp(getBaselineItems());
+	}
+	
 	if (statName === 'integrated_armor') {
 		const calcIntegratedArmor = (itemsList: EquipmentItem[]) => {
 			const bulletResists: number[] = [];
@@ -230,7 +280,7 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 
 export const getItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	// Fast path: Only cache calculated metrics that use context
-	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul', 'MHpS', 'MWDpS', 'MSPpS'].includes(statName)) {
+	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul', 'MHpS', 'MWDpS', 'MSPpS', 'debuff_mitigation', 'active_ehp'].includes(statName)) {
 		return computeItemStat(item, statName, context);
 	}
 
@@ -403,6 +453,8 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 		const propertiesNames = collectStatNames(items, i => (i.kind === 'deadlock_upgrade' || i.kind === 'deadlock_ability') ? i.properties : []);
 		return [
 			{ id: 'weight', label: 'Cost', group: 'General' },
+			{ id: 'active_ehp', label: 'Active EHP', group: 'Calculated Metrics' },
+			{ id: 'debuff_mitigation', label: 'Debuff Mitigation', group: 'Calculated Metrics' },
 			{ id: 'ehp', label: 'Effective HP', group: 'Calculated Metrics' },
 			{ id: 'integrated_armor', label: 'Total Integrated Armor', group: 'Calculated Metrics' },
 			{ id: 'ehp_per_soul', label: 'eHP / Soul', group: 'Calculated Metrics' },
