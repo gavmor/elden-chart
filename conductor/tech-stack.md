@@ -10,6 +10,7 @@
 - **GraphQL**: Used via `graphql-request` and `GraphQL Code Generator` for type-safe data fetching.
 - **TanStack React Query v5**: For declarative, cached query state management.
 - **Observable Plot**: For imperative data visualization.
+- **ml-regression-multivariate-linear**: For running client-side linear regression to compute baseline exchange rates.
 
 ## External APIs
 - **Deadlock API TypeScript client**: Integrated via `@deadlock-api/openapi-clients` for fetching Deadlock items.
