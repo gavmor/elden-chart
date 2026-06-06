@@ -8,10 +8,10 @@
 - [x] Task: Conductor - User Manual Verification 'Domain Calculations' (Protocol in workflow.md)
 
 ## Phase 2: Attacker Data & UI Selectors (TDD)
-- [ ] Task: Expose base bullet damage and implement Enemy Attacker selection (TDD)
-    - [ ] Write failing tests verifying hero dictionary has base bullet damage properties
-    - [ ] Create Attacker Dropdown component allowing selection of enemy hero
-    - [ ] Bind selected attacker's bullet damage to the EHP calculation context
+- [x] Task: Expose base bullet damage and implement Enemy Attacker selection (TDD) (0689f7b)
+    - [x] Write failing tests verifying hero dictionary has base bullet damage properties
+    - [x] Create Attacker Dropdown component allowing selection of enemy hero
+    - [x] Bind selected attacker's bullet damage to the EHP calculation context
 - [ ] Task: Conductor - User Manual Verification 'Attacker Data & UI Selectors' (Protocol in workflow.md)
 
 ## Phase 3: Active EHP & Debuff Mitigation Axes (TDD)
