@@ -2,9 +2,9 @@
 
 ## Phase 1: Data Fetching and Package Setup
 - [x] Task: Install `ml-regression-multivariate-linear` package (c0d4164)
-- [ ] Task: Enhance `deadlockApi.ts` query hooks (TDD)
-    - [ ] Write failing test for fetching Investment Track milestones and Item data from API
-    - [ ] Implement query logic to fetch from a community API
+- [x] Task: Enhance `deadlockApi.ts` query hooks (TDD) (fc0813e)
+    - [x] Write failing test for fetching Investment Track milestones and Item data from API (fc0813e)
+    - [x] Implement query logic to fetch from a community API (fc0813e)
 - [ ] Task: Conductor - User Manual Verification 'Data Fetching and Package Setup' (Protocol in workflow.md)
 
 ## Phase 2: Multivariate Linear Regression Implementation
