@@ -56,3 +56,19 @@ export function calculateSustainedDPS(
   // Sustained DPS
   return (bulletDamage * effectiveMagazineSize) / (timeToEmpty + effectiveReloadTime);
 }
+
+export function calculateCombinedHybridDPS(
+  physicalDPS: number,
+  spiritOnHitDPS: number,
+  targetPhysicalResist: number,
+  targetSpiritResist: number
+): number {
+  const effectivePhysical = calculateEffectiveDPS(physicalDPS, targetPhysicalResist);
+  const effectiveSpirit = calculateEffectiveDPS(spiritOnHitDPS, targetSpiritResist);
+  return effectivePhysical + effectiveSpirit;
+}
+
+export function calculateHybridDPSPerSoul(totalDPS: number, soulCost: number): number {
+  if (soulCost === 0) return 0;
+  return totalDPS / soulCost;
+}

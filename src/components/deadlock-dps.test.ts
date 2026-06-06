@@ -7,7 +7,9 @@ import {
   calculateEffectiveDPS,
   calculateAmplifiedDamage,
   applyAmmoCeiling,
-  calculateSustainedDPS
+  calculateSustainedDPS,
+  calculateCombinedHybridDPS,
+  calculateHybridDPSPerSoul
 } from './deadlock-dps';
 
 describe('Deadlock DPS Calculations', () => {
@@ -160,6 +162,49 @@ describe('Deadlock DPS Calculations', () => {
       const dps = calculateSustainedDPS(bulletDamage, fireRate, magazineSize, reloadTime, bypassCount);
       // Effective magazine = 40. Time to empty = 40 / 5 = 8s. Total time = 8 + 2 = 10s. Total damage = 400. DPS = 400 / 10 = 40
       expect(dps).toBeCloseTo(40);
+    });
+  });
+
+  describe('Combined Hybrid DPS', () => {
+    it('bifurcates physical bullet damage and on-hit spirit damage correctly', () => {
+      const physicalDPS = 100;
+      const spiritOnHitDPS = 50; 
+      const targetPhysicalResist = 0.2; // 20%
+      const targetSpiritResist = 0.1; // 10%
+      
+      const totalDPS = calculateCombinedHybridDPS(
+        physicalDPS, 
+        spiritOnHitDPS, 
+        targetPhysicalResist, 
+        targetSpiritResist
+      );
+      // Expected: (100 * 0.8) + (50 * 0.9) = 80 + 45 = 125
+      expect(totalDPS).toBeCloseTo(125);
+    });
+
+    it('ensures spirit damage bypasses physical immunities (Metal Skin)', () => {
+      const physicalDPS = 100;
+      const spiritOnHitDPS = 50; 
+      const targetPhysicalResist = 1.0; // 100% immune (Metal Skin)
+      const targetSpiritResist = 0.0; // 0%
+      
+      const totalDPS = calculateCombinedHybridDPS(
+        physicalDPS, 
+        spiritOnHitDPS, 
+        targetPhysicalResist, 
+        targetSpiritResist
+      );
+      // Expected: (100 * 0) + (50 * 1.0) = 50
+      expect(totalDPS).toBeCloseTo(50);
+    });
+
+    it('calculates Combined Hybrid DPS per Soul', () => {
+      const totalDPS = 125;
+      const soulCost = 3000;
+      
+      const dpsPerSoul = calculateHybridDPSPerSoul(totalDPS, soulCost);
+      // Expected: 125 / 3000 = 0.04166
+      expect(dpsPerSoul).toBeCloseTo(125 / 3000);
     });
   });
 });
