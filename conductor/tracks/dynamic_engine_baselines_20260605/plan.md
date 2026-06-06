@@ -14,7 +14,7 @@
     - [x] Implement MLR algorithm to compute the baseline exchange rates
 - [x] Task: Conductor - User Manual Verification 'Multivariate Linear Regression Implementation' (Protocol in workflow.md)
 
-## Phase 3: Integration and State Access
+## Phase 3: Integration and State Access [checkpoint: 2036063]
 - [x] Task: Update TanStack Query hooks to expose calculated baselines (TDD) (8b3b824)
     - [x] Write failing tests ensuring exchange rates and investment milestones are exposed via the `select` transform
     - [x] Implement the integration of `calculateExchangeRates` into the existing query selectors
