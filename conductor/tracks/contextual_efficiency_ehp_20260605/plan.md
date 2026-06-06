@@ -1,6 +1,6 @@
 # Implementation Plan - Phase 2: Contextual Efficiency & EHP (Survivability)
 
-## Phase 1: Domain Calculations (TDD)
+## Phase 1: Domain Calculations (TDD) [checkpoint: 46453cd]
 - [x] Task: Implement marginal stat calculations and EHP with 1-Damage Floor (TDD) (2e07e2a)
     - [x] Write failing tests verifying marginal health, damage, and spirit calculations (taking current spent souls and milestones into account)
     - [x] Write failing tests verifying EHP calculations with 1-damage floor constraint and parameterized incoming damage
