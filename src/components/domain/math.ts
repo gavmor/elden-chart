@@ -1,11 +1,55 @@
 import * as R from 'remeda';
-import type { EquipmentItem, EquipmentKind, StatOption, SimulationContext } from '../types';
+import type { EquipmentItem, EquipmentKind, StatOption, SimulationContext, InvestmentMilestone } from '../types';
 import { calculateBulletDPS, calculateSpiritDPS, calculateEffectiveResistance, calculateEffectiveDPS } from '../deadlock-dps';
 import { formatStatName } from '../display/logic';
 
 const statCache = new Map<string, number>();
 
 export const clearStatCache = () => statCache.clear();
+
+const getMilestoneDelta = (
+	item: EquipmentItem,
+	category: 'weapon' | 'vitality' | 'spirit',
+	context?: SimulationContext,
+	getBaselineItems?: () => EquipmentItem[],
+	getCombinedItems?: () => EquipmentItem[]
+): number => {
+	if (!context?.investmentTracks) return 0;
+
+	const itemCategory = item.category.toLowerCase();
+	if (itemCategory !== category) return 0;
+
+	const track = context.investmentTracks[category];
+	if (!track || track.length === 0) return 0;
+
+	// Calculate baseline and projected spent souls in this category
+	const baselineItems = getBaselineItems ? getBaselineItems() : [];
+	const combinedItems = getCombinedItems ? getCombinedItems() : [item];
+
+	const baselineSpent = baselineItems
+		.filter(it => it.category.toLowerCase() === category)
+		.reduce((acc, it) => acc + it.weight, 0);
+
+	const projectedSpent = combinedItems
+		.filter(it => it.category.toLowerCase() === category)
+		.reduce((acc, it) => acc + it.weight, 0);
+
+	const getBonus = (milestones: InvestmentMilestone[], spent: number): number => {
+		let activeBonus = 0;
+		const sorted = [...milestones].sort((a, b) => a.goldThreshold - b.goldThreshold);
+		for (const m of sorted) {
+			if (spent >= m.goldThreshold) {
+				activeBonus = m.bonus;
+			}
+		}
+		return activeBonus;
+	};
+
+	const baselineBonus = getBonus(track, baselineSpent);
+	const projectedBonus = getBonus(track, projectedSpent);
+
+	return projectedBonus - baselineBonus;
+};
 
 const computeItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	if (statName === 'weight') return item.weight;
@@ -102,7 +146,7 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 				if (br > 0) bulletResists.push(br / 100);
 			}
 			const finalResist = calculateEffectiveResistance(bulletResists, []);
-			return calculateEffectiveHealth(baseHealth, finalResist);
+			return calculateEffectiveHealth(baseHealth, finalResist, context?.incomingDamage);
 		};
 		return calcEhp(getCombinedItems()) - calcEhp(getBaselineItems());
 	}
@@ -139,6 +183,24 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 		return calculateValueMetric(marginalEhp, item.weight);
 	}
 
+	if (statName === 'MHpS') {
+		const baseHealth = getItemStat(item, 'BonusHealth');
+		const milestoneDelta = getMilestoneDelta(item, 'vitality', context, getBaselineItems, getCombinedItems);
+		return calculateValueMetric(baseHealth + milestoneDelta, item.weight);
+	}
+
+	if (statName === 'MWDpS') {
+		const baseWeaponPower = getItemStat(item, 'WeaponPower') + getItemStat(item, 'BaseAttackDamagePercent') + getItemStat(item, 'BonusDamagePercent');
+		const milestoneDelta = getMilestoneDelta(item, 'weapon', context, getBaselineItems, getCombinedItems);
+		return calculateValueMetric(baseWeaponPower + milestoneDelta, item.weight);
+	}
+
+	if (statName === 'MSPpS') {
+		const baseSpiritPower = getItemStat(item, 'TechPower') + getItemStat(item, 'SpiritPower');
+		const milestoneDelta = getMilestoneDelta(item, 'spirit', context, getBaselineItems, getCombinedItems);
+		return calculateValueMetric(baseSpiritPower + milestoneDelta, item.weight);
+	}
+
 	const getAmount = R.prop('amount');
 
 	if (item.kind === 'deadlock_upgrade' || item.kind === 'deadlock_ability') {
@@ -168,7 +230,7 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 
 export const getItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	// Fast path: Only cache calculated metrics that use context
-	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul'].includes(statName)) {
+	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul', 'MHpS', 'MWDpS', 'MSPpS'].includes(statName)) {
 		return computeItemStat(item, statName, context);
 	}
 
@@ -344,6 +406,9 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 			{ id: 'ehp', label: 'Effective HP', group: 'Calculated Metrics' },
 			{ id: 'integrated_armor', label: 'Total Integrated Armor', group: 'Calculated Metrics' },
 			{ id: 'ehp_per_soul', label: 'eHP / Soul', group: 'Calculated Metrics' },
+			{ id: 'MHpS', label: 'Marginal Health per Soul (MHpS)', group: 'Calculated Metrics' },
+			{ id: 'MWDpS', label: 'Marginal Weapon Damage % per Soul (MWDpS)', group: 'Calculated Metrics' },
+			{ id: 'MSPpS', label: 'Marginal Spirit Power per Soul (MSPpS)', group: 'Calculated Metrics' },
 			{ id: 'Final Bullet DPS', label: 'Final Bullet DPS', group: 'Calculated Metrics' },
 			{ id: 'Final Spirit DPS', label: 'Final Spirit DPS', group: 'Calculated Metrics' },
 			...buildGroup(propertiesNames, 'total_negation', 'Total Stats', 'Item Properties')
@@ -458,9 +523,9 @@ export function calculateTotalIntegratedArmor(positiveBuffs: number[], negativeS
 	return B - N;
 };
 
-export function calculateEffectiveHealth(baseHealth: number, activeResistance: number): number {
-	if (activeResistance >= 1.0) return Infinity;
-	return baseHealth / (1 - activeResistance);
+export function calculateEffectiveHealth(baseHealth: number, activeResistance: number, incomingDamage: number = 15): number {
+	const actualDamage = Math.max(1, incomingDamage * (1 - activeResistance));
+	return baseHealth * (incomingDamage / actualDamage);
 };
 
 export function calculateValueMetric(statValue: number, cost: number): number {

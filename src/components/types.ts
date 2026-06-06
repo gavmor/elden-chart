@@ -125,4 +125,6 @@ export interface Hero {
 export interface SimulationContext {
   hero: Hero;
   customSet: EquipmentItem[];
+  investmentTracks?: InvestmentTracks;
+  incomingDamage?: number;
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getItemStat } from './domain/math';
-import type { EquipmentItem, SimulationContext } from './types';
+import type { EquipmentItem, SimulationContext, InvestmentTracks } from './types';
 import { DEFAULT_HERO } from './heroes';
 
 describe('Calculated Metrics - Marginal Value (Delta)', () => {
@@ -53,5 +53,124 @@ describe('Calculated Metrics - Marginal Value (Delta)', () => {
     const vacuumValue1 = getItemStat(item1, 'Final Bullet DPS', { ...simulationContext, customSet: [] });
     
     expect(marginalValueOwned).toBeCloseTo(vacuumValue1, 5);
+  });
+});
+
+describe('Calculated Metrics - Investment Track Milestones & Marginal Stats', () => {
+  const tracks: InvestmentTracks = {
+    weapon: [
+      { goldThreshold: 1000, bonus: 10, percentOnGraph: 20 },
+      { goldThreshold: 3000, bonus: 25, percentOnGraph: 50 },
+    ],
+    vitality: [
+      { goldThreshold: 800, bonus: 50, percentOnGraph: 15 },
+      { goldThreshold: 2000, bonus: 150, percentOnGraph: 40 },
+    ],
+    spirit: [
+      { goldThreshold: 1500, bonus: 5, percentOnGraph: 30 },
+    ],
+  };
+
+  it('calculates MHpS, MWDpS, MSPpS in vacuum correctly', () => {
+    // Vitality item: weight=500, has BonusHealth=50
+    const vitItem: EquipmentItem = {
+      id: 'v1',
+      name: 'Vitality Item',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 500,
+      properties: [{ name: 'BonusHealth', amount: 50 }],
+      image: null,
+    };
+
+    const context: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [],
+      investmentTracks: tracks,
+    };
+
+    // MHpS: (Base Health + milestoneDelta) / cost
+    // In vacuum: spent = 500. No milestones reached (threshold 800).
+    // milestoneDelta = 0.
+    // MHpS = 50 / 500 = 0.1
+    expect(getItemStat(vitItem, 'MHpS', context)).toBeCloseTo(0.1);
+    expect(getItemStat(vitItem, 'MWDpS', context)).toBe(0);
+    expect(getItemStat(vitItem, 'MSPpS', context)).toBe(0);
+  });
+
+  it('calculates MHpS including vitality milestone delta', () => {
+    // Vitality item: weight=500, has BonusHealth=50
+    const vitItem: EquipmentItem = {
+      id: 'v1',
+      name: 'Vitality Item',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 500,
+      properties: [{ name: 'BonusHealth', amount: 50 }],
+      image: null,
+    };
+
+    // If user already has 500 spent in vitality, adding vitItem pushes spent to 1000.
+    // This crosses the 800 goldThreshold milestone (bonus: 50 health).
+    // milestoneDelta = 50 - 0 = 50.
+    // MHpS = (50 + 50) / 500 = 0.2
+    const existingItem: EquipmentItem = {
+      id: 'v_exist',
+      name: 'Existing Vit',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 500,
+      properties: [],
+      image: null,
+    };
+
+    const context: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [existingItem],
+      investmentTracks: tracks,
+    };
+
+    expect(getItemStat(vitItem, 'MHpS', context)).toBeCloseTo(0.2);
+  });
+
+  it('calculates MWDpS and MSPpS including milestone deltas', () => {
+    const weaponItem: EquipmentItem = {
+      id: 'w1',
+      name: 'Weapon Item',
+      kind: 'deadlock_upgrade',
+      category: 'weapon',
+      description: '',
+      weight: 1000,
+      properties: [{ name: 'WeaponPower', amount: 5 }],
+      image: null,
+    };
+
+    const spiritItem: EquipmentItem = {
+      id: 's1',
+      name: 'Spirit Item',
+      kind: 'deadlock_upgrade',
+      category: 'spirit',
+      description: '',
+      weight: 1500,
+      properties: [{ name: 'SpiritPower', amount: 2 }],
+      image: null,
+    };
+
+    const context: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [],
+      investmentTracks: tracks,
+    };
+
+    // Weapon item cost 1000: crosses 1000 threshold (bonus 10).
+    // MWDpS = (5 + 10) / 1000 = 0.015
+    expect(getItemStat(weaponItem, 'MWDpS', context)).toBeCloseTo(0.015);
+
+    // Spirit item cost 1500: crosses 1500 threshold (bonus 5).
+    // MSPpS = (2 + 5) / 1500 = 0.004666...
+    expect(getItemStat(spiritItem, 'MSPpS', context)).toBeCloseTo(7 / 1500);
   });
 });

@@ -27,9 +27,18 @@ describe('Calculated Dimensions', () => {
 		it('calculates eHP correctly for 90% resistance', () => {
 			expect(calculateEffectiveHealth(1000, 0.90)).toBeCloseTo(10000);
 		});
-		it('returns Infinity for 100% resistance or higher', () => {
-			expect(calculateEffectiveHealth(1000, 1.0)).toBe(Infinity);
-			expect(calculateEffectiveHealth(1000, 1.5)).toBe(Infinity);
+
+		it('calculates EHP with 1-damage floor engaged at high resistance (e.g. 95% with default 15 damage)', () => {
+			expect(calculateEffectiveHealth(1000, 0.95)).toBeCloseTo(15000); // 15 * (1 - 0.95) = 0.75 < 1 => clamped to 1 => 1000 * 15 / 1 = 15000
+		});
+		it('calculates EHP with 1-damage floor engaged at 100% resistance', () => {
+			expect(calculateEffectiveHealth(1000, 1.0)).toBeCloseTo(15000); // capped at Health * Incoming Damage
+			expect(calculateEffectiveHealth(1000, 1.5)).toBeCloseTo(15000);
+		});
+		it('calculates EHP with parameterized incoming damage', () => {
+			// e.g. incomingDamage = 30
+			expect(calculateEffectiveHealth(1000, 0.95, 30)).toBeCloseTo(20000); // 30 * 0.05 = 1.5 >= 1 => 1000 / 0.05 = 20000
+			expect(calculateEffectiveHealth(1000, 0.98, 30)).toBeCloseTo(30000); // 30 * 0.02 = 0.6 < 1 => clamped to 1 => 1000 * 30 / 1 = 30000
 		});
 		it('handles negative resistance', () => {
 			expect(calculateEffectiveHealth(1000, -0.25)).toBe(800);
