@@ -7,7 +7,7 @@
     - [x] Implement query logic to fetch from a community API (fc0813e)
 - [x] Task: Conductor - User Manual Verification 'Data Fetching and Package Setup' (Protocol in workflow.md) (8f80b94)
 
-## Phase 2: Multivariate Linear Regression Implementation
+## Phase 2: Multivariate Linear Regression Implementation [checkpoint: a0ba3a9]
 - [x] Task: Create `calculateExchangeRates.ts` utility (TDD) (6cca898)
     - [x] Write failing tests modeling Tier 1 items and their expected fractional soul values
     - [x] Implement parsing of item data into X (features) and Y (soul cost) matrices
