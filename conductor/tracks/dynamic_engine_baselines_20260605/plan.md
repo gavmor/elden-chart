@@ -1,7 +1,7 @@
 # Implementation Plan - Phase 1: Dynamic Engine Baselines
 
 ## Phase 1: Data Fetching and Package Setup
-- [ ] Task: Install `ml-regression-multivariate-linear` package
+- [x] Task: Install `ml-regression-multivariate-linear` package (c0d4164)
 - [ ] Task: Enhance `deadlockApi.ts` query hooks (TDD)
     - [ ] Write failing test for fetching Investment Track milestones and Item data from API
     - [ ] Implement query logic to fetch from a community API
