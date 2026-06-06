@@ -18,4 +18,4 @@
 - [x] Task: Update TanStack Query hooks to expose calculated baselines (TDD) (8b3b824)
     - [x] Write failing tests ensuring exchange rates and investment milestones are exposed via the `select` transform
     - [x] Implement the integration of `calculateExchangeRates` into the existing query selectors
-- [ ] Task: Conductor - User Manual Verification 'Integration and State Access' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Integration and State Access' (Protocol in workflow.md)
