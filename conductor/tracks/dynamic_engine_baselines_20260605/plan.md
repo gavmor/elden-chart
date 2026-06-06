@@ -8,10 +8,10 @@
 - [x] Task: Conductor - User Manual Verification 'Data Fetching and Package Setup' (Protocol in workflow.md) (8f80b94)
 
 ## Phase 2: Multivariate Linear Regression Implementation
-- [ ] Task: Create `calculateExchangeRates.ts` utility (TDD)
-    - [ ] Write failing tests modeling Tier 1 items and their expected fractional soul values
-    - [ ] Implement parsing of item data into X (features) and Y (soul cost) matrices
-    - [ ] Implement MLR algorithm to compute the baseline exchange rates
+- [x] Task: Create `calculateExchangeRates.ts` utility (TDD) (6cca898)
+    - [x] Write failing tests modeling Tier 1 items and their expected fractional soul values
+    - [x] Implement parsing of item data into X (features) and Y (soul cost) matrices
+    - [x] Implement MLR algorithm to compute the baseline exchange rates
 - [ ] Task: Conductor - User Manual Verification 'Multivariate Linear Regression Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Integration and State Access
