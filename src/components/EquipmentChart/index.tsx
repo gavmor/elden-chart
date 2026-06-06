@@ -121,7 +121,8 @@ export default function EquipmentChart() {
               customSet={state.customSet}
               onClickItem={actions.handleToggleSet}
               showPareto={state.showPareto}
-              simulationContext={state.vacuumContext}
+              simulationContext={state.simulationContext}
+              vacuumContext={state.vacuumContext}
             />
           )}
 

@@ -12,7 +12,7 @@
     - [x] Write failing tests verifying hero dictionary has base bullet damage properties
     - [x] Create Attacker Dropdown component allowing selection of enemy hero
     - [x] Bind selected attacker's bullet damage to the EHP calculation context
-- [ ] Task: Conductor - User Manual Verification 'Attacker Data & UI Selectors' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Attacker Data & UI Selectors' (Protocol in workflow.md)
 
 ## Phase 3: Active EHP & Debuff Mitigation Axes (TDD)
 - [ ] Task: Expose Active EHP and Debuff Mitigation stats as plot axes (TDD)

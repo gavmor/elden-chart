@@ -27,6 +27,7 @@ interface PlotProps {
   onClickItem: (item: EquipmentItem) => void;
   showPareto: boolean;
   simulationContext?: import('../types').SimulationContext;
+  vacuumContext?: import('../types').SimulationContext;
 }
 
 export default function EquipmentChartPlot({
@@ -45,7 +46,8 @@ export default function EquipmentChartPlot({
   customSet,
   onClickItem,
   showPareto,
-  simulationContext
+  simulationContext,
+  vacuumContext
 }: PlotProps) {
   const auraSize: number = 3;
   const auraStyle: 'glow' | 'outline' = 'glow';
@@ -75,8 +77,8 @@ export default function EquipmentChartPlot({
 
     containerRef.current.innerHTML = '';
 
-    const xRange = getStatRangeClamped(filteredData, xVar, simulationContext);
-    const yRange = getStatRangeClamped(filteredData, yVar, simulationContext);
+    const xRange = getStatRangeClamped(filteredData, xVar, vacuumContext);
+    const yRange = getStatRangeClamped(filteredData, yVar, vacuumContext);
     const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max, simulationContext);
     const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max, simulationContext);
 
@@ -172,7 +174,7 @@ export default function EquipmentChartPlot({
   }, [
     filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, 
     xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, 
-    paretoIds, paretoItems, xLog, yLog,
+    paretoIds, paretoItems, xLog, yLog, vacuumContext,
     // Add refs to dependency array to satisfy exhaustive-deps, though they are stable
     refs.customSetRef, refs.onClickItemRef, refs.onHoverItemRef, refs.onLeavePlotRef
   ]);
