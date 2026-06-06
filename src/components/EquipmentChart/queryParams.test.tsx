@@ -64,6 +64,7 @@ vi.mock('../../hooks/useEquipmentData', () => ({
 vi.mock('../../hooks/useDeadlockData', () => ({
   useDeadlockData: () => ({ data: MOCK_EMPTY_DATA, isLoading: false, error: null }),
   useDeadlockAbilitiesData: () => ({ data: MOCK_EMPTY_DATA, isLoading: false, error: null }),
+  useDeadlockBaselines: () => ({ data: null, isLoading: false, error: null }),
 }));
 
 vi.mock('./Plot', () => ({

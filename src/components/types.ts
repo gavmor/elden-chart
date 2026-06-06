@@ -120,6 +120,7 @@ export interface Hero {
   pauseTime: number;
   spiritConversions: SpiritConversion[];
   abilityCoefficients: AbilityCoefficient[];
+  baseBulletDamage: number;
 }
 
 export interface SimulationContext {

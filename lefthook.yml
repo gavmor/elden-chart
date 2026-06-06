@@ -1,13 +1,14 @@
+no_tty: true
 output: false
 
 pre-commit:
   parallel: true
-  jobs:
-    - name: typecheck
+  commands:
+    typecheck:
       run: pnpm run typecheck
-
-    - name: test
+    test:
       run: pnpm run test
-
-    - name: lint
+    lint:
       run: pnpm run lint
+
+

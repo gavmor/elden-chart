@@ -235,7 +235,7 @@ export const getItemStat = (item: EquipmentItem, statName: string, context?: Sim
 	}
 
 	const customSetKey = context.customSet.length > 0 ? context.customSet.map(i => i.id).sort().join(',') : 'empty';
-	const cacheKey = `${item.id}:${statName}:${context.hero?.name || 'none'}:${customSetKey}`;
+	const cacheKey = `${item.id}:${statName}:${context.hero?.name || 'none'}:${context.incomingDamage ?? 15}:${customSetKey}`;
 	
 	if (statCache.has(cacheKey)) {
 		return statCache.get(cacheKey)!;

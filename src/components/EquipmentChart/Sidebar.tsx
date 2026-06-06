@@ -29,6 +29,8 @@ interface SidebarProps {
   activeGame: 'elden-ring' | 'deadlock';
   selectedHero: string | null;
   onHeroChange: (hero: string | null) => void;
+  enemyAttacker: string | null;
+  onEnemyAttackerChange: (hero: string | null) => void;
   simulationContext?: import('../types').SimulationContext;
 }
 
@@ -50,6 +52,8 @@ export default function EquipmentChartSidebar({
   activeGame,
   selectedHero,
   onHeroChange,
+  enemyAttacker,
+  onEnemyAttackerChange,
   simulationContext
 }: SidebarProps) {
   // Precompute trait counts for all available stats based on filtered items
@@ -99,7 +103,7 @@ export default function EquipmentChartSidebar({
 
       {activeGame === 'deadlock' && (
         <div className="space-y-4 pt-4 border-t border-border-main">
-          <label className="block text-xs font-semibold text-brand-accent uppercase tracking-wider">Deadlock DPS Configuration</label>
+          <label className="block text-xs font-semibold text-brand-accent uppercase tracking-wider">Deadlock Configuration</label>
           <div>
             <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Hero Selection</label>
             <select
@@ -112,6 +116,24 @@ export default function EquipmentChartSidebar({
               <option value="Lash">Lash</option>
               <option value="Seven">Seven</option>
               <option value="Haze">Haze</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">Enemy Attacker (Incoming EHP Damage)</label>
+            <select
+              value={enemyAttacker || ''}
+              onChange={(e) => onEnemyAttackerChange(e.target.value || null)}
+              className="w-full bg-bg-card border border-border-main rounded-btn p-2 text-sm focus:outline-none focus:border-brand-accent animate-in fade-in"
+              id="enemy-attacker-selector"
+            >
+              <option value="">Default (15 Damage)</option>
+              <option value="Victor">Victor (25 Damage)</option>
+              <option value="Holliday">Holliday (18 Damage)</option>
+              <option value="Paradox">Paradox (12 Damage)</option>
+              <option value="Lash">Lash (11 Damage)</option>
+              <option value="Seven">Seven (10 Damage)</option>
+              <option value="Infernus">Infernus (10 Damage)</option>
+              <option value="Haze">Haze (6 Damage)</option>
             </select>
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import type { EquipmentItem, ActiveCategories } from '../types';
 import { getItemStat, getAvailableStats, getActiveCategories } from '../domain/math';
 import { useEquipmentData } from '../../hooks/useEquipmentData';
-import { useDeadlockData, useDeadlockAbilitiesData } from '../../hooks/useDeadlockData';
+import { useDeadlockData, useDeadlockAbilitiesData, useDeadlockBaselines } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
 import { useDeadlockTargetState } from '../../hooks/useDeadlockTargetState';
 import { HERO_DICTIONARY, DEFAULT_HERO } from '../heroes';
@@ -75,6 +75,14 @@ export function useEquipmentChartState() {
   // Deadlock Target Settings
   const deadlockState = useDeadlockTargetState();
 
+  const { data: deadlockBaselines } = useDeadlockBaselines();
+  const investmentTracks = deadlockBaselines?.investmentTracks;
+
+  const incomingDamage = useMemo(() => {
+    if (!deadlockState.enemyAttacker) return 15;
+    return HERO_DICTIONARY[deadlockState.enemyAttacker]?.baseBulletDamage ?? 15;
+  }, [deadlockState.enemyAttacker]);
+
   // Reset custom set when game mode switches
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -136,16 +144,20 @@ export function useEquipmentChartState() {
   const simulationContext = useMemo(() => {
     return {
       hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
-      customSet: syncedCustomSet
+      customSet: syncedCustomSet,
+      investmentTracks,
+      incomingDamage
     };
-  }, [deadlockState.selectedHero, syncedCustomSet]);
+  }, [deadlockState.selectedHero, syncedCustomSet, investmentTracks, incomingDamage]);
 
   const vacuumContext = useMemo(() => {
     return {
       hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
-      customSet: []
+      customSet: [],
+      investmentTracks,
+      incomingDamage
     };
-  }, [deadlockState.selectedHero]);
+  }, [deadlockState.selectedHero, investmentTracks, incomingDamage]);
 
   const statOptions = useMemo(() => {
     return getAvailableStats(filteredData);

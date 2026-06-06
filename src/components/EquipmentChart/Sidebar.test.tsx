@@ -29,6 +29,8 @@ describe('Sidebar Axis Selectors', () => {
 		activeGame: 'elden-ring' as const,
 		selectedHero: null,
 		onHeroChange: vi.fn(),
+		enemyAttacker: null,
+		onEnemyAttackerChange: vi.fn(),
 		onTargetBulletResistanceChange: vi.fn()
 	};
 

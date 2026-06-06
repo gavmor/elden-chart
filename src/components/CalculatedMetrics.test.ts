@@ -174,3 +174,48 @@ describe('Calculated Metrics - Investment Track Milestones & Marginal Stats', ()
     expect(getItemStat(spiritItem, 'MSPpS', context)).toBeCloseTo(7 / 1500);
   });
 });
+
+describe('Calculated Metrics - Enemy Attacker EHP Scaling', () => {
+  it('scales EHP according to selected enemy attacker damage', () => {
+    const defender: EquipmentItem = {
+      id: 'd1',
+      name: 'Defender Item',
+      kind: 'deadlock_upgrade',
+      category: 'vitality',
+      description: '',
+      weight: 1000,
+      properties: [{ name: 'BulletResist', amount: 95 }], // 95% bullet resistance
+      image: null,
+    };
+
+    // Attacker: default (15 damage)
+    // EHP = 1000 * 15 / max(1, 15 * 0.05) = 1000 * 15 / 1 = 15000
+    // marginal EHP: 15000 - 1000 = 14000
+    const contextDefault: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [],
+      incomingDamage: 15,
+    };
+    expect(getItemStat(defender, 'ehp', contextDefault)).toBeCloseTo(14000);
+
+    // Attacker: Victor (25 damage)
+    // EHP = 1000 * 25 / max(1, 25 * 0.05) = 1000 * 25 / 1.25 = 20000
+    // marginal EHP: 20000 - 1000 = 19000
+    const contextVictor: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [],
+      incomingDamage: 25,
+    };
+    expect(getItemStat(defender, 'ehp', contextVictor)).toBeCloseTo(19000);
+
+    // Attacker: Haze (6 damage)
+    // EHP = 1000 * 6 / max(1, 6 * 0.05) = 1000 * 6 / 1 = 6000
+    // marginal EHP: 6000 - 1000 = 5000
+    const contextHaze: SimulationContext = {
+      hero: DEFAULT_HERO,
+      customSet: [],
+      incomingDamage: 6,
+    };
+    expect(getItemStat(defender, 'ehp', contextHaze)).toBeCloseTo(5000);
+  });
+});
