@@ -22,7 +22,10 @@
 - [x] Task: Conductor - User Manual Verification 'Active EHP & Debuff Mitigation Axes' (Protocol in workflow.md)
 
 ## Phase 4: Companion Sidebar Visualization (TDD/UI)
-- [ ] Task: Implement Marginal EHP Gain line chart in sidebar (TDD/UI)
-    - [ ] Write tests verifying coordinates generation for EHP vs. Resistance curve
-    - [ ] Implement EHP curve visualization in the item details sidebar using current and projected markers
-- [ ] Task: Conductor - User Manual Verification 'Companion Sidebar Visualization' (Protocol in workflow.md)
+- [x] Task: Implement Marginal EHP Gain line chart in sidebar (TDD/UI)
+    - [x] Write tests verifying coordinates generation for EHP vs. Resistance curve
+    - [x] Implement EHP curve visualization in the item details sidebar using current and projected markers
+- [x] Task: Conductor - User Manual Verification 'Companion Sidebar Visualization' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions (No code fixes needed)
