@@ -31,6 +31,7 @@ describe('Sidebar Axis Selectors', () => {
 		onHeroChange: vi.fn(),
 		enemyAttacker: null,
 		onEnemyAttackerChange: vi.fn(),
+		hoveredItem: null,
 		onTargetBulletResistanceChange: vi.fn()
 	};
 

@@ -15,11 +15,11 @@
 - [x] Task: Conductor - User Manual Verification 'Attacker Data & UI Selectors' (Protocol in workflow.md)
 
 ## Phase 3: Active EHP & Debuff Mitigation Axes (TDD)
-- [ ] Task: Expose Active EHP and Debuff Mitigation stats as plot axes (TDD)
-    - [ ] Write failing tests verifying Juggernaut active EHP scaling and Plated Armor debuff mitigation calculations
-    - [ ] Expose 'Active EHP' and 'Debuff Mitigation' as selectable axes in `STAT_OPTIONS`
-    - [ ] Add visual badges/flags to identify active defensive items in the plot
-- [ ] Task: Conductor - User Manual Verification 'Active EHP & Debuff Mitigation Axes' (Protocol in workflow.md)
+- [x] Task: Expose Active EHP and Debuff Mitigation stats as plot axes (TDD)
+    - [x] Write failing tests verifying Juggernaut active EHP scaling and Plated Armor debuff mitigation calculations
+    - [x] Expose 'Active EHP' and 'Debuff Mitigation' as selectable axes in `STAT_OPTIONS`
+    - [x] Add visual badges/flags to identify active defensive items in the plot
+- [x] Task: Conductor - User Manual Verification 'Active EHP & Debuff Mitigation Axes' (Protocol in workflow.md)
 
 ## Phase 4: Companion Sidebar Visualization (TDD/UI)
 - [ ] Task: Implement Marginal EHP Gain line chart in sidebar (TDD/UI)

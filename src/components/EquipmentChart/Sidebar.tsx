@@ -10,6 +10,7 @@ import { SidebarAxes } from './SidebarAxes';
 import { SidebarCategories } from './SidebarCategories';
 import { SidebarAnalysis } from './SidebarAnalysis';
 import { SidebarBuild } from './SidebarBuild';
+import { SidebarEhpCurve } from './SidebarEhpCurve';
 
 interface SidebarProps {
   search: string;
@@ -31,6 +32,7 @@ interface SidebarProps {
   onHeroChange: (hero: string | null) => void;
   enemyAttacker: string | null;
   onEnemyAttackerChange: (hero: string | null) => void;
+  hoveredItem: EquipmentItem | null;
   simulationContext?: import('../types').SimulationContext;
 }
 
@@ -54,6 +56,7 @@ export default function EquipmentChartSidebar({
   onHeroChange,
   enemyAttacker,
   onEnemyAttackerChange,
+  hoveredItem,
   simulationContext
 }: SidebarProps) {
   // Precompute trait counts for all available stats based on filtered items
@@ -100,6 +103,14 @@ export default function EquipmentChartSidebar({
         onBuildSetChange={onBuildSetChange} 
         onCompareSet={onCompareSet} 
       />
+      
+      {activeGame === 'deadlock' && (
+        <SidebarEhpCurve 
+          buildSet={buildSet} 
+          hoveredItem={hoveredItem} 
+          simulationContext={simulationContext} 
+        />
+      )}
 
       {activeGame === 'deadlock' && (
         <div className="space-y-4 pt-4 border-t border-border-main">

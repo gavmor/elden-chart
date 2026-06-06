@@ -88,6 +88,7 @@ export default function EquipmentChart() {
           onHeroChange={state.deadlockState.setSelectedHero}
           enemyAttacker={state.deadlockState.enemyAttacker}
           onEnemyAttackerChange={state.deadlockState.setEnemyAttacker}
+          hoveredItem={hoveredItem}
           simulationContext={state.vacuumContext}
         />
 
