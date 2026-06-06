@@ -1,3 +1,5 @@
+output: false
+
 pre-commit:
   parallel: true
   jobs:
