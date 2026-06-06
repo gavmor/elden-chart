@@ -34,3 +34,25 @@ export function calculateAmplifiedDamage(baseDamage: number, ampFromEE: number, 
 export function applyAmmoCeiling(ammo: number): number {
   return Math.ceil(ammo);
 }
+
+export function calculateSustainedDPS(
+  bulletDamage: number,
+  fireRate: number,
+  magazineSize: number,
+  reloadTime: number,
+  reloadBypassCount: number = 0,
+  activeReloadTime?: number
+): number {
+  // If we have reload bypasses, we effectively extend the magazine size
+  const effectiveMagazineSize = magazineSize * (1 + reloadBypassCount);
+  const timeToEmpty = effectiveMagazineSize / fireRate;
+  
+  let effectiveReloadTime = reloadTime;
+  if (activeReloadTime !== undefined) {
+    // Active reload speeds up the process but does not bypass it.
+    effectiveReloadTime = activeReloadTime;
+  }
+
+  // Sustained DPS
+  return (bulletDamage * effectiveMagazineSize) / (timeToEmpty + effectiveReloadTime);
+}

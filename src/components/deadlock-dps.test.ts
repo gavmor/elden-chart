@@ -6,7 +6,8 @@ import {
   calculateEffectiveResistance,
   calculateEffectiveDPS,
   calculateAmplifiedDamage,
-  applyAmmoCeiling
+  applyAmmoCeiling,
+  calculateSustainedDPS
 } from './deadlock-dps';
 
 describe('Deadlock DPS Calculations', () => {
@@ -123,6 +124,42 @@ describe('Deadlock DPS Calculations', () => {
       expect(applyAmmoCeiling(46.2)).toBe(47);
       expect(applyAmmoCeiling(46.0)).toBe(46);
       expect(applyAmmoCeiling(46.8)).toBe(47);
+    });
+  });
+  describe('Sustained DPS and Reload Bypass', () => {
+    it('calculates standard sustained DPS', () => {
+      const bulletDamage = 10;
+      const fireRate = 5; // 5 bullets per second
+      const magazineSize = 20;
+      const reloadTime = 2.0;
+      
+      const dps = calculateSustainedDPS(bulletDamage, fireRate, magazineSize, reloadTime);
+      // Time to empty = 20 / 5 = 4s. Total time = 4 + 2 = 6s. Total damage = 200. DPS = 200 / 6 = 33.33
+      expect(dps).toBeCloseTo(33.33);
+    });
+
+    it('calculates sustained DPS with Active Reload (faster reload)', () => {
+      const bulletDamage = 10;
+      const fireRate = 5; 
+      const magazineSize = 20;
+      const reloadTime = 2.0;
+      const activeReloadTime = 1.0; 
+      
+      const dps = calculateSustainedDPS(bulletDamage, fireRate, magazineSize, reloadTime, 0, activeReloadTime);
+      // Total time = 4 + 1 = 5s. Total damage = 200. DPS = 200 / 5 = 40
+      expect(dps).toBeCloseTo(40);
+    });
+
+    it('treats reload bypass as a continuous magazine to sustain buffs', () => {
+      const bulletDamage = 10;
+      const fireRate = 5;
+      const magazineSize = 20;
+      const reloadTime = 2.0;
+      const bypassCount = 1; // E.g., Quicksilver Reload
+      
+      const dps = calculateSustainedDPS(bulletDamage, fireRate, magazineSize, reloadTime, bypassCount);
+      // Effective magazine = 40. Time to empty = 40 / 5 = 8s. Total time = 8 + 2 = 10s. Total damage = 400. DPS = 400 / 10 = 40
+      expect(dps).toBeCloseTo(40);
     });
   });
 });
