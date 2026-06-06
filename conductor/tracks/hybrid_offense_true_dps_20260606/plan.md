@@ -1,7 +1,7 @@
 # Implementation Plan: Hybrid Offense & True DPS (Damage)
 
 ## Phase 1: Burst-Fire `cycleTime` & Ammunition Mechanics (TDD)
-- [ ] Task: Implement logarithmic fire-rate penalties for burst heroes (TDD)
+- [x] Task: Implement logarithmic fire-rate penalties for burst heroes (TDD) 8716a6a
     - [ ] Write failing tests validating `cycleTime = shotTime + (pauseTime / (1 + fireRate))` for Seven, Lash, Paradox
     - [ ] Implement burst-fire cycleTime penalty into the Base DPS calculators
 - [ ] Task: Implement Ammunition Ceiling and Reload Bypass Mechanics (TDD)
