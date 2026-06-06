@@ -1,7 +1,7 @@
 import { ItemsApi } from 'deadlock_api_client/apis/items-api';
 import { HeroesApi } from 'deadlock_api_client/apis/heroes-api';
-import type { Item, Ability } from 'deadlock_api_client/models';
-import type { DeadlockUpgradeItem, DeadlockAbilityItem, AbilityTier } from '../components/types';
+import type { Item, Ability, HashMapItemSlotTypeVecMapModCostBonusValueInner } from 'deadlock_api_client/models';
+import type { DeadlockUpgradeItem, DeadlockAbilityItem, AbilityTier, InvestmentTracks } from '../components/types';
 import { getHeroNameFromClassName } from '../components/domain/math';
 
 /**
@@ -174,4 +174,28 @@ export const fetchDeadlockAbilitiesRaw = async (): Promise<{ abilities: Item[], 
     return { abilities: response.data };
   }
 };
+
+export const fetchDeadlockInvestmentTracks = async (): Promise<InvestmentTracks> => {
+  const api = new HeroesApi();
+  const response = await api.listHeroes({ onlyActive: true });
+  const firstHero = response.data[0];
+  if (!firstHero || !firstHero.cost_bonuses) {
+    throw new Error("No investment track data available from heroes API");
+  }
+
+  const mapTrack = (items: HashMapItemSlotTypeVecMapModCostBonusValueInner[] = []) => {
+    return items.map(item => ({
+      goldThreshold: item.gold_threshold,
+      bonus: item.bonus,
+      percentOnGraph: item.percent_on_graph
+    }));
+  };
+
+  return {
+    weapon: mapTrack(firstHero.cost_bonuses.weapon),
+    vitality: mapTrack(firstHero.cost_bonuses.vitality),
+    spirit: mapTrack(firstHero.cost_bonuses.spirit)
+  };
+};
+
 

@@ -1,11 +1,42 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   transformDeadlockItems,
   fetchDeadlockItemsRaw,
   transformDeadlockAbilities,
   fetchDeadlockAbilitiesRaw,
+  fetchDeadlockInvestmentTracks,
 } from './deadlockApi';
 import type { Upgrade, Ability } from 'deadlock_api_client/models';
+
+vi.mock('deadlock_api_client/apis/heroes-api', () => {
+  return {
+    HeroesApi: vi.fn().mockImplementation(function() {
+      return {
+        listHeroes: vi.fn().mockResolvedValue({
+          data: [
+            {
+              id: 1,
+              name: 'Infernus',
+              class_name: 'hero_inferno',
+              cost_bonuses: {
+                weapon: [
+                  { gold_threshold: 800, bonus: 4, percent_on_graph: 7 },
+                  { gold_threshold: 1600, bonus: 8, percent_on_graph: 7 },
+                ],
+                vitality: [
+                  { gold_threshold: 800, bonus: 75, percent_on_graph: 7 },
+                ],
+                spirit: [
+                  { gold_threshold: 800, bonus: 7, percent_on_graph: 7 },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    }),
+  };
+});
 
 /** Minimal Upgrade fixture matching the Deadlock API shape. */
 const makeUpgrade = (overrides: Partial<Upgrade> = {}): Upgrade => ({
@@ -262,6 +293,24 @@ describe('fetchDeadlockItemsRaw', () => {
 describe('fetchDeadlockAbilitiesRaw', () => {
   it('is a function', () => {
     expect(typeof fetchDeadlockAbilitiesRaw).toBe('function');
+  });
+});
+
+describe('fetchDeadlockInvestmentTracks', () => {
+  it('fetches and transforms investment track data', async () => {
+    const data = await fetchDeadlockInvestmentTracks();
+    expect(data).toEqual({
+      weapon: [
+        { goldThreshold: 800, bonus: 4, percentOnGraph: 7 },
+        { goldThreshold: 1600, bonus: 8, percentOnGraph: 7 },
+      ],
+      vitality: [
+        { goldThreshold: 800, bonus: 75, percentOnGraph: 7 },
+      ],
+      spirit: [
+        { goldThreshold: 800, bonus: 7, percentOnGraph: 7 },
+      ],
+    });
   });
 });
 

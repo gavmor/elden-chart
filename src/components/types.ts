@@ -54,6 +54,18 @@ export interface DeadlockUpgradeItem extends EquipmentBase {
   properties: ApiStat[];
 }
 
+export interface InvestmentMilestone {
+  goldThreshold: number;
+  bonus: number;
+  percentOnGraph: number;
+}
+
+export interface InvestmentTracks {
+  weapon: InvestmentMilestone[];
+  vitality: InvestmentMilestone[];
+  spirit: InvestmentMilestone[];
+}
+
 export interface AbilityTier {
   tierIndex: number; // 1, 2, 3
   apCost: number; // Tiers cost 1, 2, and 5 Ability Points respectively
