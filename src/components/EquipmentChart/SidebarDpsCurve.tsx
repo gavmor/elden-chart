@@ -53,7 +53,8 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
       },
       y: {
         label: "Marginal DPS",
-        grid: true
+        grid: true,
+        domain: [Math.min(0, ...curveData.map(d => d.dps)), Math.max(10, ...curveData.map(d => d.dps))]
       },
       marks: [
         Plot.line(curveData, {
@@ -74,7 +75,7 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
         Plot.text(pointsData, {
           x: "distance",
           y: "dps",
-          text: "distance",
+          text: "type",
           textAnchor: "start",
           dx: 8,
           fill: '#cbd5e1',
