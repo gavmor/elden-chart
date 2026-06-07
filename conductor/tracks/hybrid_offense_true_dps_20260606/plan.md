@@ -17,12 +17,12 @@
     - [ ] Implement `Combined Hybrid DPS / Soul` metric calculation
 - [x] Task: Conductor - User Manual Verification 'Combined Hybrid DPS Metric' (Protocol in workflow.md) a2a0fcc
 
-## Phase 3: Bifurcated Damage Amplification Model (TDD)
+## Phase 3: Bifurcated Damage Amplification Model (TDD) [checkpoint: 4f37e4b]
 - [x] Task: Implement Escalating Exposure Double-Mitigation Penalty (TDD) b8328e0
     - [ ] Write failing tests verifying *Escalating Exposure* is mitigated twice and cannot reach single-tick *Mystic Burst* thresholds
     - [ ] Write passing tests verifying *Soul Shredder* applies linear amplification and correctly triggers single-tick thresholds
     - [ ] Implement bifurcated amplification algorithms in the DPS calculators
-- [ ] Task: Conductor - User Manual Verification 'Bifurcated Damage Amplification Model' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Bifurcated Damage Amplification Model' (Protocol in workflow.md) 4f37e4b
 
 ## Phase 4: Spatial Distance Mapping (TDD/UI)
 - [ ] Task: Implement Engagement Distance UI and Backend Re-calculation (TDD/UI)
