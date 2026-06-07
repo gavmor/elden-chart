@@ -102,6 +102,8 @@ export function SidebarEhpCurve({ buildSet, hoveredItem, simulationContext }: Si
           y: "ehp",
           text: "type",
           dy: 16,
+          dx: 4,
+          textAnchor: "start",
           fill: '#94a3b8',
           fontSize: 10,
           fontWeight: 'bold'
@@ -111,6 +113,8 @@ export function SidebarEhpCurve({ buildSet, hoveredItem, simulationContext }: Si
           y: "ehp",
           text: "type",
           dy: -16,
+          dx: 4,
+          textAnchor: "start",
           fill: '#34d399',
           fontSize: 10,
           fontWeight: 'bold'
