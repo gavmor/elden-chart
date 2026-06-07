@@ -6,7 +6,7 @@ import {
         longswordItem,
         heaterShieldItem,
 } from '../CompareModal/test-fixtures';
-import { Circle, Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
+import { Footprints, Hand, HardHat, Shield, Shirt, Sword } from 'lucide-react';
 import { getCategoryIcon, getItemImageUrl } from './logic';
 describe('getCategoryIcon', () => {
 	const props = { size: 24 };
@@ -41,9 +41,9 @@ describe('getCategoryIcon', () => {
 		expect(el.type).toBe(Footprints);
 	});
 
-	it('returns Circle icon for unknown armor category', () => {
+	it('returns FallbackBox icon for unknown armor category', () => {
 		const el = getCategoryIcon('Mystery Armor', 'armor', props);
-		expect(el.type).toBe(Circle);
+		expect(el.type.name).toBe('FallbackBox');
 	});
 
 	it('passes props to the icon element', () => {
@@ -96,7 +96,7 @@ describe('getItemImageUrl', () => {
 		const misc = { ...helmItem, image: null, category: 'Misc' };
 		const url = getItemImageUrl(misc, '#fff');
 		expect(url).toMatch(/^data:image\/svg\+xml;utf8,/);
-		expect(decodeURIComponent(url)).toContain('lucide-circle');
+		expect(decodeURIComponent(url)).toContain('lucide-box');
 	});
 
 	it('encodes the color into the fallback icon', () => {
