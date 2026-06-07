@@ -97,12 +97,21 @@ export function SidebarEhpCurve({ buildSet, hoveredItem, simulationContext }: Si
           stroke: "var(--color-bg-card)",
           strokeWidth: 1.5
         }),
-        Plot.text(pointsData, {
+        Plot.text(pointsData.filter(d => d.type === 'Current'), {
           x: "resistance",
           y: "ehp",
           text: "type",
-          dy: -12,
-          fill: d => d.type === 'Current' ? '#cbd5e1' : '#34d399',
+          dy: 16,
+          fill: '#94a3b8',
+          fontSize: 10,
+          fontWeight: 'bold'
+        }),
+        Plot.text(pointsData.filter(d => d.type === 'Projected'), {
+          x: "resistance",
+          y: "ehp",
+          text: "type",
+          dy: -16,
+          fill: '#34d399',
           fontSize: 10,
           fontWeight: 'bold'
         })
