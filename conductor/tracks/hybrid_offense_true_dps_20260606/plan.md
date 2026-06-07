@@ -18,7 +18,7 @@
 - [x] Task: Conductor - User Manual Verification 'Combined Hybrid DPS Metric' (Protocol in workflow.md) a2a0fcc
 
 ## Phase 3: Bifurcated Damage Amplification Model (TDD)
-- [ ] Task: Implement Escalating Exposure Double-Mitigation Penalty (TDD)
+- [x] Task: Implement Escalating Exposure Double-Mitigation Penalty (TDD) b8328e0
     - [ ] Write failing tests verifying *Escalating Exposure* is mitigated twice and cannot reach single-tick *Mystic Burst* thresholds
     - [ ] Write passing tests verifying *Soul Shredder* applies linear amplification and correctly triggers single-tick thresholds
     - [ ] Implement bifurcated amplification algorithms in the DPS calculators
