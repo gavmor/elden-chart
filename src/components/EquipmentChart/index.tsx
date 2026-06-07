@@ -9,6 +9,7 @@ import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
 import EquipmentChartTooltip from './Tooltip';
+import { EquipmentChartLegend } from './Legend';
 import { useEquipmentChartState } from './useEquipmentChartState';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
@@ -141,6 +142,10 @@ export default function EquipmentChart() {
               colorMinMax={state.colorMinMax}
               simulationContext={state.simulationContext}
             />
+          )}
+
+          {!state.isLoading && !state.error && (
+            <EquipmentChartLegend activeGame={state.activeGame} />
           )}
         </main>
       </div>
