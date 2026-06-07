@@ -4,15 +4,15 @@ export class ChartDimensions {
   public readonly x: string;
   public readonly y: string;
   public readonly color: ColorKey;
-  public readonly xLog: boolean;
-  public readonly yLog: boolean;
 
-  constructor(x: string, y: string, color: ColorKey, xLog: boolean = false, yLog: boolean = false) {
+  constructor(
+    x: string = 'weight', 
+    y: string = 'ehp', 
+    color: string = 'category'
+  ) {
     this.x = x;
     this.y = y;
-    this.color = color;
-    this.xLog = xLog;
-    this.yLog = yLog;
+    this.color = color as ColorKey;
   }
 
   public isValid(availableStats: StatOption[]): boolean {
@@ -21,22 +21,14 @@ export class ChartDimensions {
   }
 
   public withX(newX: string): ChartDimensions {
-    return new ChartDimensions(newX, this.y, this.color, this.xLog, this.yLog);
+    return new ChartDimensions(newX, this.y, this.color);
   }
 
   public withY(newY: string): ChartDimensions {
-    return new ChartDimensions(this.x, newY, this.color, this.xLog, this.yLog);
+    return new ChartDimensions(this.x, newY, this.color);
   }
 
   public withColor(newColor: ColorKey): ChartDimensions {
-    return new ChartDimensions(this.x, this.y, newColor, this.xLog, this.yLog);
-  }
-
-  public withXLog(newXLog: boolean): ChartDimensions {
-    return new ChartDimensions(this.x, this.y, this.color, newXLog, this.yLog);
-  }
-
-  public withYLog(newYLog: boolean): ChartDimensions {
-    return new ChartDimensions(this.x, this.y, this.color, this.xLog, newYLog);
+    return new ChartDimensions(this.x, this.y, newColor);
   }
 }

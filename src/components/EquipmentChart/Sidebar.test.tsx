@@ -17,6 +17,18 @@ describe('Sidebar Axis Selectors', () => {
 			{ id: 'ehp', label: 'Effective HP', group: 'Calculated Metrics' },
 			{ id: 'ehp_per_soul', label: 'eHP / Soul', group: 'Calculated Metrics' }
 		],
+		traitCounts: {
+			weight: 2,
+			ehp: 1,
+			ehp_per_soul: 1
+		},
+		statGroups: {
+			'General': [{ id: 'weight', label: 'Weight', group: 'General' }],
+			'Calculated Metrics': [
+				{ id: 'ehp', label: 'Effective HP', group: 'Calculated Metrics' },
+				{ id: 'ehp_per_soul', label: 'eHP / Soul', group: 'Calculated Metrics' }
+			]
+		},
 		categoryGroups: [{ kind: 'armor' as EquipmentKind, categories: ['Helm'] }],
 		categoryFilter: new CategoryFilter(),
 		onCategoryFilterChange: vi.fn(),
@@ -25,7 +37,6 @@ describe('Sidebar Axis Selectors', () => {
 		onCompareSet: vi.fn(),
 		showPareto: false,
 		onShowParetoChange: vi.fn(),
-		filteredData: [],
 		activeGame: 'elden-ring' as const,
 		selectedHero: null,
 		onHeroChange: vi.fn(),
@@ -34,7 +45,8 @@ describe('Sidebar Axis Selectors', () => {
 		hoveredItem: null,
 		engagementDistance: 15,
 		onEngagementDistanceChange: vi.fn(),
-		onTargetBulletResistanceChange: vi.fn()
+		onTargetBulletResistanceChange: vi.fn(),
+		filteredData: []
 	};
 
 	it('renders Calculated Metrics section in the axis selector dropdowns', () => {
@@ -45,20 +57,14 @@ describe('Sidebar Axis Selectors', () => {
 		expect(calculatedGroup).toBeDefined();
 	});
 
-	it('allows calculated metrics to be selected for X or Y axes', () => {
+	it('allows calculated metrics to be selected for the Color theme', () => {
 		render(<Sidebar {...defaultProps} />);
 		
-		const yAxisSelect = screen.getByRole('combobox', { name: /Y-Axis/i });
-		const xAxisSelect = screen.getByRole('combobox', { name: /X-Axis/i });
+		const colorSelect = screen.getByRole('combobox', { name: /Color \(Point Theme\)/i });
 		
-		fireEvent.change(yAxisSelect, { target: { value: 'ehp' } });
+		fireEvent.change(colorSelect, { target: { value: 'ehp' } });
 		expect(defaultProps.onDimensionsChange).toHaveBeenCalledWith(
-			expect.objectContaining({ y: 'ehp' })
-		);
-		
-		fireEvent.change(xAxisSelect, { target: { value: 'ehp_per_soul' } });
-		expect(defaultProps.onDimensionsChange).toHaveBeenCalledWith(
-			expect.objectContaining({ x: 'ehp_per_soul' })
+			expect.objectContaining({ color: 'ehp' })
 		);
 	});
 });

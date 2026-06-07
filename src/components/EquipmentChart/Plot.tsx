@@ -15,8 +15,6 @@ interface PlotProps {
   yVar: string;
   xLabel: string;
   yLabel: string;
-  xLog: boolean;
-  yLog: boolean;
   chartProps: { xMin: number; xMax: number; yMin: number; yMax: number } | null;
   colorVar: ColorKey;
   colorMinMax: { min: number; max: number } | null;
@@ -36,8 +34,6 @@ export default function EquipmentChartPlot({
   yVar,
   xLabel,
   yLabel,
-  xLog,
-  yLog,
   chartProps,
   colorVar,
   colorMinMax,
@@ -82,17 +78,6 @@ export default function EquipmentChartPlot({
     const getX = (d: EquipmentItem) => getClampedItemStat(d, xVar, xRange.max, simulationContext);
     const getY = (d: EquipmentItem) => getClampedItemStat(d, yVar, yRange.max, simulationContext);
 
-    const yLabelEl = document.createElement('div');
-    yLabelEl.className = "absolute -left-14 top-1/2 -translate-y-1/2 -rotate-90 text-label font-semibold text-text-secondary uppercase tracking-widest whitespace-nowrap";
-    yLabelEl.innerText = yLabel;
-
-    const xLabelEl = document.createElement('div');
-    xLabelEl.className = "absolute -bottom-10 left-1/2 -translate-x-1/2 text-label font-semibold text-text-secondary uppercase tracking-widest";
-    xLabelEl.innerText = xLabel;
-
-    containerRef.current.appendChild(yLabelEl);
-    containerRef.current.appendChild(xLabelEl);
-
     const marks = buildPlotMarks({
       filteredData,
       paretoItems,
@@ -125,14 +110,12 @@ export default function EquipmentChartPlot({
       marginRight: 15,
       marginTop: 15,
       x: {
-        type: xLog ? 'symlog' : 'linear',
         domain: xDomain,
         grid: true,
         label: null,
         inset: 16
       },
       y: {
-        type: yLog ? 'symlog' : 'linear',
         domain: yDomain,
         grid: true,
         label: null,
@@ -174,7 +157,7 @@ export default function EquipmentChartPlot({
   }, [
     filteredData, xVar, yVar, colorVar, colorMinMax, size, showPareto, 
     xLabel, yLabel, chartProps, auraSize, auraStyle, simulationContext, 
-    paretoIds, paretoItems, xLog, yLog, vacuumContext,
+    paretoIds, paretoItems, vacuumContext,
     // Add refs to dependency array to satisfy exhaustive-deps, though they are stable
     refs.customSetRef, refs.onClickItemRef, refs.onHoverItemRef, refs.onLeavePlotRef
   ]);

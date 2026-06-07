@@ -165,6 +165,22 @@ export function useEquipmentChartState() {
     return getAvailableStats(filteredData);
   }, [filteredData]);
 
+  const traitCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const opt of statOptions) {
+      counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id, vacuumContext) > 0).length;
+    }
+    return counts;
+  }, [statOptions, filteredData, vacuumContext]);
+
+  const statGroups = useMemo(() => {
+    return statOptions.reduce<Record<string, import('../types').StatOption[]>>((acc, opt) => {
+      if (!acc[opt.group]) acc[opt.group] = [];
+      acc[opt.group].push(opt);
+      return acc;
+    }, {});
+  }, [statOptions]);
+
   const resolvedXVar = (statOptions.length > 0 && statOptions.some(o => o.id === xVar)) ? xVar : 'weight';
   const resolvedYVar = (statOptions.length > 0 && statOptions.some(o => o.id === yVar))
     ? yVar
@@ -228,7 +244,9 @@ export function useEquipmentChartState() {
       chartProps,
       activeGame,
       validatedParams,
-      deadlockState
+      deadlockState,
+      traitCounts,
+      statGroups
     },
     actions: {
       setParam,

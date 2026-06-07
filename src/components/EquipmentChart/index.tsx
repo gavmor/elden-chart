@@ -11,6 +11,7 @@ import EquipmentChartPlot from './Plot';
 import EquipmentChartTooltip from './Tooltip';
 import { EquipmentChartLegend } from './Legend';
 import { useEquipmentChartState } from './useEquipmentChartState';
+import { AxisSelector } from './AxisSelector';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
@@ -40,9 +41,7 @@ export default function EquipmentChart() {
   const dimensions = new ChartDimensions(
     state.resolvedXVar, 
     state.resolvedYVar, 
-    state.resolvedColorVar, 
-    state.validatedParams.xLog, 
-    state.validatedParams.yLog
+    state.resolvedColorVar
   );
   
   const categoryFilter = new CategoryFilter(state.activeCategories);
@@ -66,8 +65,6 @@ export default function EquipmentChart() {
             actions.setParam('x', newDim.x);
             actions.setParam('y', newDim.y);
             actions.setParam('color', newDim.color);
-            actions.setParam('xLog', String(newDim.xLog));
-            actions.setParam('yLog', String(newDim.yLog));
           }}
           statOptions={state.statOptions}
           categoryGroups={state.categoryGroups}
@@ -93,6 +90,8 @@ export default function EquipmentChart() {
           simulationContext={state.vacuumContext}
           engagementDistance={state.deadlockState.engagementDistance}
           onEngagementDistanceChange={state.deadlockState.setEngagementDistance}
+          traitCounts={state.traitCounts}
+          statGroups={state.statGroups}
         />
 
         <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
@@ -108,26 +107,56 @@ export default function EquipmentChart() {
               <p className="text-text-secondary">{state.error instanceof Error ? state.error.message : 'Failed to fetch'}</p>
             </div>
           ) : (
-            <EquipmentChartPlot
-              filteredData={state.filteredData}
-              xVar={state.resolvedXVar}
-              yVar={state.resolvedYVar}
-              xLabel={state.xLabel}
-              yLabel={state.yLabel}
-              xLog={dimensions.xLog}
-              yLog={dimensions.yLog}
-              chartProps={state.chartProps}
-              colorVar={state.resolvedColorVar}
-              colorMinMax={state.colorMinMax}
-              hoveredItemId={hoveredItem ? hoveredItem.id : null}
-              onHoverItem={handleMouseMove}
-              onLeavePlot={() => setHoveredItem(null)}
-              customSet={state.customSet}
-              onClickItem={actions.handleToggleSet}
-              showPareto={state.showPareto}
-              simulationContext={state.simulationContext}
-              vacuumContext={state.vacuumContext}
-            />
+            <>
+              {/* Y-Axis Selector placed near the top-left of the chart area */}
+              <div className="absolute top-[50%] left-[2.25rem] -translate-x-1/2 -translate-y-1/2 z-10 -rotate-90 origin-center flex items-center justify-center pointer-events-none">
+                <div className="pointer-events-auto">
+                  <AxisSelector
+                    ariaLabel="Y-Axis"
+                    value={dimensions.y}
+                    onChange={(val) => {
+                      actions.setParam('y', val);
+                    }}
+                    statOptions={state.statOptions}
+                    traitCounts={state.traitCounts}
+                    statGroups={state.statGroups}
+                  />
+                </div>
+              </div>
+
+              {/* X-Axis Selector placed near the bottom-center of the chart area */}
+              <div className="absolute bottom-[2.25rem] left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
+                <AxisSelector
+                  ariaLabel="X-Axis"
+                  value={dimensions.x}
+                  onChange={(val) => {
+                    actions.setParam('x', val);
+                  }}
+                  statOptions={state.statOptions}
+                  traitCounts={state.traitCounts}
+                  statGroups={state.statGroups}
+                />
+              </div>
+
+              <EquipmentChartPlot
+                filteredData={state.filteredData}
+                xVar={state.resolvedXVar}
+                yVar={state.resolvedYVar}
+                xLabel={state.xLabel}
+                yLabel={state.yLabel}
+                chartProps={state.chartProps}
+                colorVar={state.resolvedColorVar}
+                colorMinMax={state.colorMinMax}
+                hoveredItemId={hoveredItem ? hoveredItem.id : null}
+                onHoverItem={handleMouseMove}
+                onLeavePlot={() => setHoveredItem(null)}
+                customSet={state.customSet}
+                onClickItem={actions.handleToggleSet}
+                showPareto={state.showPareto}
+                simulationContext={state.simulationContext}
+                vacuumContext={state.vacuumContext}
+              />
+            </>
           )}
 
           {hoveredItem && !state.isLoading && (

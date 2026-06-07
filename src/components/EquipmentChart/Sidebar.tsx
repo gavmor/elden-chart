@@ -1,7 +1,5 @@
-import { useMemo } from 'react';
 import { Info } from 'lucide-react';
 import type { EquipmentItem, StatOption, EquipmentKind } from '../types';
-import { getItemStat } from '../domain/math';
 import type { ChartDimensions } from '../domain/ChartDimensions';
 import type { CategoryFilter } from '../domain/CategoryFilter';
 import type { BuildSet } from '../domain/BuildSet';
@@ -36,6 +34,8 @@ interface SidebarProps {
   simulationContext?: import('../types').SimulationContext;
   engagementDistance: number;
   onEngagementDistanceChange: (val: number) => void;
+  traitCounts: Record<string, number>;
+  statGroups: Record<string, StatOption[]>;
 }
 
 export default function EquipmentChartSidebar({
@@ -52,7 +52,6 @@ export default function EquipmentChartSidebar({
   onCompareSet,
   showPareto,
   onShowParetoChange,
-  filteredData,
   activeGame,
   selectedHero,
   onHeroChange,
@@ -61,23 +60,11 @@ export default function EquipmentChartSidebar({
   hoveredItem,
   simulationContext,
   engagementDistance,
-  onEngagementDistanceChange
+  onEngagementDistanceChange,
+  traitCounts,
+  statGroups
 }: SidebarProps) {
-  // Precompute trait counts for all available stats based on filtered items
-  console.time("traitCounts"); const traitCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const opt of statOptions) {
-      counts[opt.id] = filteredData.filter(item => getItemStat(item, opt.id, simulationContext) > 0).length;
-    }
-    console.timeEnd("traitCounts"); return counts;
-  }, [statOptions, filteredData, simulationContext]);
 
-  // Group stat options for color dropdown
-  const statGroups = statOptions.reduce<Record<string, StatOption[]>>((acc, opt) => {
-    if (!acc[opt.group]) acc[opt.group] = [];
-    acc[opt.group].push(opt);
-    return acc;
-  }, {});
 
   return (
     <aside className="w-80 bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
