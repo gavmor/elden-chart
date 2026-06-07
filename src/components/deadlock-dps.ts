@@ -26,9 +26,28 @@ export function calculateEffectiveDPS(rawDamage: number, finalActiveResistance: 
   return rawDamage * (1 - finalActiveResistance);
 }
 
-export function calculateAmplifiedDamage(baseDamage: number, ampFromEE: number, targetResistance: number): number {
+export interface DamageResult {
+  totalDamage: number;
+  highestSingleTick: number;
+}
+
+export function calculateLinearAmplification(baseDamage: number, ampRatio: number, targetResistance: number): DamageResult {
   const resModifier = 1 - targetResistance;
-  return ((ampFromEE * resModifier) + 1) * resModifier * baseDamage;
+  const tick = baseDamage * (1 + ampRatio) * resModifier;
+  return {
+    totalDamage: tick,
+    highestSingleTick: tick
+  };
+}
+
+export function calculateDoubleMitigationAmplification(baseDamage: number, ampRatio: number, targetResistance: number): DamageResult {
+  const resModifier = 1 - targetResistance;
+  const baseTick = baseDamage * resModifier;
+  const separateInstanceTick = baseTick * ampRatio * resModifier;
+  return {
+    totalDamage: baseTick + separateInstanceTick,
+    highestSingleTick: Math.max(baseTick, separateInstanceTick)
+  };
 }
 
 export function applyAmmoCeiling(ammo: number): number {

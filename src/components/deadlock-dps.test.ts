@@ -5,7 +5,8 @@ import {
   calculateSpiritDPS,
   calculateEffectiveResistance,
   calculateEffectiveDPS,
-  calculateAmplifiedDamage,
+  calculateLinearAmplification,
+  calculateDoubleMitigationAmplification,
   applyAmmoCeiling,
   calculateSustainedDPS,
   calculateCombinedHybridDPS,
@@ -108,16 +109,29 @@ describe('Deadlock DPS Calculations', () => {
     });
   });
 
-  describe('Double-Mitigation Amplified Damage', () => {
-    it('applies target resistance twice for Escalating Exposure', () => {
+  describe('Bifurcated Damage Amplification Model', () => {
+    it('verifies Escalating Exposure is mitigated twice and cannot reach single-tick Mystic Burst thresholds', () => {
       const baseDamage = 100;
       const ampFromEE = 0.12; // 12% amplification (e.g. 2 stacks of 6%)
       const targetResistance = 0.25; // 25% resistance
       
-      const damage = calculateAmplifiedDamage(baseDamage, ampFromEE, targetResistance);
-      // Expected formula: ((Amp From EE) * (Res Modifier) + 1) * (Res Modifier) * (Base Damage)
-      // ((0.12 * 0.75) + 1) * 0.75 * 100 = 81.75
-      expect(damage).toBeCloseTo(81.75);
+      const result = calculateDoubleMitigationAmplification(baseDamage, ampFromEE, targetResistance);
+      // Base tick = 100 * 0.75 = 75
+      // Separate instance tick = 75 * 0.12 * 0.75 = 6.75
+      // Total = 81.75
+      expect(result.totalDamage).toBeCloseTo(81.75);
+      expect(result.highestSingleTick).toBeCloseTo(75);
+    });
+
+    it('verifies Soul Shredder applies linear amplification and correctly triggers single-tick thresholds', () => {
+      const baseDamage = 100;
+      const ampFromSS = 0.12; // 12% amplification
+      const targetResistance = 0.25; // 25% resistance
+      
+      const result = calculateLinearAmplification(baseDamage, ampFromSS, targetResistance);
+      // Single tick = 100 * 1.12 * 0.75 = 84
+      expect(result.totalDamage).toBeCloseTo(84);
+      expect(result.highestSingleTick).toBeCloseTo(84);
     });
   });
 
