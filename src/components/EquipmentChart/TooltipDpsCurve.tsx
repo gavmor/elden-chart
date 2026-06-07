@@ -9,15 +9,12 @@ interface SidebarDpsCurveProps {
   engagementDistance: number;
 }
 
-export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDistance }: SidebarDpsCurveProps) {
+export function TooltipDpsCurve({ hoveredItem, simulationContext, engagementDistance }: SidebarDpsCurveProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    if (!hoveredItem) {
-      containerRef.current.innerHTML = '<div class="text-xs text-text-secondary italic text-center py-8">Hover an item to view damage falloff curve</div>';
-      return;
-    }
+    if (!hoveredItem) return;
 
     const curveData = [];
     for (let d = 0; d <= 50; d += 2) {
@@ -26,6 +23,18 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
         distance: d,
         dps: computeItemStat(hoveredItem, 'Combined Hybrid DPS', mockContext)
       });
+    }
+
+    const minDps = Math.min(...curveData.map(d => d.dps));
+    const maxDps = Math.max(...curveData.map(d => d.dps));
+
+    // If there is no damage scaling (flat curve) or no DPS at all, don't render the plot
+    if (Math.abs(maxDps - minDps) < 0.1) {
+      containerRef.current.innerHTML = '';
+      containerRef.current.style.display = 'none';
+      return;
+    } else {
+      containerRef.current.style.display = 'block';
     }
 
     const currentDps = computeItemStat(hoveredItem, 'Combined Hybrid DPS', { ...simulationContext, engagementDistance } as SimulationContext);
@@ -37,16 +46,16 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
     containerRef.current.innerHTML = '';
     
     const plot = Plot.plot({
-      width: 278,
-      height: 180,
+      width: 290,
+      height: 140,
       style: {
         background: 'transparent',
         color: 'var(--color-text-secondary)',
         fontFamily: 'inherit',
         fontSize: '10px'
       },
-      marginLeft: 45,
-      marginBottom: 35,
+      marginLeft: 40,
+      marginBottom: 30,
       x: {
         label: "Distance (m)",
         domain: [0, 50]
@@ -54,7 +63,7 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
       y: {
         label: "Marginal DPS",
         grid: true,
-        domain: [Math.min(0, ...curveData.map(d => d.dps)), Math.max(10, ...curveData.map(d => d.dps))]
+        domain: [Math.min(0, minDps), Math.max(10, maxDps)]
       },
       marks: [
         Plot.line(curveData, {
@@ -68,7 +77,7 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
           x: "distance",
           y: "dps",
           fill: "var(--color-brand-danger)",
-          r: 5,
+          r: 4,
           stroke: "var(--color-bg-card)",
           strokeWidth: 1.5
         }),
@@ -77,7 +86,7 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
           y: "dps",
           text: "type",
           textAnchor: "start",
-          dx: 8,
+          dx: 6,
           fill: '#cbd5e1',
           fontSize: 10,
           fontWeight: 'bold'
@@ -89,10 +98,7 @@ export function SidebarDpsCurve({ hoveredItem, simulationContext, engagementDist
   }, [hoveredItem, simulationContext, engagementDistance]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">DPS vs Distance</label>
-      <div className="bg-bg-card/40 rounded-card p-2 border border-border-subtle overflow-hidden" ref={containerRef}>
-      </div>
+    <div className="mt-3" ref={containerRef}>
     </div>
   );
 }

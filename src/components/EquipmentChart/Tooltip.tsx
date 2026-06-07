@@ -3,6 +3,7 @@ import type { EquipmentItem, ColorKey } from '../types';
 import { getItemStat } from '../domain/math';
 import { getItemColor } from '../display/styling';
 import { getCategoryIcon } from '../display/logic';
+import { TooltipDpsCurve } from './TooltipDpsCurve';
 
 interface TooltipProps {
   item: EquipmentItem;
@@ -100,6 +101,14 @@ export default function EquipmentChartTooltip({
             <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, yVar, simulationContext))}</span>
           </div>
         </div>
+
+        {simulationContext && simulationContext.engagementDistance !== undefined && (
+          <TooltipDpsCurve 
+            hoveredItem={item}
+            simulationContext={simulationContext}
+            engagementDistance={simulationContext.engagementDistance}
+          />
+        )}
       </div>
     </div>
   );

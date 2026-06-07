@@ -11,7 +11,6 @@ import { SidebarCategories } from './SidebarCategories';
 import { SidebarAnalysis } from './SidebarAnalysis';
 import { SidebarBuild } from './SidebarBuild';
 import { SidebarEhpCurve } from './SidebarEhpCurve';
-import { SidebarDpsCurve } from './SidebarDpsCurve';
 
 interface SidebarProps {
   search: string;
@@ -114,14 +113,6 @@ export default function EquipmentChartSidebar({
           buildSet={buildSet} 
           hoveredItem={hoveredItem} 
           simulationContext={simulationContext} 
-        />
-      )}
-
-      {activeGame === 'deadlock' && (
-        <SidebarDpsCurve 
-          hoveredItem={hoveredItem} 
-          simulationContext={simulationContext} 
-          engagementDistance={engagementDistance}
         />
       )}
 
