@@ -25,8 +25,8 @@
 - [x] Task: Conductor - User Manual Verification 'Bifurcated Damage Amplification Model' (Protocol in workflow.md) 4f37e4b
 
 ## Phase 4: Spatial Distance Mapping (TDD/UI)
-- [~] Task: Implement Engagement Distance UI and Backend Re-calculation (TDD/UI)
+- [x] Task: Implement Engagement Distance UI and Backend Re-calculation (TDD/UI) cac846e
     - [ ] Write failing tests validating Additive Bullet Velocity scaling over defined ranges
     - [ ] Add interactive Global Engagement Distance Slider (0m - 50m) to recalculate Y-axis in real-time
     - [ ] Implement the Companion Sidebar Plot (DPS vs. Distance) to render line graphs for specific hovered/selected items
-- [ ] Task: Conductor - User Manual Verification 'Spatial Distance Mapping' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Spatial Distance Mapping' (Protocol in workflow.md)
