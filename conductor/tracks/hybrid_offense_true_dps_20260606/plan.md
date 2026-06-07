@@ -10,12 +10,12 @@
     - [ ] Implement ammo and reload bypass calculations into Sustained DPS mechanics
 - [x] Task: Conductor - User Manual Verification 'Burst-Fire `cycleTime` & Ammunition Mechanics' (Protocol in workflow.md) 5bda7c0
 
-## Phase 2: Combined Hybrid DPS Metric (TDD)
+## Phase 2: Combined Hybrid DPS Metric (TDD) [checkpoint: a2a0fcc]
 - [x] Task: Implement Combined Hybrid DPS splitting (TDD) 2f1f19d
     - [ ] Write failing tests validating Infernus, Wraith, Haze, Warden on-hit spirit damage correctly bifurcates from physical bullet damage
     - [ ] Write failing tests ensuring split spirit damage targets Spirit Resistance and bypasses physical immunities (Metal Skin)
     - [ ] Implement `Combined Hybrid DPS / Soul` metric calculation
-- [ ] Task: Conductor - User Manual Verification 'Combined Hybrid DPS Metric' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Combined Hybrid DPS Metric' (Protocol in workflow.md) a2a0fcc
 
 ## Phase 3: Bifurcated Damage Amplification Model (TDD)
 - [ ] Task: Implement Escalating Exposure Double-Mitigation Penalty (TDD)
