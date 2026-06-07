@@ -35,4 +35,24 @@ console.log("\n3. Hybrid DPS per Soul Metric");
 const perSoul = calculateHybridDPSPerSoul(125, 3000);
 console.log(`Expected: ~0.0416 | Actual: ${perSoul}`);
 
+console.log("Verification Complete for Phase 2.\n");
+
+import { calculateLinearAmplification, calculateDoubleMitigationAmplification } from './src/components/deadlock-dps.js';
+
+console.log("=== Manual Verification: Bifurcated Damage Amplification Model ===\n");
+
+const baseDamage = 100;
+const ampRatio = 0.12; // 12% amplification
+const targetResistance = 0.25; // 25% base resistance
+
+console.log("1. Double-Mitigation (Escalating Exposure)");
+const eeResult = calculateDoubleMitigationAmplification(baseDamage, ampRatio, targetResistance);
+console.log(`Expected Total Damage: ~81.75 | Actual: ${eeResult.totalDamage}`);
+console.log(`Expected Single Tick (Highest): 75 | Actual: ${eeResult.highestSingleTick}`);
+
+console.log("\n2. Linear Amplification (Soul Shredder)");
+const ssResult = calculateLinearAmplification(baseDamage, ampRatio, targetResistance);
+console.log(`Expected Total Damage: 84 | Actual: ${ssResult.totalDamage}`);
+console.log(`Expected Single Tick (Highest): 84 | Actual: ${ssResult.highestSingleTick}`);
+
 console.log("\nVerification Complete. If the values match expectations, the phase is successful.");
