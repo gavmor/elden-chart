@@ -50,6 +50,14 @@ export function calculateDoubleMitigationAmplification(baseDamage: number, ampRa
   };
 }
 
+export function calculateDistanceScaling(distance: number, rangeStart: number, rangeEnd: number, maxBonus: number): number {
+  if (distance <= rangeStart) return 0;
+  if (distance >= rangeEnd) return maxBonus;
+  
+  const percentage = (distance - rangeStart) / (rangeEnd - rangeStart);
+  return percentage * maxBonus;
+}
+
 export function applyAmmoCeiling(ammo: number): number {
   return Math.ceil(ammo);
 }

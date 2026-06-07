@@ -11,6 +11,7 @@ import { SidebarCategories } from './SidebarCategories';
 import { SidebarAnalysis } from './SidebarAnalysis';
 import { SidebarBuild } from './SidebarBuild';
 import { SidebarEhpCurve } from './SidebarEhpCurve';
+import { SidebarDpsCurve } from './SidebarDpsCurve';
 
 interface SidebarProps {
   search: string;
@@ -34,6 +35,8 @@ interface SidebarProps {
   onEnemyAttackerChange: (hero: string | null) => void;
   hoveredItem: EquipmentItem | null;
   simulationContext?: import('../types').SimulationContext;
+  engagementDistance: number;
+  onEngagementDistanceChange: (val: number) => void;
 }
 
 export default function EquipmentChartSidebar({
@@ -57,7 +60,9 @@ export default function EquipmentChartSidebar({
   enemyAttacker,
   onEnemyAttackerChange,
   hoveredItem,
-  simulationContext
+  simulationContext,
+  engagementDistance,
+  onEngagementDistanceChange
 }: SidebarProps) {
   // Precompute trait counts for all available stats based on filtered items
   console.time("traitCounts"); const traitCounts = useMemo(() => {
@@ -113,6 +118,14 @@ export default function EquipmentChartSidebar({
       )}
 
       {activeGame === 'deadlock' && (
+        <SidebarDpsCurve 
+          hoveredItem={hoveredItem} 
+          simulationContext={simulationContext} 
+          engagementDistance={engagementDistance}
+        />
+      )}
+
+      {activeGame === 'deadlock' && (
         <div className="space-y-4 pt-4 border-t border-border-main">
           <label className="block text-xs font-semibold text-brand-accent uppercase tracking-wider">Deadlock Configuration</label>
           <div>
@@ -146,6 +159,21 @@ export default function EquipmentChartSidebar({
               <option value="Infernus">Infernus (10 Damage)</option>
               <option value="Haze">Haze (6 Damage)</option>
             </select>
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Engagement Distance</label>
+              <span className="text-xs text-brand-accent font-medium">{engagementDistance}m</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="1"
+              value={engagementDistance}
+              onChange={(e) => onEngagementDistanceChange(Number(e.target.value))}
+              className="w-full accent-brand-accent"
+            />
           </div>
         </div>
       )}

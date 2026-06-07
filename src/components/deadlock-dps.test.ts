@@ -7,6 +7,7 @@ import {
   calculateEffectiveDPS,
   calculateLinearAmplification,
   calculateDoubleMitigationAmplification,
+  calculateDistanceScaling,
   applyAmmoCeiling,
   calculateSustainedDPS,
   calculateCombinedHybridDPS,
@@ -132,6 +133,29 @@ describe('Deadlock DPS Calculations', () => {
       // Single tick = 100 * 1.12 * 0.75 = 84
       expect(result.totalDamage).toBeCloseTo(84);
       expect(result.highestSingleTick).toBeCloseTo(84);
+    });
+  });
+
+  describe('Spatial Distance Mapping', () => {
+    it('validates Additive Bullet Velocity scaling over defined ranges', () => {
+      // For instance, a bonus that starts at 15m and peaks at 45m with a 30% bonus
+      const distance = 30; // middle of 15m to 45m
+      const rangeStart = 15;
+      const rangeEnd = 45;
+      const maxBonus = 0.3; // 30%
+      
+      const bonus = calculateDistanceScaling(distance, rangeStart, rangeEnd, maxBonus);
+      expect(bonus).toBeCloseTo(0.15); // Halfway
+    });
+    
+    it('applies 0 bonus if distance is below the rangeStart', () => {
+      const bonus = calculateDistanceScaling(10, 15, 45, 0.3);
+      expect(bonus).toBeCloseTo(0);
+    });
+
+    it('applies max bonus if distance is above the rangeEnd', () => {
+      const bonus = calculateDistanceScaling(50, 15, 45, 0.3);
+      expect(bonus).toBeCloseTo(0.3);
     });
   });
 

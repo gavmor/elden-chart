@@ -146,18 +146,20 @@ export function useEquipmentChartState() {
       hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
       customSet: syncedCustomSet,
       investmentTracks,
-      incomingDamage
+      incomingDamage,
+      engagementDistance: deadlockState.engagementDistance
     };
-  }, [deadlockState.selectedHero, syncedCustomSet, investmentTracks, incomingDamage]);
+  }, [deadlockState.selectedHero, syncedCustomSet, investmentTracks, incomingDamage, deadlockState.engagementDistance]);
 
   const vacuumContext = useMemo(() => {
     return {
       hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
       customSet: [],
       investmentTracks,
-      incomingDamage
+      incomingDamage,
+      engagementDistance: deadlockState.engagementDistance
     };
-  }, [deadlockState.selectedHero, investmentTracks, incomingDamage]);
+  }, [deadlockState.selectedHero, investmentTracks, incomingDamage, deadlockState.engagementDistance]);
 
   const statOptions = useMemo(() => {
     return getAvailableStats(filteredData);

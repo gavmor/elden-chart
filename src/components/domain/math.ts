@@ -1,6 +1,6 @@
 import * as R from 'remeda';
 import type { EquipmentItem, EquipmentKind, StatOption, SimulationContext, InvestmentMilestone } from '../types';
-import { calculateBulletDPS, calculateSpiritDPS, calculateEffectiveResistance, calculateEffectiveDPS } from '../deadlock-dps';
+import { calculateBulletDPS, calculateSpiritDPS, calculateEffectiveResistance, calculateEffectiveDPS, calculateDistanceScaling } from '../deadlock-dps';
 import { formatStatName } from '../display/logic';
 
 const statCache = new Map<string, number>();
@@ -51,7 +51,7 @@ const getMilestoneDelta = (
 	return projectedBonus - baselineBonus;
 };
 
-const computeItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
+export const computeItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	if (statName === 'weight') return item.weight;
 
 	// Helper to get combined items (custom set + current item if not already in it)
@@ -77,7 +77,23 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 			const bulletResistShreds: number[] = [];
 			for (const it of itemsList) {
 				fireRateMod += (getItemStat(it, 'BonusFireRate') || getItemStat(it, 'FireRateBonus') || 0) / 100;
-				weaponPowerMod += (getItemStat(it, 'WeaponPower') || getItemStat(it, 'BaseAttackDamagePercent') || getItemStat(it, 'BonusDamagePercent') || 0) / 100;
+				let weaponPower = (getItemStat(it, 'WeaponPower') || getItemStat(it, 'BaseAttackDamagePercent') || getItemStat(it, 'BonusDamagePercent') || 0) / 100;
+				
+				if (context?.engagementDistance !== undefined) {
+					const dist = context.engagementDistance;
+					const longRangeBonus = getItemStat(it, 'LongRangeBonusWeaponPower') || 0;
+					if (longRangeBonus > 0) {
+						weaponPower += calculateDistanceScaling(dist, 15, 45, longRangeBonus / 100);
+					}
+					
+					const closeRangeBonus = getItemStat(it, 'CloseRangeBonusWeaponPower') || 0;
+					if (closeRangeBonus > 0 && dist <= 15) {
+						weaponPower += closeRangeBonus / 100;
+					}
+				}
+
+				weaponPowerMod += weaponPower;
+
 				const brs = getItemStat(it, 'BulletResistReduction') || 0;
 				if (brs !== 0) bulletResistShreds.push(Math.abs(brs) / 100);
 			}
@@ -134,6 +150,13 @@ const computeItemStat = (item: EquipmentItem, statName: string, context?: Simula
 		}
 
 		return calcSpiritDps(getCombinedItems()) - calcSpiritDps(getBaselineItems());
+	}
+
+	if (statName === 'Combined Hybrid DPS') {
+		if (!context) return 0;
+		const finalBullet = computeItemStat(item, 'Final Bullet DPS', context);
+		const finalSpirit = computeItemStat(item, 'Final Spirit DPS', context);
+		return finalBullet + finalSpirit;
 	}
 
 	if (statName === 'ehp') {
@@ -463,6 +486,7 @@ export const getAvailableStats = (items: EquipmentItem[]): StatOption[] => {
 			{ id: 'MSPpS', label: 'Marginal Spirit Power per Soul (MSPpS)', group: 'Calculated Metrics' },
 			{ id: 'Final Bullet DPS', label: 'Final Bullet DPS', group: 'Calculated Metrics' },
 			{ id: 'Final Spirit DPS', label: 'Final Spirit DPS', group: 'Calculated Metrics' },
+			{ id: 'Combined Hybrid DPS', label: 'Combined Hybrid DPS', group: 'Calculated Metrics' },
 			...buildGroup(propertiesNames, 'total_negation', 'Total Stats', 'Item Properties')
 		];
 	}

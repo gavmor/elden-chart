@@ -128,4 +128,5 @@ export interface SimulationContext {
   customSet: EquipmentItem[];
   investmentTracks?: InvestmentTracks;
   incomingDamage?: number;
+  engagementDistance?: number;
 }

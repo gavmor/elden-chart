@@ -32,6 +32,8 @@ describe('Sidebar Axis Selectors', () => {
 		enemyAttacker: null,
 		onEnemyAttackerChange: vi.fn(),
 		hoveredItem: null,
+		engagementDistance: 15,
+		onEngagementDistanceChange: vi.fn(),
 		onTargetBulletResistanceChange: vi.fn()
 	};
 

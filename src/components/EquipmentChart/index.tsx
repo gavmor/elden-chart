@@ -90,6 +90,8 @@ export default function EquipmentChart() {
           onEnemyAttackerChange={state.deadlockState.setEnemyAttacker}
           hoveredItem={hoveredItem}
           simulationContext={state.vacuumContext}
+          engagementDistance={state.deadlockState.engagementDistance}
+          onEngagementDistanceChange={state.deadlockState.setEngagementDistance}
         />
 
         <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
