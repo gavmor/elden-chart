@@ -17,4 +17,22 @@ console.log(`Sustained DPS (Active Reload 1s): ${activeReloadDps} (Should be 40)
 const bypassDps = calculateSustainedDPS(10, 5, 20, 2.0, 1);
 console.log(`Sustained DPS (Reload Bypass 1x): ${bypassDps} (Should be 40)\n`);
 
-console.log("Verification Complete. If the values match expectations, the phase is successful.");
+console.log("Verification Complete for Phase 1.\n");
+
+import { calculateCombinedHybridDPS, calculateHybridDPSPerSoul } from './src/components/deadlock-dps.js';
+
+console.log("=== Manual Verification: Combined Hybrid DPS Metric ===\n");
+
+console.log("1. Bifurcated Damage (Physical + Spirit)");
+const totalDPS1 = calculateCombinedHybridDPS(100, 50, 0.2, 0.1);
+console.log(`Expected: 125 | Actual: ${totalDPS1}`);
+
+console.log("\n2. Physical Immunities Bypassed by Spirit Damage");
+const totalDPS2 = calculateCombinedHybridDPS(100, 50, 1.0, 0.0);
+console.log(`Expected: 50 | Actual: ${totalDPS2}`);
+
+console.log("\n3. Hybrid DPS per Soul Metric");
+const perSoul = calculateHybridDPSPerSoul(125, 3000);
+console.log(`Expected: ~0.0416 | Actual: ${perSoul}`);
+
+console.log("\nVerification Complete. If the values match expectations, the phase is successful.");
