@@ -303,12 +303,12 @@ export const computeItemStat = (item: EquipmentItem, statName: string, context?:
 
 export const getItemStat = (item: EquipmentItem, statName: string, context?: SimulationContext): number => {
 	// Fast path: Only cache calculated metrics that use context
-	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'ehp', 'integrated_armor', 'ehp_per_soul', 'MHpS', 'MWDpS', 'MSPpS', 'debuff_mitigation', 'active_ehp'].includes(statName)) {
+	if (!context || !['Final Bullet DPS', 'Final Spirit DPS', 'Combined Hybrid DPS', 'ehp', 'integrated_armor', 'ehp_per_soul', 'MHpS', 'MWDpS', 'MSPpS', 'debuff_mitigation', 'active_ehp'].includes(statName)) {
 		return computeItemStat(item, statName, context);
 	}
 
 	const customSetKey = context.customSet.length > 0 ? context.customSet.map(i => i.id).sort().join(',') : 'empty';
-	const cacheKey = `${item.id}:${statName}:${context.hero?.name || 'none'}:${context.incomingDamage ?? 15}:${customSetKey}`;
+	const cacheKey = `${item.id}:${statName}:${context.hero?.name || 'none'}:${context.incomingDamage ?? 15}:${context.engagementDistance ?? 15}:${customSetKey}`;
 	
 	if (statCache.has(cacheKey)) {
 		return statCache.get(cacheKey)!;
