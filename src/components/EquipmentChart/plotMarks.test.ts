@@ -59,8 +59,8 @@ describe('buildPlotMarks', () => {
       getY: () => 1,
     });
 
-    // Layer 4.5 (active dot 1) + Layer 4.5 (active dot 2) + Layer 4.75 (hull) + Layer 5 (image)
-    expect(marks.length).toBe(4);
+    // Layer 4.5 (active text indicator) + Layer 4.75 (hull) + Layer 5 (image)
+    expect(marks.length).toBe(3);
   });
 
   it('does not render hull if colorVar is not category', () => {

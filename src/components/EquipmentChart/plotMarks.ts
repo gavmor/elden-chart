@@ -109,29 +109,17 @@ export function buildPlotMarks({
     );
   }
 
-  // Layer 4.5: Active Item Indicators
+  // Layer 4.5: Active Item Indicators (e.g., Fleetfoot)
   const activeItems = filteredData.filter(d => d.isActive);
   if (activeItems.length > 0) {
     marks.push(
-      Plot.dot(activeItems, {
+      Plot.text(activeItems, {
         x: getX,
         y: getY,
-        r: 17,
-        fill: 'none',
-        stroke: FOCAL_COLOR,
-        strokeWidth: 2,
-        render: withDataId(activeItems)
-      })
-    );
-    marks.push(
-      Plot.dot(activeItems, {
-        x: getX,
-        y: getY,
-        r: 22,
-        fill: 'none',
-        stroke: FOCAL_COLOR,
-        strokeWidth: 6,
-        opacity: 0.25,
+        text: () => '⚡',
+        dy: -14,
+        dx: -14,
+        fontSize: 16,
         render: withDataId(activeItems)
       })
     );

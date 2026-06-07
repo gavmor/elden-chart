@@ -43,12 +43,11 @@ describe('EquipmentChart Plot Active Item Indicator', () => {
 			/>
 		);
 
-		// We expect SVG circles to be rendered by Plot.dot for active items.
-		// Since Pareto and custom sets are disabled in this test, the only circles should be our active indicators.
+		// We expect SVG text elements with ⚡ to be rendered by Plot.text for active items.
 		const svgs = container.querySelectorAll('svg');
 		expect(svgs.length).toBeGreaterThan(0);
 		
-		const activeIndicators = container.querySelectorAll('circle');
+		const activeIndicators = Array.from(container.querySelectorAll('text')).filter(t => t.textContent === '⚡');
 		expect(activeIndicators.length).toBeGreaterThan(0);
 	});
 });
