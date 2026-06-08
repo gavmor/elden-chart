@@ -17,13 +17,44 @@ const isShopableUpgrade = (item: Item): boolean => {
   return true;
 };
 
-/**
- * Parse a property value string into a number, returning null if non-numeric.
- */
 const parsePropertyValue = (val: string | null | undefined): number | null => {
   if (val === null || val === undefined) return null;
   const parsed = parseFloat(val);
   return isNaN(parsed) ? null : parsed;
+};
+
+/**
+ * Map raw properties to our normalized shape, translating negative offensive debuffs
+ * applied to enemies into explicit debuff stats (e.g., FireRateSlow) and aligning
+ * buffs to calculation-friendly keys.
+ */
+const parseProperties = (
+  propertiesRaw: Record<string, unknown>,
+  renamedKeysTracker?: Map<string, string>
+) => {
+  return Object.entries(propertiesRaw)
+    .map(([name, rawProp]) => {
+      const prop = rawProp as { value?: string; bonus?: string; usage_flags?: string[] };
+      const amount = parsePropertyValue(prop?.value);
+      if (amount === null) return null;
+
+      const isEnemyApplied = prop?.usage_flags?.includes('ConditionallyEnemyApplied');
+
+      // Convert negative BonusFireRate applied to enemies into FireRateSlow
+      if (name === 'BonusFireRate' && amount < 0 && isEnemyApplied) {
+        if (renamedKeysTracker) renamedKeysTracker.set(name, 'FireRateSlow');
+        return { name: 'FireRateSlow', amount: Math.abs(amount) };
+      }
+
+      // Treat BuffBaseWeaponPct as standard WeaponPower so theorycrafting captures the self-buff
+      if (name === 'BuffBaseWeaponPct') {
+        if (renamedKeysTracker) renamedKeysTracker.set(name, 'WeaponPower');
+        return { name: 'WeaponPower', amount };
+      }
+
+      return { name, amount };
+    })
+    .filter((entry): entry is { name: string; amount: number } => entry !== null);
 };
 
 /**
@@ -43,13 +74,7 @@ export const transformDeadlockItems = (rawItems: Item[]): DeadlockUpgradeItem[] 
       const upgrade = item as import('deadlock_api_client/models').Upgrade;
 
       const propertiesRaw = upgrade.properties ?? {};
-      const properties = Object.entries(propertiesRaw)
-        .map(([name, prop]) => {
-          const amount = parsePropertyValue(prop.value);
-          if (amount === null) return null;
-          return { name, amount };
-        })
-        .filter((entry): entry is { name: string; amount: number } => entry !== null);
+      const properties = parseProperties(propertiesRaw);
 
       const isStreetBrawl = upgrade.cost === 9999;
       return {
@@ -79,13 +104,8 @@ export const transformDeadlockAbilities = (
     .filter(ability => ability.upgrades && ability.upgrades.length === 3)
     .map(ability => {
       const propertiesRaw = ability.properties ?? {};
-      const properties = Object.entries(propertiesRaw)
-        .map(([name, prop]) => {
-          const amount = parsePropertyValue(prop.value);
-          if (amount === null) return null;
-          return { name, amount };
-        })
-        .filter((entry): entry is { name: string; amount: number } => entry !== null);
+      const renamedKeys = new Map<string, string>();
+      const properties = parseProperties(propertiesRaw, renamedKeys);
 
       const rawUpgrades = ability.upgrades ?? [];
       const descKeys = [
@@ -105,9 +125,25 @@ export const transformDeadlockAbilities = (
         if (rawUpgrade && rawUpgrade.property_upgrades) {
           upgrades[i].modifiers = rawUpgrade.property_upgrades
             .map(u => {
-              const amount = parsePropertyValue(u.bonus);
+              let amount = parsePropertyValue(u.bonus);
               if (amount === null) return null;
-              return { name: u.name, amount };
+
+              let name = u.name;
+
+              // Apply translations from base properties
+              if (renamedKeys.has(name)) {
+                name = renamedKeys.get(name)!;
+                if (name === 'FireRateSlow') {
+                  amount = Math.abs(amount);
+                }
+              }
+
+              // Also apply direct translations for upgrade properties that didn't appear in base
+              if (name === 'BuffBaseWeaponPct') {
+                name = 'WeaponPower';
+              }
+
+              return { name, amount };
             })
             .filter((entry): entry is { name: string; amount: number } => entry !== null);
         }
