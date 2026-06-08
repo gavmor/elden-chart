@@ -9,9 +9,9 @@ import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
 import EquipmentChartPlot from './Plot';
 import EquipmentChartTooltip from './Tooltip';
-import { EquipmentChartLegend } from './Legend';
 import { useEquipmentChartState } from './useEquipmentChartState';
 import { AxisSelector } from './AxisSelector';
+import { EquipmentChartLegend } from './Legend';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
