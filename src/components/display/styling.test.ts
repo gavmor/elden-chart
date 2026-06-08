@@ -23,16 +23,16 @@ describe('getItemColor', () => {
 		expect(getItemColor(helmItem, 'weight', null)).toBe('#94a3b8');
 	});
 
-	it('returns a heatmap HSL color for a stat with range', () => {
+	it('returns a heatmap HSL or RGB color for a stat with range', () => {
 		const color = getItemColor(helmItem, 'weight', { min: 0, max: 20 });
-		expect(color).toMatch(/^hsl\(\d{1,3}, 85%, 60%\)$/);
+		expect(color).toMatch(/^(#|rgb)/);
 	});
 
 	it('clamps the ratio between 0 and 1', () => {
 		const above = getItemColor(helmItem, 'weight', { min: 0, max: 1 });
 		const below = getItemColor(helmItem, 'weight', { min: 10, max: 20 });
-		expect(above).toMatch(/^hsl\(220, 85%, 60%\)$/);
-		expect(below).toMatch(/^hsl\(0, 85%, 60%\)$/);
+		expect(above).toBe('#fde725'); // Viridis 1
+		expect(below).toBe('#440154'); // Viridis 0
 	});
 
 	it('returns exact hex colors for Deadlock categories', () => {

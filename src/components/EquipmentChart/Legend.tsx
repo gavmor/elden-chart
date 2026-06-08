@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { TrendingUp, HelpCircle, Minus } from 'lucide-react';
 import type { StatOption, EquipmentItem } from '../types';
 import { getItemColor } from '../display/styling';
+import { interpolateViridis } from 'd3-scale-chromatic';
+
+const viridisGradient = `linear-gradient(to right, ${[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1].map(interpolateViridis).join(', ')})`;
 
 interface Props {
   activeGame: 'elden-ring' | 'deadlock';
@@ -107,7 +110,7 @@ export const EquipmentChartLegend: React.FC<Props> = ({
           <div className="flex flex-col gap-1.5">
             <div 
               className="h-2 rounded-full w-full" 
-              style={{ background: 'linear-gradient(to right, hsl(0, 85%, 60%), hsl(36, 85%, 60%), hsl(73, 85%, 60%), hsl(110, 85%, 60%), hsl(146, 85%, 60%), hsl(183, 85%, 60%), hsl(220, 85%, 60%))' }}
+              style={{ background: viridisGradient }}
             />
             <div className="flex justify-between items-center text-[10px] text-text-tertiary">
               <span>{colorMinMax ? Math.round(colorMinMax.min) : 0}</span>

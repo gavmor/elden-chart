@@ -1,5 +1,6 @@
 import type { EquipmentItem, SimulationContext } from '../types';
 import { getItemStat } from '../domain/math';
+import { interpolateViridis } from 'd3-scale-chromatic';
 
 export const getHeatmapBg = (value: number, min: number, max: number, invert: boolean): string => {
 	const range = max - min;
@@ -54,9 +55,8 @@ export const getItemColor = (
 	const range = max - min || 1;
 	const ratio = Math.max(0, Math.min(1, (val - min) / range));
 
-	// Heatmap gradient: Red (worse, hue 0) ➔ Orange ➔ Yellow ➔ Green ➔ Cyan ➔ Blue (better, hue 220)
-	const hue = Math.round(ratio * 220);
-	return `hsl(${hue}, 85%, 60%)`;
+	// Perceptually uniform sequential scale (Viridis)
+	return interpolateViridis(ratio);
 };
 
 /**
