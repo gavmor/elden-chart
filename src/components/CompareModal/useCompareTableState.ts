@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { EquipmentItem, ApiStat } from '../types';
+import { getAvailableStats } from '../domain/math';
 
 const collectOrderedStats = (items: EquipmentItem[], accessor: (item: EquipmentItem) => ApiStat[]): string[] => {
   const seen = new Set<string>();
@@ -31,7 +32,9 @@ export function useCompareTableState(customSet: EquipmentItem[]) {
       attackStats: isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield' || i.kind === 'ammo') ? i.attack : []) : [],
       defenceStats: isAllWeaponLike ? collectOrderedStats(customSet, i => (i.kind === 'weapon' || i.kind === 'shield') ? i.defence : []) : [],
       deadlockStats: isDeadlockContext ? collectOrderedStats(customSet, i => (i.kind === 'deadlock_upgrade' || i.kind === 'deadlock_ability') ? i.properties : []) : [],
-      calculatedStats: isDeadlockContext ? ['ehp', 'integrated_armor', 'ehp_per_soul', 'Final Bullet DPS', 'Final Spirit DPS'] : []
+      calculatedStats: getAvailableStats(customSet)
+        .filter(opt => opt.group === 'Calculated Metrics')
+        .map(opt => opt.id)
     };
   }, [customSet]);
 
