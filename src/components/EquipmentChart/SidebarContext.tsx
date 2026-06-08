@@ -21,6 +21,7 @@ export interface SidebarContextValue {
   metricFilters: Record<string, [number, number]>;
   metricBounds: Record<string, [number, number]>;
   onMetricFilterChange: (metricId: string, range: [number, number]) => void;
+  onResetMetricFilters: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);

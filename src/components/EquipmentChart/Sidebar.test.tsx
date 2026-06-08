@@ -48,7 +48,8 @@ describe('Sidebar Axis Selectors', () => {
 		filteredData: [],
 		metricFilters: {},
 		metricBounds: {},
-		onMetricFilterChange: vi.fn()
+		onMetricFilterChange: vi.fn(),
+		onResetMetricFilters: vi.fn()
 	};
 	it('renders Calculated Metrics section in the axis selector dropdowns', () => {
 		render(

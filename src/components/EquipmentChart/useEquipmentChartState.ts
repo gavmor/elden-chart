@@ -285,6 +285,9 @@ export function useEquipmentChartState() {
       handleMetricFilterChange: (metricId: string, range: [number, number]) => {
         setMetricFilters(prev => ({ ...prev, [metricId]: range }));
       },
+      handleResetMetricFilters: () => {
+        setMetricFilters({});
+      },
       handleToggleSet: (item: EquipmentItem) => {
         setCustomSet(prev => {
           const exists = prev.some(i => i.id === item.id);

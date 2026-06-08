@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react';
+import { Info, RotateCcw } from 'lucide-react';
 import { SidebarSearch } from './SidebarSearch';
 import { SidebarAxes } from './SidebarAxes';
 import { SidebarCategories } from './SidebarCategories';
@@ -6,7 +6,7 @@ import { DoubleSlider } from './DoubleSlider';
 import { useSidebarContext } from './SidebarContext';
 
 export default function EquipmentChartSidebar() {
-  const { activeGame, statGroups, metricFilters, metricBounds, onMetricFilterChange } = useSidebarContext();
+  const { activeGame, statGroups, metricFilters, metricBounds, onMetricFilterChange, onResetMetricFilters } = useSidebarContext();
 
   return (
     <aside className="w-80 bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
@@ -16,6 +16,19 @@ export default function EquipmentChartSidebar() {
 
       {activeGame === 'deadlock' && statGroups['Calculated Metrics'] && statGroups['Calculated Metrics'].length > 0 && (
         <div className="pt-4 border-t border-border-main flex flex-col gap-5">
+          <div className="flex justify-between items-center -mb-2">
+            <h3 className="text-sm font-medium text-text-primary">Metric Filters</h3>
+            {Object.keys(metricFilters).length > 0 && (
+              <button
+                onClick={onResetMetricFilters}
+                className="text-xs text-brand-accent hover:text-brand-accent/80 transition-colors flex items-center gap-1"
+                title="Reset all metric filters"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Reset
+              </button>
+            )}
+          </div>
           {statGroups['Calculated Metrics'].map(metric => {
             const bounds = metricBounds[metric.id] || [0, 100];
             const currentRange = metricFilters[metric.id] || bounds;

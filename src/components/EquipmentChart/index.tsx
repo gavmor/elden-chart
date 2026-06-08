@@ -66,6 +66,7 @@ export default function EquipmentChart() {
           metricFilters={state.metricFilters}
           metricBounds={state.metricBounds}
           onMetricFilterChange={actions.handleMetricFilterChange}
+          onResetMetricFilters={actions.handleResetMetricFilters}
         >
           <EquipmentChartSidebar />
         </SidebarProvider>
