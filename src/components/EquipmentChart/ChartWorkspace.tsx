@@ -6,6 +6,7 @@ import type { ChartDimensions } from '../domain/ChartDimensions';
 import EquipmentChartPlot from './Plot';
 import EquipmentChartTooltip from './Tooltip';
 import { AxisSelector } from './AxisSelector';
+import { TraitExplainer } from './TraitExplainer';
 import { EquipmentChartLegend } from './Legend';
 import type { useEquipmentChartState } from './useEquipmentChartState';
 
@@ -81,9 +82,17 @@ export function ChartWorkspace({
                 statOptions={state.statOptions}
                 traitCounts={state.traitCounts}
                 statGroups={state.statGroups}
+                hideExplainer={true}
               />
             </div>
           </div>
+          
+          {/* Unrotated Y-Axis Tooltip */}
+          {dimensions.y && state.statOptions.length > 0 && (
+            <div className="absolute top-[50%] left-[4.5rem] -translate-y-1/2 z-20 bg-bg-card/90 backdrop-blur-sm border border-border-main p-2 rounded-lg shadow-lg flex items-center justify-center">
+              <TraitExplainer statId={dimensions.y} />
+            </div>
+          )}
 
           {/* X-Axis Selector placed near the bottom-center of the chart area */}
           <div className="absolute bottom-[2.25rem] left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
