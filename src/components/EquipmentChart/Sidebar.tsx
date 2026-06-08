@@ -19,9 +19,24 @@ export default function EquipmentChartSidebar() {
           {statGroups['Calculated Metrics'].map(metric => {
             const bounds = metricBounds[metric.id] || [0, 100];
             const currentRange = metricFilters[metric.id] || bounds;
-            // Provide some padding so the slider isn't completely zero if max and min are equal
-            const step = (bounds[1] - bounds[0]) > 10 ? 1 : 0.1;
+            const range = bounds[1] - bounds[0];
+            const step = range > 1000 ? 10 
+                       : range > 100 ? 1 
+                       : range > 10 ? 0.1 
+                       : range > 1 ? 0.01 
+                       : range > 0.1 ? 0.001 
+                       : range > 0.01 ? 0.0001
+                       : 0.00001;
             
+            const formatValue = (val: number) => {
+              if (val === 0) return '0';
+              if (range > 10) return Math.round(val).toString();
+              if (range > 1) return val.toFixed(1);
+              if (range > 0.1) return val.toFixed(2);
+              if (range > 0.01) return val.toFixed(3);
+              return val.toFixed(4);
+            };
+
             return (
               <div key={metric.id}>
                 <div className="flex justify-between items-center mb-2">
@@ -33,7 +48,7 @@ export default function EquipmentChartSidebar() {
                   step={step}
                   value={currentRange}
                   onChange={(val) => onMetricFilterChange(metric.id, val)}
-                  formatValue={(val) => Number.isInteger(val) ? val.toString() : val.toFixed(1)}
+                  formatValue={formatValue}
                 />
               </div>
             );
