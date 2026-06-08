@@ -1,11 +1,5 @@
 import type { EquipmentKind } from '../types';
-import type { CategoryFilter } from '../domain/CategoryFilter';
-
-interface SidebarCategoriesProps {
-  categoryGroups: { kind: EquipmentKind; categories: string[] }[];
-  categoryFilter: CategoryFilter;
-  onCategoryFilterChange: (filter: CategoryFilter) => void;
-}
+import { useSidebarContext } from './SidebarContext';
 
 const formatKindLabel = (kind: EquipmentKind): string => {
   switch (kind) {
@@ -19,11 +13,8 @@ const formatKindLabel = (kind: EquipmentKind): string => {
   }
 };
 
-export function SidebarCategories({
-  categoryGroups,
-  categoryFilter,
-  onCategoryFilterChange,
-}: SidebarCategoriesProps) {
+export function SidebarCategories() {
+  const { categoryGroups, categoryFilter, onCategoryFilterChange } = useSidebarContext();
   return (
     <div>
       <div className="flex items-center justify-between mb-3">

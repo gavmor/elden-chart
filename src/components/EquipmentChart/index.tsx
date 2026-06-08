@@ -1,5 +1,4 @@
-import { useState, useRef, lazy, Suspense } from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { useState, lazy, Suspense } from 'react';
 import type { EquipmentItem } from '../types';
 import { ChartDimensions } from '../domain/ChartDimensions';
 import { CategoryFilter } from '../domain/CategoryFilter';
@@ -7,11 +6,9 @@ import { BuildSet } from '../domain/BuildSet';
 
 import EquipmentChartHeader from './Header';
 import EquipmentChartSidebar from './Sidebar';
-import EquipmentChartPlot from './Plot';
-import EquipmentChartTooltip from './Tooltip';
 import { useEquipmentChartState } from './useEquipmentChartState';
-import { AxisSelector } from './AxisSelector';
-import { EquipmentChartLegend } from './Legend';
+import { ChartWorkspace } from './ChartWorkspace';
+import { SidebarProvider } from './SidebarContext';
 
 const EquipmentCompareModal = lazy(() => import('../CompareModal/EquipmentCompareModal'));
 
@@ -21,22 +18,6 @@ export default function EquipmentChart() {
 
   // Interaction State
   const [hoveredItem, setHoveredItem] = useState<EquipmentItem | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: MouseEvent, item: EquipmentItem) => {
-    if (!chartRef.current) return;
-    const rect = chartRef.current.getBoundingClientRect();
-
-    let x = e.clientX - rect.left + 15;
-    let y = e.clientY - rect.top + 15;
-
-    if (x + 250 > rect.width) x -= 280;
-    if (y + 200 > rect.height) y -= 220;
-
-    setTooltipPos({ x, y });
-    setHoveredItem(item);
-  };
 
   const dimensions = new ChartDimensions(
     state.resolvedXVar, 
@@ -60,7 +41,7 @@ export default function EquipmentChart() {
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <EquipmentChartSidebar
+        <SidebarProvider
           search={state.localSearch}
           onSearchChange={actions.handleSearchChange}
           dimensions={dimensions}
@@ -91,94 +72,18 @@ export default function EquipmentChart() {
           onEngagementDistanceChange={state.deadlockState.setEngagementDistance}
           traitCounts={state.traitCounts}
           statGroups={state.statGroups}
+          debuffFilterRange={state.debuffFilterRange}
+          onDebuffFilterRangeChange={actions.setDebuffFilterRange}
+        >
+          <EquipmentChartSidebar />
+        </SidebarProvider>
+
+        <ChartWorkspace
+          state={state}
+          actions={actions}
+          dimensions={dimensions}
+          onHoveredItemChange={setHoveredItem}
         />
-
-        <main className="flex-1 relative p-6 bg-bg-main flex flex-col" ref={chartRef}>
-          {state.isLoading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-main/80 z-20">
-              <Loader2 className="w-12 h-12 text-brand-accent animate-spin mb-4" />
-              <h2 className="text-xl font-medium text-text-bright mb-2">Summoning Data...</h2>
-            </div>
-          ) : state.error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-main z-20">
-              <AlertCircle className="w-12 h-12 text-brand-danger mb-4" />
-              <h2 className="text-xl font-medium text-text-bright mb-2">Connection Lost</h2>
-              <p className="text-text-secondary">{state.error instanceof Error ? state.error.message : 'Failed to fetch'}</p>
-            </div>
-          ) : (
-            <>
-              {/* Y-Axis Selector placed near the top-left of the chart area */}
-              <div className="absolute top-[50%] left-[2.25rem] -translate-x-1/2 -translate-y-1/2 z-10 -rotate-90 origin-center flex items-center justify-center pointer-events-none">
-                <div className="pointer-events-auto">
-                  <AxisSelector
-                    ariaLabel="Y-Axis"
-                    value={dimensions.y}
-                    onChange={(val) => {
-                      actions.setParam('y', val);
-                    }}
-                    statOptions={state.statOptions}
-                    traitCounts={state.traitCounts}
-                    statGroups={state.statGroups}
-                  />
-                </div>
-              </div>
-
-              {/* X-Axis Selector placed near the bottom-center of the chart area */}
-              <div className="absolute bottom-[2.25rem] left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
-                <AxisSelector
-                  ariaLabel="X-Axis"
-                  value={dimensions.x}
-                  onChange={(val) => {
-                    actions.setParam('x', val);
-                  }}
-                  statOptions={state.statOptions}
-                  traitCounts={state.traitCounts}
-                  statGroups={state.statGroups}
-                />
-              </div>
-
-              <EquipmentChartPlot
-                filteredData={state.filteredData}
-                xVar={state.resolvedXVar}
-                yVar={state.resolvedYVar}
-                xLabel={state.xLabel}
-                yLabel={state.yLabel}
-                chartProps={state.chartProps}
-                colorVar={state.resolvedColorVar}
-                colorMinMax={state.colorMinMax}
-                hoveredItemId={hoveredItem ? hoveredItem.id : null}
-                onHoverItem={handleMouseMove}
-                onLeavePlot={() => setHoveredItem(null)}
-                customSet={state.customSet}
-                onClickItem={actions.handleToggleSet}
-                showPareto={state.showPareto}
-                simulationContext={state.simulationContext}
-              />
-            </>
-          )}
-
-          {hoveredItem && !state.isLoading && (
-            <EquipmentChartTooltip
-              item={hoveredItem}
-              tooltipPos={tooltipPos}
-              xLabel={state.xLabel}
-              yLabel={state.yLabel}
-              xVar={state.resolvedXVar}
-              yVar={state.resolvedYVar}
-              colorVar={state.resolvedColorVar}
-              colorMinMax={state.colorMinMax}
-              simulationContext={state.simulationContext}
-            />
-          )}
-
-          {!state.isLoading && !state.error && (
-            <EquipmentChartLegend
-              activeGame={state.activeGame}
-              showPareto={state.showPareto}
-              onShowParetoChange={actions.setShowPareto}
-            />
-          )}
-        </main>
       </div>
 
       <Suspense fallback={null}>

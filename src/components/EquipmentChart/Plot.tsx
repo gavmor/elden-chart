@@ -18,7 +18,6 @@ interface PlotProps {
   chartProps: { xMin: number; xMax: number; yMin: number; yMax: number } | null;
   colorVar: ColorKey;
   colorMinMax: { min: number; max: number } | null;
-  hoveredItemId: string | null;
   onHoverItem: (e: MouseEvent, item: EquipmentItem) => void;
   onLeavePlot: () => void;
   customSet: EquipmentItem[];

@@ -1,11 +1,8 @@
 import { Search } from 'lucide-react';
+import { useSidebarContext } from './SidebarContext';
 
-interface SidebarSearchProps {
-  search: string;
-  onSearchChange: (val: string) => void;
-}
-
-export function SidebarSearch({ search, onSearchChange }: SidebarSearchProps) {
+export function SidebarSearch() {
+  const { search, onSearchChange } = useSidebarContext();
   return (
     <div className="relative">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />

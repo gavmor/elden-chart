@@ -1,18 +1,12 @@
 import { useEffect, useRef } from 'react';
 import * as Plot from '@observablehq/plot';
-import type { EquipmentItem, SimulationContext } from '../types';
-import type { BuildSet } from '../domain/BuildSet';
+import { useSidebarContext } from './SidebarContext';
 import { generateEhpCurve } from '../domain/EhpCurve';
 import { calculateEffectiveResistance } from '../deadlock-dps';
 import { getItemStat } from '../domain/math';
 
-interface SidebarEhpCurveProps {
-  buildSet: BuildSet;
-  hoveredItem: EquipmentItem | null;
-  simulationContext?: SimulationContext;
-}
-
-export function SidebarEhpCurve({ buildSet, hoveredItem, simulationContext }: SidebarEhpCurveProps) {
+export function SidebarEhpCurve() {
+  const { buildSet, hoveredItem, simulationContext } = useSidebarContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

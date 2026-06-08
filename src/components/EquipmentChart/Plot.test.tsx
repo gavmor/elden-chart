@@ -32,7 +32,6 @@ describe('EquipmentChart Plot Active Item Indicator', () => {
 				chartProps={null}
 				colorVar="category" 
 				colorMinMax={{min: 0, max: 1}} 
-				hoveredItemId={null}
 				showPareto={false} 
 				customSet={[]} 
 				onHoverItem={() => {}} 

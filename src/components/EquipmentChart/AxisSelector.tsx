@@ -1,4 +1,5 @@
 import type { StatOption } from '../types';
+import { TraitExplainer } from './TraitExplainer';
 
 interface AxisSelectorProps {
   ariaLabel: string;
@@ -20,7 +21,7 @@ export function AxisSelector({
   className = '',
 }: AxisSelectorProps) {
   return (
-    <div className={`flex flex-col items-start gap-1 bg-bg-card/90 backdrop-blur-sm border border-border-main p-2 rounded-lg shadow-lg z-10 ${className}`}>
+    <div className={`flex items-center gap-2 bg-bg-card/90 backdrop-blur-sm border border-border-main p-2 rounded-lg shadow-lg z-10 ${className}`}>
       <select
         aria-label={ariaLabel}
         value={statOptions.length > 0 ? value : ''}
@@ -47,6 +48,7 @@ export function AxisSelector({
           ))
         )}
       </select>
+      {value && statOptions.length > 0 && <TraitExplainer statId={value} />}
     </div>
   );
 }

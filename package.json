@@ -25,6 +25,7 @@
     "ml-regression-multivariate-linear": "^2.0.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-range-slider-input": "^3.0.7",
     "remeda": "^2.37.0",
     "zod": "^4.4.3"
   },
@@ -52,5 +53,11 @@
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
     "vitest": "^4.1.7"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "deadlock_api_client",
+      "esbuild"
+    ]
   }
 }

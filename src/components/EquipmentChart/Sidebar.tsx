@@ -1,88 +1,37 @@
 import { Info } from 'lucide-react';
-import type { EquipmentItem, StatOption, EquipmentKind } from '../types';
-import type { ChartDimensions } from '../domain/ChartDimensions';
-import type { CategoryFilter } from '../domain/CategoryFilter';
-import type { BuildSet } from '../domain/BuildSet';
 import { SidebarSearch } from './SidebarSearch';
 import { SidebarAxes } from './SidebarAxes';
 import { SidebarCategories } from './SidebarCategories';
 import { SidebarEhpCurve } from './SidebarEhpCurve';
+import { useSidebarContext } from './SidebarContext';
+import { DoubleSlider } from './DoubleSlider';
 
-interface SidebarProps {
-  search: string;
-  onSearchChange: (val: string) => void;
-  dimensions: ChartDimensions;
-  onDimensionsChange: (dimensions: ChartDimensions) => void;
-  statOptions: StatOption[];
-  categoryGroups: { kind: EquipmentKind; categories: string[] }[];
-  categoryFilter: CategoryFilter;
-  onCategoryFilterChange: (filter: CategoryFilter) => void;
-  buildSet: BuildSet;
-  filteredData: EquipmentItem[];
-  activeGame: 'elden-ring' | 'deadlock';
-  selectedHero: string | null;
-  onHeroChange: (hero: string | null) => void;
-  enemyAttacker: string | null;
-  onEnemyAttackerChange: (hero: string | null) => void;
-  hoveredItem: EquipmentItem | null;
-  simulationContext?: import('../types').SimulationContext;
-  engagementDistance: number;
-  onEngagementDistanceChange: (val: number) => void;
-  traitCounts: Record<string, number>;
-  statGroups: Record<string, StatOption[]>;
-}
-
-export default function EquipmentChartSidebar({
-  search,
-  onSearchChange,
-  dimensions,
-  onDimensionsChange,
-  statOptions,
-  categoryGroups,
-  categoryFilter,
-  onCategoryFilterChange,
-  buildSet,
-  activeGame,
-  selectedHero,
-  onHeroChange,
-  enemyAttacker,
-  onEnemyAttackerChange,
-  hoveredItem,
-  simulationContext,
-  engagementDistance,
-  onEngagementDistanceChange,
-  traitCounts,
-  statGroups
-}: SidebarProps) {
-
+export default function EquipmentChartSidebar() {
+  const {
+    activeGame,
+    selectedHero,
+    onHeroChange,
+    enemyAttacker,
+    onEnemyAttackerChange,
+    engagementDistance,
+    onEngagementDistanceChange,
+    debuffFilterRange,
+    onDebuffFilterRangeChange,
+  } = useSidebarContext();
 
   return (
     <aside className="w-80 bg-bg-sidebar/50 border-r border-border-main p-5 flex flex-col gap-6 overflow-y-auto">
-      <SidebarSearch search={search} onSearchChange={onSearchChange} />
+      <SidebarSearch />
       
-      <SidebarAxes 
-        dimensions={dimensions} 
-        onDimensionsChange={onDimensionsChange} 
-        statOptions={statOptions} 
-        traitCounts={traitCounts} 
-        statGroups={statGroups} 
-      />
+      <SidebarAxes />
 
-      <SidebarCategories 
-        categoryGroups={categoryGroups} 
-        categoryFilter={categoryFilter} 
-        onCategoryFilterChange={onCategoryFilterChange} 
-      />
+      <SidebarCategories />
 
 
 
       
       {activeGame === 'deadlock' && (
-        <SidebarEhpCurve 
-          buildSet={buildSet} 
-          hoveredItem={hoveredItem} 
-          simulationContext={simulationContext} 
-        />
+        <SidebarEhpCurve />
       )}
 
       {activeGame === 'deadlock' && (
@@ -133,6 +82,19 @@ export default function EquipmentChartSidebar({
               value={engagementDistance}
               onChange={(e) => onEngagementDistanceChange(Number(e.target.value))}
               className="w-full accent-brand-accent"
+            />
+          </div>
+          <div className="pt-2">
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Debuff Mitigation Filter (%)</label>
+            </div>
+            <DoubleSlider
+              min={0}
+              max={100}
+              step={1}
+              value={debuffFilterRange}
+              onChange={onDebuffFilterRangeChange}
+              formatValue={(val) => `${Math.round(val)}%`}
             />
           </div>
         </div>

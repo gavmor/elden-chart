@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import { ChartDimensions } from '../domain/ChartDimensions';
 import { CategoryFilter } from '../domain/CategoryFilter';
 import { BuildSet } from '../domain/BuildSet';
+import { SidebarProvider } from './SidebarContext';
 import type { EquipmentKind } from '../types';
 
 describe('Sidebar Axis Selectors', () => {
@@ -44,11 +45,16 @@ describe('Sidebar Axis Selectors', () => {
 		engagementDistance: 15,
 		onEngagementDistanceChange: vi.fn(),
 		onTargetBulletResistanceChange: vi.fn(),
-		filteredData: []
+		filteredData: [],
+		debuffFilterRange: [0, 100] as [number, number],
+		onDebuffFilterRangeChange: vi.fn()
 	};
-
 	it('renders Calculated Metrics section in the axis selector dropdowns', () => {
-		render(<Sidebar {...defaultProps} />);
+		render(
+			<SidebarProvider {...defaultProps}>
+				<Sidebar />
+			</SidebarProvider>
+		);
 		
 		const optgroups = screen.getAllByRole('group');
 		const calculatedGroup = optgroups.find(group => group.getAttribute('label') === 'Calculated Metrics');
@@ -56,7 +62,11 @@ describe('Sidebar Axis Selectors', () => {
 	});
 
 	it('allows calculated metrics to be selected for the Color theme', () => {
-		render(<Sidebar {...defaultProps} />);
+		render(
+			<SidebarProvider {...defaultProps}>
+				<Sidebar />
+			</SidebarProvider>
+		);
 		
 		const colorSelect = screen.getByRole('combobox', { name: /Color \(Point Theme\)/i });
 		
