@@ -51,7 +51,6 @@ export default function CompareModalTable({ customSet, simulationContext }: Prop
             colCount={colCount}
             labelFormatter={renderCalculatedLabel}
             simulationContext={simulationContext}
-            formatValue={n => n.toFixed(2)}
           />
 
           <CompareModalStatGroup

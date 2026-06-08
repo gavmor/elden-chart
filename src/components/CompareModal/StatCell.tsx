@@ -1,4 +1,5 @@
 import { getHeatmapBg } from '../display/styling';
+import { formatStatForDisplay } from '../display/logic';
 
 interface Props {
   value: number;
@@ -15,7 +16,7 @@ export default function CompareModalStatCell({
   max,
   invert = false,
   isBest = false,
-  formatValue = (n) => n.toFixed(1),
+  formatValue = (n) => formatStatForDisplay('', n),
 }: Props) {
   return (
     <td

@@ -49,10 +49,10 @@ describe('CompareModalTable', () => {
     expect(screen.getByText('Poise')).toBeInTheDocument();
   });
 
-  it('renders negation values formatted to 1 decimal', () => {
+  it('renders negation values formatted with %', () => {
     render(<CompareModalTable customSet={mockCustomSet} />);
-    expect(screen.getByText('5.5')).toBeInTheDocument();
-    expect(screen.getByText('12.0')).toBeInTheDocument();
+    expect(screen.getByText('5.5%')).toBeInTheDocument();
+    expect(screen.getByText('12.0%')).toBeInTheDocument();
   });
 
   it('renders resistance values formatted to 0 decimals', () => {

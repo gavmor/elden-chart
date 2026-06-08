@@ -2,7 +2,7 @@ import { Weight } from 'lucide-react';
 import type { EquipmentItem, ColorKey } from '../types';
 import { getItemStat } from '../domain/math';
 import { getItemColor } from '../display/styling';
-import { getCategoryIcon } from '../display/logic';
+import { getCategoryIcon, formatStatForDisplay } from '../display/logic';
 import { TooltipDpsCurve } from './TooltipDpsCurve';
 
 interface TooltipProps {
@@ -24,12 +24,6 @@ const kindLabel: Record<string, string> = {
   deadlock_upgrade: 'Upgrade',
   deadlock_ability: 'Ability',
 };
-
-function formatStat(val: number): string {
-  if (val === Infinity) return '∞';
-  if (val === -Infinity) return '-∞';
-  return val.toFixed(1);
-}
 
 export default function EquipmentChartTooltip({
   item,
@@ -90,15 +84,15 @@ export default function EquipmentChartTooltip({
             <span className="text-text-secondary flex items-center gap-1.5">
               <Weight className="w-3.5 h-3.5" /> {isDeadlock ? 'Cost' : 'Weight'}
             </span>
-            <span className="font-medium text-text-bright">{item.weight.toFixed(isDeadlock ? 0 : 1)}</span>
+            <span className="font-medium text-text-bright">{item.weight.toFixed(isDeadlock ? 0 : 1)}{isDeadlock ? ' Souls' : ' kg'}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{xLabel}</span>
-            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, xVar, simulationContext))}</span>
+            <span className="font-medium text-brand-hover">{formatStatForDisplay(xVar, getItemStat(item, xVar, simulationContext))}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-text-secondary">{yLabel}</span>
-            <span className="font-medium text-brand-hover">{formatStat(getItemStat(item, yVar, simulationContext))}</span>
+            <span className="font-medium text-brand-hover">{formatStatForDisplay(yVar, getItemStat(item, yVar, simulationContext))}</span>
           </div>
         </div>
 

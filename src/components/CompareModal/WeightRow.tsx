@@ -26,7 +26,7 @@ export default function CompareModalWeightRow({ customSet }: Props) {
           min={min}
           max={max}
           invert
-          formatValue={n => n.toFixed(isDeadlock ? 0 : 1)}
+          formatValue={n => n.toFixed(isDeadlock ? 0 : 1) + (isDeadlock ? ' Souls' : ' kg')}
           isBest={item.weight === bestValue}
         />
       ))}
@@ -35,7 +35,7 @@ export default function CompareModalWeightRow({ customSet }: Props) {
           <span className={
             delta > 0 ? 'text-worse' : delta < 0 ? 'text-better' : 'text-muted'
           }>
-            {delta > 0 ? '+' : ''}{delta.toFixed(isDeadlock ? 0 : 1)}
+            {delta > 0 ? '+' : ''}{delta.toFixed(isDeadlock ? 0 : 1)}{isDeadlock ? ' Souls' : ' kg'}
           </span>
         </td>
       )}

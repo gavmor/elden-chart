@@ -19,28 +19,28 @@ describe('CompareModalWeightRow', () => {
 
   it('renders a cell for each item with weight formatted to 1 decimal', () => {
     renderRow();
-    expect(screen.getByText('4.2')).toBeInTheDocument();
-    expect(screen.getByText('11.5')).toBeInTheDocument();
-    expect(screen.getByText('3.0')).toBeInTheDocument();
+    expect(screen.getByText('4.2 kg')).toBeInTheDocument();
+    expect(screen.getByText('11.5 kg')).toBeInTheDocument();
+    expect(screen.getByText('3.0 kg')).toBeInTheDocument();
   });
 
   it('applies correct number of cells', () => {
     renderRow([helmItem]);
-    expect(screen.getByText('4.2')).toBeInTheDocument();
+    expect(screen.getByText('4.2 kg')).toBeInTheDocument();
   });
 
   it('highlights the lightest item (best/lowest weight) with amber text', () => {
     const { container } = renderRow();
     // gauntletsItem has the lowest weight (3.0)
     const cells = container.querySelectorAll('td');
-    const bestCell = Array.from(cells).find(c => c.textContent === '3.0');
+    const bestCell = Array.from(cells).find(c => c.textContent === '3.0 kg');
     expect(bestCell).toHaveClass('text-better');
   });
 
   it('shows delta cell when exactly 2 items are compared', () => {
     renderRow([helmItem, chestItem]);
     // helm=4.2, chest=11.5 → delta = +7.3
-    expect(screen.getByText('+7.3')).toBeInTheDocument();
+    expect(screen.getByText('+7.3 kg')).toBeInTheDocument();
   });
 
   it('does not show delta cell with 3+ items', () => {

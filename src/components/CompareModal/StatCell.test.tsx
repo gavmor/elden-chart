@@ -16,7 +16,7 @@ function renderCell(props: Partial<React.ComponentProps<typeof CompareModalStatC
 }
 
 describe('CompareModalStatCell', () => {
-  it('renders the formatted value with default toFixed(1)', () => {
+  it('renders the formatted value with default formatting (formatStatForDisplay)', () => {
     renderCell({ value: 7.5 });
     expect(screen.getByText('7.5')).toBeInTheDocument();
   });

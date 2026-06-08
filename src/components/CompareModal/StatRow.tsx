@@ -1,6 +1,7 @@
 import type { EquipmentItem } from '../types';
 import { getItemStat, getStatRange } from '../domain/math';
 import CompareModalStatCell from './StatCell';
+import { formatStatForDisplay } from '../display/logic';
 
 interface Props {
   customSet: EquipmentItem[];
@@ -18,7 +19,7 @@ export default function CompareModalStatRow({
   label,
   labelClassName = '',
   invert = false,
-  formatValue,
+  formatValue = (n) => formatStatForDisplay(statName, n),
   simulationContext,
 }: Props) {
   const { min, max } = getStatRange(customSet, statName, simulationContext);
@@ -46,7 +47,7 @@ export default function CompareModalStatRow({
           <span className={
             delta > 0 ? 'text-better' : delta < 0 ? 'text-worse' : 'text-muted'
           }>
-            {delta > 0 ? '+' : ''}{delta.toFixed(1)}
+            {delta > 0 ? '+' : delta < 0 ? '-' : ''}{formatStatForDisplay(statName, Math.abs(delta)).trim()}
           </span>
         </td>
       )}

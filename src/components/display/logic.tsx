@@ -121,3 +121,54 @@ export const formatStatName = (name: string, suffix?: string): string => {
 /**
  * Collect unique stat names from items for a given accessor function.
  */
+
+export function formatStatForDisplay(statName: string, val: number): string {
+	if (val === Infinity) return '∞';
+	if (val === -Infinity) return '-∞';
+
+	let displayVal = val;
+	let unit = '';
+
+	// 1. Determine if it needs multiplying by 100 (it's a decimal percentage)
+	const decimalPercentages = ['debuff_mitigation', 'integrated_armor'];
+	if (decimalPercentages.includes(statName)) {
+		displayVal = val * 100;
+		unit = '%';
+	} 
+	// 2. Identify already-scaled percentages
+	else if (
+		statName.includes('Percent') || 
+		statName.includes('Resist') || 
+		statName.includes('Reduction') ||
+		statName.includes('Slow') ||
+		(statName.includes('Bonus') && statName !== 'BonusHealth') ||
+		['MWDpS', 'total_negation', 'Phy', 'Strike', 'Slash', 'Pierce', 'Magic', 'Mag', 'Fire', 'Ligt', 'Holy'].includes(statName)
+	) {
+		if (statName === 'MWDpS') {
+			unit = '% / Soul';
+		} else {
+			unit = '%';
+		}
+	}
+	// 3. Other units
+	else if (['ehp', 'active_ehp'].includes(statName)) {
+		unit = ' HP';
+	} else if (['ehp_per_soul', 'MHpS'].includes(statName)) {
+		unit = ' HP / Soul';
+	} else if (statName === 'MSPpS') {
+		unit = ' Power / Soul';
+	} else if (statName.includes('DPS') || statName.includes('Dps')) {
+		unit = ' DPS';
+	}
+
+	if (displayVal === 0) return '0.0' + unit;
+
+	const abs = Math.abs(displayVal);
+	const formatted = 
+		abs < 0.01 ? displayVal.toFixed(4) :
+		abs < 0.1 ? displayVal.toFixed(3) :
+		abs < 1 ? displayVal.toFixed(2) :
+		displayVal.toFixed(1);
+
+	return formatted + unit;
+}

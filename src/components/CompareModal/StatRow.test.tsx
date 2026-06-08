@@ -26,9 +26,9 @@ describe('CompareModalStatRow', () => {
 
   it('renders stat values for each item', () => {
     renderRow({ statName: 'Phy' });
-    expect(screen.getByText('5.5')).toBeInTheDocument();
-    expect(screen.getByText('12.0')).toBeInTheDocument();
-    expect(screen.getByText('3.0')).toBeInTheDocument();
+    expect(screen.getByText('5.5%')).toBeInTheDocument();
+    expect(screen.getByText('12.0%')).toBeInTheDocument();
+    expect(screen.getByText('3.0%')).toBeInTheDocument();
   });
 
   it('applies custom formatValue', () => {
@@ -54,7 +54,7 @@ describe('CompareModalStatRow', () => {
     const { container } = renderRow({ statName: 'Phy' });
     // chestItem has Phy=12.0 which is the max
     const cells = container.querySelectorAll('td');
-    const valueCells = Array.from(cells).filter(c => c.textContent === '12.0');
+    const valueCells = Array.from(cells).filter(c => c.textContent === '12.0%');
     expect(valueCells.length).toBeGreaterThan(0);
     expect(valueCells[0]).toHaveClass('text-better');
   });
@@ -62,7 +62,7 @@ describe('CompareModalStatRow', () => {
   it('shows delta cell when exactly 2 items are compared', () => {
     renderRow({ customSet: [helmItem, chestItem], statName: 'Phy' });
     // Phy: helm=5.5, chest=12.0 → delta = +6.5
-    expect(screen.getByText('+6.5')).toBeInTheDocument();
+    expect(screen.getByText('+6.5%')).toBeInTheDocument();
   });
 
   it('does not show delta cell with 3+ items', () => {
