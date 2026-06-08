@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import RangeSliderImport from 'react-range-slider-input';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const RangeSlider = (RangeSliderImport as any).default || RangeSliderImport;
@@ -21,18 +22,46 @@ export function DoubleSlider({
   onChange,
   formatValue = (val) => val.toString(),
 }: DoubleSliderProps) {
+  const [localValue, setLocalValue] = useState<[number, number]>(value);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLocalValue(value);
+  }, [value]);
+
+  const handleInput = (newVal: [number, number]) => {
+    setLocalValue(newVal);
+    
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    debounceTimer.current = setTimeout(() => {
+      onChange(newVal);
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="relative w-full flex flex-col justify-center">
       <div className="flex justify-between text-[10px] text-text-tertiary mb-3 uppercase tracking-wider font-semibold">
-        <span>{formatValue(value[0])}</span>
-        <span>{formatValue(value[1])}</span>
+        <span>{formatValue(localValue[0])}</span>
+        <span>{formatValue(localValue[1])}</span>
       </div>
       <RangeSlider
         min={min}
         max={max}
         step={step}
-        value={value}
-        onInput={onChange}
+        value={localValue}
+        onInput={handleInput}
       />
     </div>
   );
