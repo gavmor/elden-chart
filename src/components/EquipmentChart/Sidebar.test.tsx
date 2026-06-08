@@ -33,8 +33,6 @@ describe('Sidebar Axis Selectors', () => {
 		categoryFilter: new CategoryFilter(),
 		onCategoryFilterChange: vi.fn(),
 		buildSet: new BuildSet(),
-		onBuildSetChange: vi.fn(),
-		onCompareSet: vi.fn(),
 		activeGame: 'elden-ring' as const,
 		selectedHero: null,
 		onHeroChange: vi.fn(),

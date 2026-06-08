@@ -54,6 +54,9 @@ export default function EquipmentChart() {
         itemCount={state.filteredData.length}
         activeGame={state.activeGame}
         onGameChange={(game) => actions.setParam('game', game)}
+        buildSet={buildSet}
+        onBuildSetChange={(set) => actions.setCustomSet(set.toArray())}
+        onCompareSet={() => actions.setIsCompareOpen(true)}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -76,8 +79,6 @@ export default function EquipmentChart() {
             actions.setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
           }}
           buildSet={buildSet}
-          onBuildSetChange={(set) => actions.setCustomSet(set.toArray())}
-          onCompareSet={() => actions.setIsCompareOpen(true)}
           filteredData={state.filteredData}
           activeGame={state.activeGame}
           selectedHero={state.deadlockState.selectedHero}

@@ -6,7 +6,6 @@ import type { BuildSet } from '../domain/BuildSet';
 import { SidebarSearch } from './SidebarSearch';
 import { SidebarAxes } from './SidebarAxes';
 import { SidebarCategories } from './SidebarCategories';
-import { SidebarBuild } from './SidebarBuild';
 import { SidebarEhpCurve } from './SidebarEhpCurve';
 
 interface SidebarProps {
@@ -19,8 +18,6 @@ interface SidebarProps {
   categoryFilter: CategoryFilter;
   onCategoryFilterChange: (filter: CategoryFilter) => void;
   buildSet: BuildSet;
-  onBuildSetChange: (set: BuildSet) => void;
-  onCompareSet: () => void;
   filteredData: EquipmentItem[];
   activeGame: 'elden-ring' | 'deadlock';
   selectedHero: string | null;
@@ -45,8 +42,6 @@ export default function EquipmentChartSidebar({
   categoryFilter,
   onCategoryFilterChange,
   buildSet,
-  onBuildSetChange,
-  onCompareSet,
   activeGame,
   selectedHero,
   onHeroChange,
@@ -80,11 +75,7 @@ export default function EquipmentChartSidebar({
       />
 
 
-      <SidebarBuild 
-        buildSet={buildSet} 
-        onBuildSetChange={onBuildSetChange} 
-        onCompareSet={onCompareSet} 
-      />
+
       
       {activeGame === 'deadlock' && (
         <SidebarEhpCurve 
