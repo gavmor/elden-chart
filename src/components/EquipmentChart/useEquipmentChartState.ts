@@ -188,8 +188,8 @@ export function useEquipmentChartState() {
 
 
   const statOptions = useMemo(() => {
-    return getAvailableStats(filteredData);
-  }, [filteredData]);
+    return getAvailableStats(equipment);
+  }, [equipment]);
 
   const traitCounts = useMemo(() => {
     const counts: Record<string, number> = {};
