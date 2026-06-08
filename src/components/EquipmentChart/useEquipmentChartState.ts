@@ -4,8 +4,7 @@ import { getItemStat, getAvailableStats, getActiveCategories } from '../domain/m
 import { useEquipmentData } from '../../hooks/useEquipmentData';
 import { useDeadlockData, useDeadlockAbilitiesData, useDeadlockBaselines } from '../../hooks/useDeadlockData';
 import { useValidatedParams } from '../../hooks/useValidatedParams';
-import { useDeadlockTargetState } from '../../hooks/useDeadlockTargetState';
-import { HERO_DICTIONARY, DEFAULT_HERO } from '../heroes';
+import { DEFAULT_HERO } from '../heroes';
 
 export function useEquipmentChartState() {
   // Fetch Elden Ring equipment data
@@ -72,16 +71,10 @@ export function useEquipmentChartState() {
   const [customSet, setCustomSet] = useState<EquipmentItem[]>([]);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
 
-  // Deadlock Target Settings
-  const deadlockState = useDeadlockTargetState();
-
   const { data: deadlockBaselines } = useDeadlockBaselines();
   const investmentTracks = deadlockBaselines?.investmentTracks;
 
-  const incomingDamage = useMemo(() => {
-    if (!deadlockState.enemyAttacker) return 15;
-    return HERO_DICTIONARY[deadlockState.enemyAttacker]?.baseBulletDamage ?? 15;
-  }, [deadlockState.enemyAttacker]);
+  const incomingDamage = 15;
 
   // Reset custom set when game mode switches
   useEffect(() => {
@@ -126,15 +119,13 @@ export function useEquipmentChartState() {
 
   const vacuumContext = useMemo(() => {
     return {
-      hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
+      hero: DEFAULT_HERO,
       customSet: [],
       investmentTracks,
       incomingDamage,
-      engagementDistance: deadlockState.engagementDistance
+      engagementDistance: 15
     };
-  }, [deadlockState.selectedHero, investmentTracks, incomingDamage, deadlockState.engagementDistance]);
-
-  const [debuffFilterRange, setDebuffFilterRange] = useState<[number, number]>([0, 100]);
+  }, [investmentTracks, incomingDamage]);
 
   const filteredData = useMemo(() => {
     const baseFiltered = equipment.filter(item => {
@@ -143,16 +134,8 @@ export function useEquipmentChartState() {
       return true;
     });
 
-    if (activeGame === 'deadlock' && (debuffFilterRange[0] > 0 || debuffFilterRange[1] < 100)) {
-      return baseFiltered.filter(item => {
-        const debuff = getItemStat(item, 'debuff_mitigation', vacuumContext) * 100;
-        // Float precision can be an issue, add a tiny epsilon
-        return debuff >= debuffFilterRange[0] - 0.001 && debuff <= debuffFilterRange[1] + 0.001;
-      });
-    }
-
     return baseFiltered;
-  }, [equipment, activeCategories, search, activeGame, debuffFilterRange, vacuumContext]);
+  }, [equipment, activeCategories, search]);
 
   const syncedCustomSet = useMemo(() => {
     return customSet.map(savedItem => {
@@ -163,13 +146,14 @@ export function useEquipmentChartState() {
 
   const simulationContext = useMemo(() => {
     return {
-      hero: deadlockState.selectedHero ? HERO_DICTIONARY[deadlockState.selectedHero] : DEFAULT_HERO,
+      hero: DEFAULT_HERO,
       customSet: syncedCustomSet,
       investmentTracks,
       incomingDamage,
-      engagementDistance: deadlockState.engagementDistance
+      engagementDistance: 15
     };
-  }, [deadlockState.selectedHero, syncedCustomSet, investmentTracks, incomingDamage, deadlockState.engagementDistance]);
+  }, [syncedCustomSet, investmentTracks, incomingDamage]);
+
 
   const statOptions = useMemo(() => {
     return getAvailableStats(filteredData);
@@ -254,10 +238,8 @@ export function useEquipmentChartState() {
       chartProps,
       activeGame,
       validatedParams,
-      deadlockState,
       traitCounts,
-      statGroups,
-      debuffFilterRange
+      statGroups
     },
     actions: {
       setParam,
@@ -266,7 +248,6 @@ export function useEquipmentChartState() {
       setShowPareto,
       setCustomSet,
       setIsCompareOpen,
-      setDebuffFilterRange,
       handleToggleSet: (item: EquipmentItem) => {
         setCustomSet(prev => {
           const exists = prev.some(i => i.id === item.id);

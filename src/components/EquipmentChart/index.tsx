@@ -59,21 +59,9 @@ export default function EquipmentChart() {
             const activeCatNames = filter.activeNames;
             actions.setParam('cats', activeCatNames.length > 0 ? activeCatNames.join(',') : '');
           }}
-          buildSet={buildSet}
           filteredData={state.filteredData}
-          activeGame={state.activeGame}
-          selectedHero={state.deadlockState.selectedHero}
-          onHeroChange={state.deadlockState.setSelectedHero}
-          enemyAttacker={state.deadlockState.enemyAttacker}
-          onEnemyAttackerChange={state.deadlockState.setEnemyAttacker}
-          hoveredItem={hoveredItem}
-          simulationContext={state.vacuumContext}
-          engagementDistance={state.deadlockState.engagementDistance}
-          onEngagementDistanceChange={state.deadlockState.setEngagementDistance}
           traitCounts={state.traitCounts}
           statGroups={state.statGroups}
-          debuffFilterRange={state.debuffFilterRange}
-          onDebuffFilterRangeChange={actions.setDebuffFilterRange}
         >
           <EquipmentChartSidebar />
         </SidebarProvider>
