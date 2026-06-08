@@ -46,8 +46,9 @@ describe('Sidebar Axis Selectors', () => {
 		onEngagementDistanceChange: vi.fn(),
 		onTargetBulletResistanceChange: vi.fn(),
 		filteredData: [],
-		debuffFilterRange: [0, 100] as [number, number],
-		onDebuffFilterRangeChange: vi.fn()
+		metricFilters: {},
+		metricBounds: {},
+		onMetricFilterChange: vi.fn()
 	};
 	it('renders Calculated Metrics section in the axis selector dropdowns', () => {
 		render(

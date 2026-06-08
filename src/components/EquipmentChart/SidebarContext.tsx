@@ -18,8 +18,9 @@ export interface SidebarContextValue {
   traitCounts: Record<string, number>;
   statGroups: Record<string, StatOption[]>;
   activeGame: 'elden-ring' | 'deadlock';
-  debuffFilterRange: [number, number];
-  onDebuffFilterRangeChange: (val: [number, number]) => void;
+  metricFilters: Record<string, [number, number]>;
+  metricBounds: Record<string, [number, number]>;
+  onMetricFilterChange: (metricId: string, range: [number, number]) => void;
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);

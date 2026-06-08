@@ -63,8 +63,9 @@ export default function EquipmentChart() {
           traitCounts={state.traitCounts}
           statGroups={state.statGroups}
           activeGame={state.activeGame}
-          debuffFilterRange={state.debuffFilterRange}
-          onDebuffFilterRangeChange={actions.setDebuffFilterRange}
+          metricFilters={state.metricFilters}
+          metricBounds={state.metricBounds}
+          onMetricFilterChange={actions.handleMetricFilterChange}
         >
           <EquipmentChartSidebar />
         </SidebarProvider>

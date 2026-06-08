@@ -127,7 +127,25 @@ export function useEquipmentChartState() {
     };
   }, [investmentTracks, incomingDamage]);
 
-  const [debuffFilterRange, setDebuffFilterRange] = useState<[number, number]>([0, 100]);
+  const [metricFilters, setMetricFilters] = useState<Record<string, [number, number]>>({});
+
+  const metricBounds = useMemo(() => {
+    const bounds: Record<string, [number, number]> = {};
+    if (activeGame === 'deadlock') {
+      const stats = getAvailableStats(equipment);
+      const metrics = stats.filter(s => s.group === 'Calculated Metrics');
+      for (const opt of metrics) {
+        const vals = equipment.map(item => getItemStat(item, opt.id, vacuumContext));
+        const validVals = vals.filter(v => v !== Infinity && v !== -Infinity && !isNaN(v));
+        if (validVals.length > 0) {
+          bounds[opt.id] = [Math.min(...validVals), Math.max(...validVals)];
+        } else {
+          bounds[opt.id] = [0, 100];
+        }
+      }
+    }
+    return bounds;
+  }, [equipment, activeGame, vacuumContext]);
 
   const filteredData = useMemo(() => {
     const baseFiltered = equipment.filter(item => {
@@ -136,15 +154,20 @@ export function useEquipmentChartState() {
       return true;
     });
 
-    if (activeGame === 'deadlock' && (debuffFilterRange[0] > 0 || debuffFilterRange[1] < 100)) {
+    if (activeGame === 'deadlock' && Object.keys(metricFilters).length > 0) {
       return baseFiltered.filter(item => {
-        const debuff = getItemStat(item, 'debuff_mitigation', vacuumContext) * 100;
-        return debuff >= debuffFilterRange[0] - 0.001 && debuff <= debuffFilterRange[1] + 0.001;
+        for (const [metricId, range] of Object.entries(metricFilters)) {
+          const val = getItemStat(item, metricId, vacuumContext);
+          if (val < range[0] - 0.001 || val > range[1] + 0.001) {
+            return false;
+          }
+        }
+        return true;
       });
     }
 
     return baseFiltered;
-  }, [equipment, activeCategories, search, activeGame, debuffFilterRange, vacuumContext]);
+  }, [equipment, activeCategories, search, activeGame, metricFilters, vacuumContext]);
 
   const syncedCustomSet = useMemo(() => {
     return customSet.map(savedItem => {
@@ -249,7 +272,8 @@ export function useEquipmentChartState() {
       validatedParams,
       traitCounts,
       statGroups,
-      debuffFilterRange
+      metricFilters,
+      metricBounds
     },
     actions: {
       setParam,
@@ -258,7 +282,9 @@ export function useEquipmentChartState() {
       setShowPareto,
       setCustomSet,
       setIsCompareOpen,
-      setDebuffFilterRange,
+      handleMetricFilterChange: (metricId: string, range: [number, number]) => {
+        setMetricFilters(prev => ({ ...prev, [metricId]: range }));
+      },
       handleToggleSet: (item: EquipmentItem) => {
         setCustomSet(prev => {
           const exists = prev.some(i => i.id === item.id);
