@@ -35,8 +35,6 @@ describe('Sidebar Axis Selectors', () => {
 		buildSet: new BuildSet(),
 		onBuildSetChange: vi.fn(),
 		onCompareSet: vi.fn(),
-		showPareto: false,
-		onShowParetoChange: vi.fn(),
 		activeGame: 'elden-ring' as const,
 		selectedHero: null,
 		onHeroChange: vi.fn(),

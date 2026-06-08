@@ -78,8 +78,6 @@ export default function EquipmentChart() {
           buildSet={buildSet}
           onBuildSetChange={(set) => actions.setCustomSet(set.toArray())}
           onCompareSet={() => actions.setIsCompareOpen(true)}
-          showPareto={state.showPareto}
-          onShowParetoChange={actions.setShowPareto}
           filteredData={state.filteredData}
           activeGame={state.activeGame}
           selectedHero={state.deadlockState.selectedHero}
@@ -174,7 +172,11 @@ export default function EquipmentChart() {
           )}
 
           {!state.isLoading && !state.error && (
-            <EquipmentChartLegend activeGame={state.activeGame} />
+            <EquipmentChartLegend
+              activeGame={state.activeGame}
+              showPareto={state.showPareto}
+              onShowParetoChange={actions.setShowPareto}
+            />
           )}
         </main>
       </div>
