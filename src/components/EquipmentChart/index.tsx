@@ -17,7 +17,7 @@ export default function EquipmentChart() {
   const { state, actions } = chartState;
 
   // Interaction State
-  const [hoveredItem, setHoveredItem] = useState<EquipmentItem | null>(null);
+  const [, setHoveredItem] = useState<EquipmentItem | null>(null);
 
   const dimensions = new ChartDimensions(
     state.resolvedXVar, 
@@ -62,6 +62,9 @@ export default function EquipmentChart() {
           filteredData={state.filteredData}
           traitCounts={state.traitCounts}
           statGroups={state.statGroups}
+          activeGame={state.activeGame}
+          debuffFilterRange={state.debuffFilterRange}
+          onDebuffFilterRangeChange={actions.setDebuffFilterRange}
         >
           <EquipmentChartSidebar />
         </SidebarProvider>

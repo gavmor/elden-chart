@@ -127,6 +127,8 @@ export function useEquipmentChartState() {
     };
   }, [investmentTracks, incomingDamage]);
 
+  const [debuffFilterRange, setDebuffFilterRange] = useState<[number, number]>([0, 100]);
+
   const filteredData = useMemo(() => {
     const baseFiltered = equipment.filter(item => {
       if (!activeCategories[item.category]) return false;
@@ -134,8 +136,15 @@ export function useEquipmentChartState() {
       return true;
     });
 
+    if (activeGame === 'deadlock' && (debuffFilterRange[0] > 0 || debuffFilterRange[1] < 100)) {
+      return baseFiltered.filter(item => {
+        const debuff = getItemStat(item, 'debuff_mitigation', vacuumContext) * 100;
+        return debuff >= debuffFilterRange[0] - 0.001 && debuff <= debuffFilterRange[1] + 0.001;
+      });
+    }
+
     return baseFiltered;
-  }, [equipment, activeCategories, search]);
+  }, [equipment, activeCategories, search, activeGame, debuffFilterRange, vacuumContext]);
 
   const syncedCustomSet = useMemo(() => {
     return customSet.map(savedItem => {
@@ -239,7 +248,8 @@ export function useEquipmentChartState() {
       activeGame,
       validatedParams,
       traitCounts,
-      statGroups
+      statGroups,
+      debuffFilterRange
     },
     actions: {
       setParam,
@@ -248,6 +258,7 @@ export function useEquipmentChartState() {
       setShowPareto,
       setCustomSet,
       setIsCompareOpen,
+      setDebuffFilterRange,
       handleToggleSet: (item: EquipmentItem) => {
         setCustomSet(prev => {
           const exists = prev.some(i => i.id === item.id);

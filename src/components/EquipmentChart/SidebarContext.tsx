@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { EquipmentItem, StatOption, EquipmentKind, SimulationContext } from '../types';
+import type { EquipmentItem, StatOption, EquipmentKind } from '../types';
 import type { ChartDimensions } from '../domain/ChartDimensions';
 import type { CategoryFilter } from '../domain/CategoryFilter';
 
@@ -17,6 +17,9 @@ export interface SidebarContextValue {
   filteredData: EquipmentItem[];
   traitCounts: Record<string, number>;
   statGroups: Record<string, StatOption[]>;
+  activeGame: 'elden-ring' | 'deadlock';
+  debuffFilterRange: [number, number];
+  onDebuffFilterRangeChange: (val: [number, number]) => void;
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);
