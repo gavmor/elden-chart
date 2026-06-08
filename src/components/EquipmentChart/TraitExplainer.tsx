@@ -71,10 +71,10 @@ export function TraitExplainer({ statId, rotateTooltip = false }: TraitExplainer
   }, [statId]);
 
   return (
-    <div className="relative group flex items-center justify-center">
+    <div className={`relative group flex items-center justify-center ${rotateTooltip ? 'rotate-90' : ''}`}>
       <Info className="w-4 h-4 text-brand-accent/70 cursor-help transition-colors group-hover:text-brand-accent" />
       
-      <div className={`absolute left-1/2 -translate-x-1/2 ${rotateTooltip ? 'top-full mt-2 rotate-90' : 'bottom-full mb-2'} w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-bg-card border border-border-main rounded-md shadow-xl p-3 z-50 pointer-events-none`}>
+      <div className={`absolute ${rotateTooltip ? 'left-full ml-2 top-1/2 -translate-y-1/2' : 'left-1/2 -translate-x-1/2 bottom-full mb-2'} w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-bg-card border border-border-main rounded-md shadow-xl p-3 z-50 pointer-events-none`}>
         <p className="text-xs text-text-primary leading-relaxed">
           {info.description}
         </p>
