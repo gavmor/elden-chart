@@ -34,7 +34,9 @@ export function setupPlotInteractions({
   onClickItemRef
 }: SetupPlotInteractionsParams) {
   const images = plot.querySelectorAll('image');
+  const voronoiPaths = plot.querySelectorAll('path[data-id]');
   
+  // 1. Initial State for Images
   images.forEach((img) => {
     const itemId = img.getAttribute('data-id');
     const item = filteredData.find(d => d.id === itemId);
@@ -48,14 +50,11 @@ export function setupPlotInteractions({
 
     const orgX = parseFloat(img.getAttribute('x') || '0');
     const orgY = parseFloat(img.getAttribute('y') || '0');
-    const orgW = 28;
-    const orgH = 28;
     img.setAttribute('data-org-x', orgX.toString());
     img.setAttribute('data-org-y', orgY.toString());
 
     // Initial opacity based on set membership
     img.style.opacity = isInSet ? '1' : '0.85';
-    img.style.cursor = 'pointer';
 
     // Initial dropshadow glow
     const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
@@ -74,10 +73,31 @@ export function setupPlotInteractions({
 
     // Transition styles
     img.style.transition = 'width 0.15s ease-out, height 0.15s ease-out, x 0.15s ease-out, y 0.15s ease-out';
+  });
+
+  // 2. Interaction Handlers on Voronoi Paths
+  voronoiPaths.forEach((path) => {
+    const itemId = path.getAttribute('data-id');
+    const item = filteredData.find(d => d.id === itemId);
+    if (!item || !itemId) return;
+
+    const isOptimal = paretoIds.has(itemId);
+    const initialColor = getItemColor(item, colorVar, colorMinMax, simulationContext);
+
+    // Ensure cursor is pointer
+    (path as HTMLElement).style.cursor = 'pointer';
 
     // Hover Interaction Handlers
     const handleMouseEnter = (e: MouseEvent) => {
+      const img = plot.querySelector(`image[data-id="${itemId}"]`) as SVGImageElement | null;
+      if (!img) return;
+
       container.setAttribute('data-hovered-id', itemId);
+      
+      const orgX = parseFloat(img.getAttribute('data-org-x') || '0');
+      const orgY = parseFloat(img.getAttribute('data-org-y') || '0');
+      const orgW = 28;
+      const orgH = 28;
       const hoverW = 46;
       const hoverH = 46;
       const deltaW = hoverW - orgW;
@@ -108,7 +128,7 @@ export function setupPlotInteractions({
           const otherId = other.getAttribute('data-id') || '';
           const otherInSet = curSetIds.has(otherId);
           const otherOptimal = paretoIds.has(otherId);
-          other.style.opacity = otherInSet || otherOptimal ? '0.7' : '0.15';
+          (other as SVGElement).style.opacity = otherInSet || otherOptimal ? '0.7' : '0.15';
         }
       });
 
@@ -120,7 +140,16 @@ export function setupPlotInteractions({
     };
 
     const handleMouseLeave = () => {
+      const img = plot.querySelector(`image[data-id="${itemId}"]`) as SVGImageElement | null;
+      if (!img) return;
+
       container.removeAttribute('data-hovered-id');
+      
+      const orgX = parseFloat(img.getAttribute('data-org-x') || '0');
+      const orgY = parseFloat(img.getAttribute('data-org-y') || '0');
+      const orgW = 28;
+      const orgH = 28;
+      
       img.setAttribute('width', orgW.toString());
       img.setAttribute('height', orgH.toString());
       img.setAttribute('x', orgX.toString());
@@ -145,7 +174,7 @@ export function setupPlotInteractions({
         const otherId = other.getAttribute('data-id') || '';
         const otherInSet = curSetIds.has(otherId);
         const otherOptimal = paretoIds.has(otherId);
-        other.style.opacity = otherInSet || otherOptimal ? '1' : '0.85';
+        (other as SVGElement).style.opacity = otherInSet || otherOptimal ? '1' : '0.85';
       });
 
       onLeavePlotRef.current();
@@ -155,10 +184,10 @@ export function setupPlotInteractions({
       onClickItemRef.current(item);
     };
 
-    img.addEventListener('mouseenter', handleMouseEnter);
-    img.addEventListener('mousemove', handleMouseMove);
-    img.addEventListener('mouseleave', handleMouseLeave);
-    img.addEventListener('click', handleMouseClick);
+    path.addEventListener('mouseenter', handleMouseEnter as EventListener);
+    path.addEventListener('mousemove', handleMouseMove as EventListener);
+    path.addEventListener('mouseleave', handleMouseLeave as EventListener);
+    path.addEventListener('click', handleMouseClick as EventListener);
   });
 }
 

@@ -13,7 +13,7 @@ function withDataId(dataArray: EquipmentItem[], baseRender?: Plot.RenderFunction
     
     if (group) {
       const allNodes = Array.from(group.childNodes) as SVGElement[];
-      const elements = allNodes.filter(n => n.nodeName === 'image' || n.nodeName === 'circle');
+      const elements = allNodes.filter(n => n.nodeName === 'image' || n.nodeName === 'circle' || n.nodeName === 'path');
       
       index.forEach((dataIndex, i) => {
         const d = dataArray[dataIndex];
@@ -180,6 +180,18 @@ export function buildPlotMarks({
       height: 28,
       title: d => d.name,
       opacity: markerOpacity,
+      render: withDataId(filteredData)
+    })
+  );
+
+  // Layer 6: Invisible Voronoi overlay for interaction
+  marks.push(
+    Plot.voronoi(filteredData, {
+      x: getX,
+      y: getY,
+      fill: 'none',
+      stroke: 'none',
+      pointerEvents: 'all',
       render: withDataId(filteredData)
     })
   );

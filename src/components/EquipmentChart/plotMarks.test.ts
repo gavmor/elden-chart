@@ -29,8 +29,8 @@ describe('buildPlotMarks', () => {
       getY: () => 1,
     });
 
-    // Layer 4.75 (hull) + Layer 5 (image)
-    expect(marks.length).toBe(2);
+    // Layer 4.75 (hull) + Layer 5 (image) + Layer 6 (voronoi)
+    expect(marks.length).toBe(3);
   });
 
   it('builds marks with pareto items', () => {
@@ -44,8 +44,8 @@ describe('buildPlotMarks', () => {
       getY: () => 1,
     });
 
-    // Layer 1 (line glow) + Layer 2 (line core) + Layer 3 (dot halos) + Layer 4.75 (hull) + Layer 5 (image)
-    expect(marks.length).toBe(5);
+    // Layer 1 (line glow) + Layer 2 (line core) + Layer 3 (dot halos) + Layer 4.75 (hull) + Layer 5 (image) + Layer 6 (voronoi)
+    expect(marks.length).toBe(6);
   });
 
   it('builds marks with active items indicators', () => {
@@ -59,8 +59,8 @@ describe('buildPlotMarks', () => {
       getY: () => 1,
     });
 
-    // Layer 4.5 (active text indicator) + Layer 4.75 (hull) + Layer 5 (image)
-    expect(marks.length).toBe(3);
+    // Layer 4.5 (active text indicator) + Layer 4.75 (hull) + Layer 5 (image) + Layer 6 (voronoi)
+    expect(marks.length).toBe(4);
   });
 
   it('does not render hull if colorVar is not category', () => {
@@ -74,7 +74,7 @@ describe('buildPlotMarks', () => {
       getY: () => 1,
     });
 
-    // Layer 5 (image) only
-    expect(marks.length).toBe(1);
+    // Layer 5 (image) + Layer 6 (voronoi)
+    expect(marks.length).toBe(2);
   });
 });
