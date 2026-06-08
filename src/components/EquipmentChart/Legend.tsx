@@ -38,7 +38,7 @@ export const EquipmentChartLegend: React.FC<Props> = ({
   }
 
   return (
-    <div className="absolute top-6 right-6 bg-panel/85 backdrop-blur-md border border-accent/20 rounded-lg p-3 text-xs shadow-lg z-10 flex flex-col gap-3 min-w-[200px] transition-all duration-200">
+    <div className="absolute top-6 right-6 bg-panel/85 backdrop-blur-md border border-accent/20 rounded-lg p-3 text-xs shadow-lg z-10 flex flex-col gap-3 min-w-[200px] max-w-[200px] transition-all duration-200">
       <div className="flex items-center justify-between border-b border-border-main/40 pb-2">
         <span className="font-semibold text-brand-accent uppercase tracking-wider text-[10px]">Chart Legend</span>
         <button
@@ -55,7 +55,12 @@ export const EquipmentChartLegend: React.FC<Props> = ({
           {activeGame === 'deadlock' && (
             <div className="flex items-center gap-2">
               <span className="w-5 text-center text-sm">⚡</span>
-              <span className="text-body text-text-secondary">Active Item / Ability</span>
+              <span 
+                className="text-body text-text-secondary truncate"
+                title="Active Item / Ability"
+              >
+                Active Item / Ability
+              </span>
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -63,13 +68,23 @@ export const EquipmentChartLegend: React.FC<Props> = ({
               <span>🛡️</span>
               <span className="absolute inset-0 rounded-full border border-emerald-400 border-dashed opacity-50 scale-150"></span>
             </span>
-            <span className="text-body text-text-secondary pl-1">Provides Debuff Mitigation</span>
+            <span 
+              className="text-body text-text-secondary pl-1 truncate"
+              title="Provides Debuff Mitigation"
+            >
+              Provides Debuff Mitigation
+            </span>
           </div>
         </div>
       </div>
 
       <div className="border-t border-border-main/50 pt-2.5">
-        <span className="block font-semibold text-text-secondary uppercase tracking-wider text-[10px] mb-2">{colorLabel} (Color)</span>
+        <span 
+          className="block font-semibold text-text-secondary uppercase tracking-wider text-[10px] mb-2 truncate"
+          title={`${colorLabel} (Color)`}
+        >
+          {colorLabel} (Color)
+        </span>
         
         {colorVar === 'category' ? (
           <div className="flex flex-col gap-1.5">
@@ -79,7 +94,12 @@ export const EquipmentChartLegend: React.FC<Props> = ({
                   className="w-3 h-3 rounded-full shrink-0" 
                   style={{ backgroundColor: getItemColor({ kind: activeGame === 'deadlock' ? 'deadlock_upgrade' : 'armor', category: cat } as unknown as EquipmentItem, 'category', null) }} 
                 />
-                <span className="text-[11px] text-text-secondary">{cat}</span>
+                <span 
+                  className="text-[11px] text-text-secondary truncate"
+                  title={cat}
+                >
+                  {cat}
+                </span>
               </div>
             ))}
           </div>
@@ -114,8 +134,13 @@ export const EquipmentChartLegend: React.FC<Props> = ({
               <TrendingUp className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-text-primary group-hover:text-text-bright transition-colors font-semibold">Pareto Frontier</span>
+          <div className="flex flex-col min-w-0">
+            <span 
+              className="text-xs text-text-primary group-hover:text-text-bright transition-colors font-semibold truncate"
+              title="Pareto Frontier"
+            >
+              Pareto Frontier
+            </span>
           </div>
         </label>
       </div>
