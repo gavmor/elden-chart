@@ -4,6 +4,7 @@ import { SidebarAxes } from './SidebarAxes';
 import { SidebarCategories } from './SidebarCategories';
 import { DoubleSlider } from './DoubleSlider';
 import { useSidebarContext } from './SidebarContext';
+import { TraitExplainer } from './TraitExplainer';
 
 export default function EquipmentChartSidebar() {
   const { activeGame, statGroups, metricFilters, metricBounds, onMetricFilterChange, onResetMetricFilters } = useSidebarContext();
@@ -53,7 +54,10 @@ export default function EquipmentChartSidebar() {
             return (
               <div key={metric.id}>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">{metric.label}</label>
+                  <div className="flex items-center gap-2">
+                    <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">{metric.label}</label>
+                    <TraitExplainer statId={metric.id} />
+                  </div>
                 </div>
                 <DoubleSlider
                   min={bounds[0]}
