@@ -15,21 +15,18 @@ export default function EquipmentChartSidebar() {
       <SidebarCategories />
 
       {activeGame === 'deadlock' && (
-        <div className="space-y-4 pt-4 border-t border-border-main">
-          <label className="block text-xs font-semibold text-brand-accent uppercase tracking-wider">Debuff Configuration</label>
-          <div className="pt-2">
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Debuff Mitigation Filter (%)</label>
-            </div>
-            <DoubleSlider
-              min={0}
-              max={100}
-              step={1}
-              value={debuffFilterRange}
-              onChange={onDebuffFilterRangeChange}
-              formatValue={(val) => `${Math.round(val)}%`}
-            />
+        <div className="pt-4 border-t border-border-main">
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Debuff Mitigation Filter (%)</label>
           </div>
+          <DoubleSlider
+            min={0}
+            max={100}
+            step={1}
+            value={debuffFilterRange}
+            onChange={onDebuffFilterRangeChange}
+            formatValue={(val) => `${Math.round(val)}%`}
+          />
         </div>
       )}
 

@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
 import { TrendingUp, HelpCircle, Minus } from 'lucide-react';
+import type { StatOption, EquipmentItem } from '../types';
+import { getItemColor } from '../display/styling';
 
 interface Props {
   activeGame: 'elden-ring' | 'deadlock';
   showPareto: boolean;
   onShowParetoChange: (val: boolean) => void;
+  colorVar: string;
+  colorMinMax: { min: number; max: number } | null;
+  statOptions: StatOption[];
+  categories: string[];
 }
 
 export const EquipmentChartLegend: React.FC<Props> = ({
   activeGame,
   showPareto,
   onShowParetoChange,
+  colorVar,
+  colorMinMax,
+  statOptions,
+  categories,
 }) => {
   const [isMinimized, setIsMinimized] = useState(false);
+  const colorLabel = colorVar === 'category' ? 'Category' : statOptions.find(o => o.id === colorVar)?.label || colorVar;
 
   if (isMinimized) {
     return (
@@ -55,6 +66,35 @@ export const EquipmentChartLegend: React.FC<Props> = ({
             <span className="text-body text-text-secondary pl-1">Provides Debuff Mitigation</span>
           </div>
         </div>
+      </div>
+
+      <div className="border-t border-border-main/50 pt-2.5">
+        <span className="block font-semibold text-text-secondary uppercase tracking-wider text-[10px] mb-2">{colorLabel} (Color)</span>
+        
+        {colorVar === 'category' ? (
+          <div className="flex flex-col gap-1.5">
+            {categories.map(cat => (
+              <div key={cat} className="flex items-center gap-2">
+                <span 
+                  className="w-3 h-3 rounded-full shrink-0" 
+                  style={{ backgroundColor: getItemColor({ kind: activeGame === 'deadlock' ? 'deadlock_upgrade' : 'armor', category: cat } as unknown as EquipmentItem, 'category', null) }} 
+                />
+                <span className="text-[11px] text-text-secondary">{cat}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <div 
+              className="h-2 rounded-full w-full" 
+              style={{ background: 'linear-gradient(to right, hsl(0, 85%, 60%), hsl(36, 85%, 60%), hsl(73, 85%, 60%), hsl(110, 85%, 60%), hsl(146, 85%, 60%), hsl(183, 85%, 60%), hsl(220, 85%, 60%))' }}
+            />
+            <div className="flex justify-between items-center text-[10px] text-text-tertiary">
+              <span>{colorMinMax ? Math.round(colorMinMax.min) : 0}</span>
+              <span>{colorMinMax ? Math.round(colorMinMax.max) : 100}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border-main/50 pt-2.5">

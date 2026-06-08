@@ -137,6 +137,10 @@ export function ChartWorkspace({
           activeGame={state.activeGame}
           showPareto={state.showPareto}
           onShowParetoChange={actions.setShowPareto}
+          colorVar={state.resolvedColorVar}
+          colorMinMax={state.colorMinMax}
+          statOptions={state.statOptions}
+          categories={Object.keys(state.activeCategories)}
         />
       )}
     </main>
