@@ -56,9 +56,10 @@ const CALCULATED_METRICS: Record<string, { description: string; formula?: string
 
 interface TraitExplainerProps {
   statId: string;
+  rotateTooltip?: boolean;
 }
 
-export function TraitExplainer({ statId }: TraitExplainerProps) {
+export function TraitExplainer({ statId, rotateTooltip = false }: TraitExplainerProps) {
   const info = useMemo(() => {
     if (CALCULATED_METRICS[statId]) {
       return CALCULATED_METRICS[statId];
@@ -73,7 +74,7 @@ export function TraitExplainer({ statId }: TraitExplainerProps) {
     <div className="relative group flex items-center justify-center">
       <Info className="w-4 h-4 text-brand-accent/70 cursor-help transition-colors group-hover:text-brand-accent" />
       
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-bg-card border border-border-main rounded-md shadow-xl p-3 z-50 pointer-events-none">
+      <div className={`absolute left-1/2 -translate-x-1/2 ${rotateTooltip ? 'top-full mt-2 rotate-90' : 'bottom-full mb-2'} w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 bg-bg-card border border-border-main rounded-md shadow-xl p-3 z-50 pointer-events-none`}>
         <p className="text-xs text-text-primary leading-relaxed">
           {info.description}
         </p>
@@ -83,8 +84,8 @@ export function TraitExplainer({ statId }: TraitExplainerProps) {
           </p>
         )}
         {/* Triangle arrow */}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-border-main" />
-        <div className="absolute top-[calc(100%-1px)] left-1/2 -translate-x-1/2 border-4 border-transparent border-t-bg-card" />
+        <div className={`absolute border-4 border-transparent ${rotateTooltip ? 'right-full mr-[1px] top-1/2 -translate-y-1/2 border-r-border-main' : 'top-full left-1/2 -translate-x-1/2 border-t-border-main'}`} />
+        <div className={`absolute border-4 border-transparent ${rotateTooltip ? 'right-[calc(100%-1px)] top-1/2 -translate-y-1/2 border-r-bg-card' : 'top-[calc(100%-1px)] left-1/2 -translate-x-1/2 border-t-bg-card'}`} />
       </div>
     </div>
   );

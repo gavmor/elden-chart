@@ -9,7 +9,7 @@ interface AxisSelectorProps {
   traitCounts: Record<string, number>;
   statGroups: Record<string, StatOption[]>;
   className?: string;
-  hideExplainer?: boolean;
+  rotateTooltip?: boolean;
 }
 
 export function AxisSelector({
@@ -20,7 +20,7 @@ export function AxisSelector({
   traitCounts,
   statGroups,
   className = '',
-  hideExplainer = false,
+  rotateTooltip = false,
 }: AxisSelectorProps) {
   return (
     <div className={`flex items-center gap-2 bg-bg-card/90 backdrop-blur-sm border border-border-main p-2 rounded-lg shadow-lg z-10 ${className}`}>
@@ -50,7 +50,7 @@ export function AxisSelector({
           ))
         )}
       </select>
-      {!hideExplainer && value && statOptions.length > 0 && <TraitExplainer statId={value} />}
+      {value && statOptions.length > 0 && <TraitExplainer statId={value} rotateTooltip={rotateTooltip} />}
     </div>
   );
 }
