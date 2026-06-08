@@ -194,16 +194,16 @@ export function useEquipmentChartState() {
 
   const colorMinMax = useMemo(() => {
     if (resolvedColorVar === 'category') return null;
-    const values = filteredData.map(d => getItemStat(d, resolvedColorVar, vacuumContext));
+    const values = filteredData.map(d => getItemStat(d, resolvedColorVar, simulationContext));
     if (values.length === 0) return null;
     return { min: Math.min(...values), max: Math.max(...values) };
-  }, [filteredData, resolvedColorVar, vacuumContext]);
+  }, [filteredData, resolvedColorVar, simulationContext]);
 
   const chartProps = useMemo(() => {
     if (filteredData.length === 0) return null;
 
-    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar, vacuumContext));
-    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar, vacuumContext));
+    const xValues = filteredData.map(d => getItemStat(d, resolvedXVar, simulationContext));
+    const yValues = filteredData.map(d => getItemStat(d, resolvedYVar, simulationContext));
 
     const xMinRaw = Math.min(...xValues);
     const xMaxRaw = Math.max(...xValues);
@@ -218,7 +218,7 @@ export function useEquipmentChartState() {
     const yMax = yMaxRaw + yRange * 0.05;
 
     return { xMin, xMax, yMin, yMax };
-  }, [filteredData, resolvedXVar, resolvedYVar, vacuumContext]);
+  }, [filteredData, resolvedXVar, resolvedYVar, simulationContext]);
 
   return {
     state: {

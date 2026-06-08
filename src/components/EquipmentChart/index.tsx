@@ -153,7 +153,6 @@ export default function EquipmentChart() {
                 onClickItem={actions.handleToggleSet}
                 showPareto={state.showPareto}
                 simulationContext={state.simulationContext}
-                vacuumContext={state.vacuumContext}
               />
             </>
           )}
